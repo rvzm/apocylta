@@ -1,0 +1,21 @@
+{
+  "name": "apocylta",
+  "version": "0.0.1",
+  "description": "post-apocalypse rpg, for your terminal.",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "node --watch main.js",
+    "test": "node --test test/unit/*.test.js test/integration/*.test.js",
+    "test:unit": "node --test test/unit/*.test.js",
+    "test:integration": "node --test test/integration/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "neo-blessed": "^0.2.0"
+  }
+}

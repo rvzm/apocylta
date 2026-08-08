@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -141,3 +142,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+=======
+node_modules/
+*.sqlite
+*.sqlite-journal
+*.log
+FUTURE.md
+>>>>>>> d364eee (apocylta is born)
