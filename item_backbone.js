@@ -816,40 +816,32 @@ export const MINING_RESOURCES = {
 // Anything absent from every tier (gold, and the smithing-type flux/limestone
 // listed below, which never reach the mining filter at all) is unlisted rather
 // than forbidden - it shows in every mine. Add a name here to gate it.
+//
+// Five tiers, ordered by the mining level their metals need: tin/copper 1, iron
+// 5, cobalt 10, mithril 25, syllic 40, adamantite 45, runic 60. `advanced` sits
+// between mid_tier and high_tier and is what the Cordura deep mines resolve to -
+// they used to resolve to nothing at all (see the helpers below).
+// `tier` must stay contiguous from 1: mineLockNamesUpTo() counts up through it,
+// and ALL_MINE_LOCK_NAMES takes its ceiling from the number of keys here.
 export const MINE_LOCK = {
     basic: { metals: ["tin", "copper", "iron"], gems: ["ruby", "sapphire", "emerald"], fuel: ["coal"], tier: 1 },
     mid_tier: { metals: ["cobalt", "mithril"], gems: ["diamond", "amethyst", "topaz"], fuel: ["charcoal"], tier: 2 },
-    high_tier: { metals: ["adamantite", "syllic"], gems: ["opal"], fuel: ["flux", "limestone"], tier: 3 },
-    legendary: { metals: ["runic"], gems: [], fuel: [], tier: 4 },
+    advanced: { metals: ["syllic"], gems: [], fuel: [], tier: 3 },
+    high_tier: { metals: ["adamantite"], gems: ["opal"], fuel: ["flux", "limestone"], tier: 4 },
+    legendary: { metals: ["runic"], gems: [], fuel: [], tier: 5 },
 }
 // MINE LOCK helpers
+//
+// Both of these were switch statements mirroring the object above, and the
+// duplication cost real behaviour: nine locations (the Cordura deep mines) name
+// a tier the switch had no case for, so getMineLockByName() returned null,
+// mineableOres() applied NO gate, and those mines quietly offered every ore in
+// the game - runic included. A lookup can't fall out of step with the table.
 export function getMineLockByTier(tier) {
-    switch (tier) {
-        case 1:
-            return MINE_LOCK.basic;
-        case 2:
-            return MINE_LOCK.mid_tier;
-        case 3:
-            return MINE_LOCK.high_tier;
-        case 4:
-            return MINE_LOCK.legendary;
-        default:
-            return null;
-    }
+    return Object.values(MINE_LOCK).find((lock) => lock.tier === tier) ?? null;
 }
 export function getMineLockByName(name) {
-    switch (name) {
-        case "basic":
-            return MINE_LOCK.basic;
-        case "mid_tier":
-            return MINE_LOCK.mid_tier;
-        case "high_tier":
-            return MINE_LOCK.high_tier;
-        case "legendary":
-            return MINE_LOCK.legendary;
-        default:
-            return null;
-    }
+    return MINE_LOCK[name] ?? null;
 }
 export function getMineLockMetalsByTier(tier) {
     const lock = getMineLockByTier(tier);
