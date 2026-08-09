@@ -49,8 +49,20 @@ test("isMineableAtTier() is cumulative - a higher tier keeps everything below it
   assert.equal(isMineableAtTier(1, "cobalt_ore", "cobalt"), false, "cobalt is mid_tier");
   assert.equal(isMineableAtTier(2, "cobalt_ore", "cobalt"), true);
   assert.equal(isMineableAtTier(2, "tin_ore", "tin"), true, "and still yields basic's metals");
-  assert.equal(isMineableAtTier(4, "runic_ore", "runic"), true);
-  assert.equal(isMineableAtTier(3, "runic_ore", "runic"), false, "runic is legendary-only");
+  assert.equal(isMineableAtTier(5, "runic_ore", "runic"), true);
+  assert.equal(isMineableAtTier(4, "runic_ore", "runic"), false, "runic is legendary-only");
+});
+
+// `advanced` (tier 3) splits the old high_tier in two, on the mining level its
+// metals need: syllic 40 below, adamantite 45 above. Since tiers are cumulative
+// the split cost the tiers above it nothing - it only gave the Cordura deep
+// mines, which name this tier, something real to resolve to.
+test("isMineableAtTier() places syllic below adamantite, at the advanced tier", () => {
+  assert.equal(isMineableAtTier(3, "syllic_ore", "syllic"), true);
+  assert.equal(isMineableAtTier(2, "syllic_ore", "syllic"), false, "syllic needs advanced");
+  assert.equal(isMineableAtTier(3, "adamantite_ore", "adamantite"), false, "adamantite is still high_tier");
+  assert.equal(isMineableAtTier(4, "adamantite_ore", "adamantite"), true);
+  assert.equal(isMineableAtTier(4, "syllic_ore", "syllic"), true, "and high_tier keeps what advanced offered");
 });
 
 // Unlisted means unlisted, not forbidden - otherwise adding an ore item would
@@ -78,6 +90,11 @@ test("mineableOres(locationId) narrows the list to the local mine's tier", () =>
   assert.ok(mid.includes("cobalt_ore"));
   assert.ok(mid.includes("tin_ore"), "and everything basic offered");
   assert.ok(!mid.includes("adamantite_ore"), "adamantite needs high_tier");
+
+  const advanced = mineableOres("cordura_mines_deep").map((o) => o.id); // mine: "advanced"
+  assert.ok(advanced.includes("syllic_ore"));
+  assert.ok(!advanced.includes("adamantite_ore"), "advanced stops below adamantite");
+  assert.ok(!advanced.includes("runic_ore"), "and well below runic");
 
   const legendary = mineableOres("south_deep_cave").map((o) => o.id);
   assert.ok(legendary.includes("runic_ore"));

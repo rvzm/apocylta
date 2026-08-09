@@ -6,6 +6,40 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LOCATIONS, resolveFlavorText } from "../../data/locations.js";
 import { createInitialState } from "../../state/gameState.js";
+import { MINE_LOCK, FISH } from "../../item_backbone.js";
+
+// The gate a location's `mine:`/`water:` field opens is looked up by NAME, and a
+// name nothing recognises resolves to null - which reads as "no gate" rather
+// than "no ores", so the mine silently offers everything instead of failing.
+// Nine locations shipped `mine: "advanced"` against a four-tier MINE_LOCK that
+// had no such key, and the Cordura deep mines handed out runic ore to anyone who
+// walked in. Cheap to assert, invisible otherwise.
+test("every location's mine tier is a real MINE_LOCK key", () => {
+  const unknown = Object.entries(LOCATIONS)
+    .filter(([, l]) => l.mine !== undefined && !(l.mine in MINE_LOCK))
+    .map(([id, l]) => `${id}: mine "${l.mine}"`);
+  assert.deepEqual(unknown, [], `known tiers are ${Object.keys(MINE_LOCK).join(", ")}`);
+});
+
+test("every location's water type is one some fish species lives in", () => {
+  // `water: true` on a species means both waters, so it names neither.
+  const known = new Set(Object.values(FISH).map((f) => f.water).filter((w) => typeof w === "string"));
+  const unknown = Object.entries(LOCATIONS)
+    .filter(([, l]) => l.water !== undefined && !known.has(l.water))
+    .map(([id, l]) => `${id}: water "${l.water}"`);
+  assert.deepEqual(unknown, [], `known waters are ${[...known].join(", ")}`);
+});
+
+// MINE_LOCK's tier numbers are walked as a range by mineLockNamesUpTo(), whose
+// ceiling is the KEY COUNT - so a gap or a duplicate silently drops a tier out
+// of every cumulative lookup.
+test("MINE_LOCK tiers are contiguous from 1", () => {
+  const tiers = Object.values(MINE_LOCK).map((lock) => lock.tier);
+  assert.deepEqual(
+    [...tiers].sort((a, b) => a - b),
+    Object.keys(MINE_LOCK).map((_, i) => i + 1)
+  );
+});
 
 // Renders the body the way ui/screens/location.js does. Two states, because a
 // conditional line appears in one and not the other - a location that only

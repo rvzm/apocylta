@@ -44,9 +44,11 @@ function fighter({ difficulty = "normal", ...overrides } = {}) {
 
 // ---------------------------------------------------------------- stat math
 
-test("playerAttackPower(): unarmed base plus fighting level, since starters are never auto-equipped", () => {
+test("playerAttackPower(): unarmed base plus fighting level, with an empty weapon slot", () => {
   const state = fighter();
-  assert.equal(state.equipment.weapon, null);
+  // A new character starts with the starter dagger equipped, so the unarmed
+  // path has to be reached by taking it off rather than by not having one.
+  state.equipment.weapon = null;
   assert.equal(playerAttackPower(state), 2 + 1); // UNARMED_DAMAGE + fighting level 1
 
   state.skills.fighting.level = 10;

@@ -14,6 +14,9 @@ import { createInitialState } from "../../state/gameState.js";
 
 test("with no belt equipped: on-the-belt resources are fully gated, general storage uses the baseline", () => {
   const state = createInitialState();
+  // The starter belt is worn from the start, so the ungirded case is reached by
+  // taking it off - which is still reachable in play, via the Toolbelt screen.
+  state.equipment.belt = null;
   assert.equal(hasBeltEquipped(state), false);
   assert.equal(slingshotAmmoCap(state), 0);
   assert.equal(waterBottleCap(state), 0);

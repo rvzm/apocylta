@@ -111,11 +111,14 @@ test("finalizeCharacter() merges race + starter pack items/gold and sets profici
   assert.equal(state.name, "Tester");
   assert.equal(state.gold, 5500); // 500 (human) + 5000 (deep_pockets)
   assert.equal(state.inventory.hammer, 1);
-  // STARTER_ITEMS (player_backbone.js) - granted to every character
-  // regardless of race/class, not auto-equipped.
+  // STARTER_ITEMS (player_backbone.js) - granted to every character regardless
+  // of race/class, and worn from the start: createInitialState() seeds the
+  // weapon and belt slots from the same lists, so they're both in the inventory
+  // and on the character.
   assert.equal(state.inventory.leather_belt, 1);
   assert.equal(state.inventory.wooden_dagger, 1);
-  assert.equal(state.equipment.belt, null);
+  assert.equal(state.equipment.belt, "leather_belt");
+  assert.equal(state.equipment.weapon, "wooden_dagger");
   assert.equal(state.characterDraft, null);
 
   for (const skillId of ["mining", "barter", "fighting", "defense", "cooking"]) {

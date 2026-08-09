@@ -21,7 +21,9 @@ test("buildToolbeltPayload() encodes uncapped quiver as null, not Infinity/undef
 });
 
 test("buildToolbeltPayload() with no belt: quiverCap is a real 0, not null", () => {
-  assert.equal(buildToolbeltPayload(createInitialState()).quiverCap, 0);
+  const state = createInitialState();
+  state.equipment.belt = null; // the starter belt is worn by default
+  assert.equal(buildToolbeltPayload(state).quiverCap, 0);
 });
 
 test("buildToolbeltPayload() reflects toolbelt held amounts and caps", () => {

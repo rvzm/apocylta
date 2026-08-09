@@ -111,6 +111,7 @@ test("hasIngredients() checks inventory quantities against a requirement map", (
 test("hasIngredients() checks water against state.toolbelt.waterBottle, and requires a belt equipped", () => {
   const state = createInitialState();
   state.toolbelt.waterBottle = 2;
+  state.equipment.belt = null; // the starter belt is worn by default
   assert.equal(hasIngredients(state, { water: 2 }), false, "no belt equipped - water unusable regardless of amount held");
 
   state.equipment.belt = "leather_belt";
