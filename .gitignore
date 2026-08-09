@@ -1,3 +1,8 @@
+# Apocylta .gitignore
+
+data/autosave.json
+planned.*
+
 <<<<<<< HEAD
 # Logs
 logs
@@ -149,5 +154,3 @@ node_modules/
 *.log
 FUTURE.md
 >>>>>>> d364eee (apocylta is born)
-planned.*
-data/autosave.json
