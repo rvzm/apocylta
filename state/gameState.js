@@ -251,8 +251,11 @@ export function grantRewardXp(state, amount) {
 // race/class/pack - a "gold" key credits gold instead of adding an
 // inventory item); a granted "set"-type item is unpacked into its component
 // pieces since sets aren't equippable/usable as-is anywhere in the game yet.
-// Nothing here gets auto-equipped, including the starter belt - matches how
-// every other starter item already works.
+// Nothing here equips anything, but the character isn't empty-handed either:
+// createInitialToolbelt()'s sibling above seeds the weapon and belt slots
+// straight from STARTER_ITEMS, so the starter dagger and leather belt are worn
+// from the first screen - they land in the inventory here and are already on the
+// character. Every other starter item stays unequipped.
 export function finalizeCharacter(state, draft) {
   const race = RACES[draft.raceId];
   const cls = CLASSES[draft.classId];
