@@ -22,7 +22,7 @@ export const game_config = {
   // locks them out, and only an unset/empty value falls through to this flag.
   // Same convention as DEBUG_LEVEL/DB_PATH; see adminEnabled() in
   // ui/screens/admin/shared.js for why the override has to close as well as open.
-  allow_admin: true,
+  allow_admin: false,
 };
 
 export const server_config = {
