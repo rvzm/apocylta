@@ -1,5 +1,6 @@
 import { STATIONS } from "../../item_backbone.js";
 import { getBuyPrice, canAfford, chargeGold } from "../../data/shops.js";
+import { indoorTimeLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
@@ -34,6 +35,13 @@ function selectedRowId(ui) {
 }
 
 export const shopHousingScreen = {
+  subHeader: [
+    "Deeds in a filing cabinet, most of them for places that no longer stand.",
+    "The clerk has been here a long time and has stopped pretending to be pleased about it.",
+    "A wall map marks the plots still standing. There aren't many left unmarked.",
+    indoorTimeLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "location"),
     P: (state, ui) => {

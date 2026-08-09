@@ -19,6 +19,7 @@ import {
   BOSS_LEVEL_REQUIREMENT,
 } from "../../data/combat.js";
 import { BASIC_ENEMIES } from "../../enemy_backbone.js";
+import { DIFFICULTY_LEVELS } from "../../player_backbone.js";
 import { player_config } from "../../config.js";
 
 // Every rolling function in data/combat.js takes an rng last, so these fix it
@@ -151,6 +152,45 @@ test("spawnEncounter(): returns null in a location with no pool, rather than thr
   const state = fighter({ currentLocationId: "town_square" });
   assert.equal(spawnEncounter(state, {}, ALWAYS), null);
   assert.equal(spawnEncounter(state, { boss: true }, ALWAYS), null);
+});
+
+// Groups sit in the same `enemies` pool as lone enemies, so a uniform pick made
+// a whole pack exactly as likely as one goblin - at every difficulty.
+// DIFFICULTY_LEVELS' modifiers.groupSpawn weights them instead.
+test("spawnEncounter(): groupSpawn weights how often a pack turns up", () => {
+  // wilderness's pool is four lone goblins/humans plus weak_goblin_group.
+  const sample = (difficulty) => {
+    const state = fighter({ currentLocationId: "wilderness" });
+    state.difficulty = difficulty;
+    const seen = { group: 0, solo: 0 };
+    for (let i = 0; i < 600; i++) {
+      const encounter = spawnEncounter(state, {}, Math.random);
+      seen[encounter.sourceId === "weak_goblin_group" ? "group" : "solo"] += 1;
+    }
+    return seen;
+  };
+
+  const casual = sample("casual"); // groupSpawn 0.25
+  const nightmare = sample("nightmare"); // groupSpawn 2.5
+  assert.ok(
+    nightmare.group > casual.group * 2,
+    `nightmare should turn up far more packs (casual ${casual.group}, nightmare ${nightmare.group})`
+  );
+  assert.ok(casual.solo > 0 && nightmare.solo > 0, "lone enemies never stop appearing");
+});
+
+test("spawnEncounter(): a groupSpawn of 0 keeps packs out entirely", () => {
+  const state = fighter({ currentLocationId: "wilderness" });
+  state.difficulty = "no_groups_here";
+  DIFFICULTY_LEVELS.no_groups_here = { logic: {}, modifiers: { groupSpawn: 0 } };
+
+  try {
+    for (let i = 0; i < 200; i++) {
+      assert.notEqual(spawnEncounter(state, {}, Math.random).sourceId, "weak_goblin_group");
+    }
+  } finally {
+    delete DIFFICULTY_LEVELS.no_groups_here;
+  }
 });
 
 test("beginCombat(): interrupts whatever action was running", () => {

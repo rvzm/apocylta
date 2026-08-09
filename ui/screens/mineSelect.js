@@ -1,5 +1,6 @@
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { mineableOres, canMineOre } from "../../data/mining.js";
+import { indoorTimeLine, packLine } from "../../data/flavor.js";
 import { beginAction } from "../../data/actions.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
@@ -27,6 +28,14 @@ function selectedOreId(ui) {
 }
 
 export const mineSelectScreen = {
+  subHeader: [
+    "Dust hangs in the lamplight. The seams run off into the dark in every direction.",
+    "Somewhere further in, water is dripping onto stone at a steady rate.",
+    "Old chalk marks on the props - someone counted these tunnels once.",
+    indoorTimeLine,
+    packLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "location"),
     C: (state, ui) => {
@@ -43,7 +52,10 @@ export const mineSelectScreen = {
       // Just the chosen ore - coal and gemstones come from data/mining.js's
       // rollMineBonuses() instead, so they add to the haul rather than
       // outweighing it (fuel used to win two thirds of every roll).
-      beginAction(state, "mine", { lootSubtype: ALL_ITEMS[oreId].subtype });
+      // targetLevel is what the ore needs, which is what makes a mithril seam
+      // miss more often than tin at the same mining level.
+      const requiredLevel = mineableOres(state.currentLocationId).find(({ id }) => id === oreId)?.requiredLevel;
+      beginAction(state, "mine", { lootSubtype: ALL_ITEMS[oreId].subtype, targetLevel: requiredLevel ?? 1 });
       logger.info("mineSelect", `Started mining ${oreId}.`);
       switchScreen(state, ui, "action");
     },

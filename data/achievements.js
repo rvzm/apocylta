@@ -17,7 +17,7 @@ import { ALL_ENEMIES } from "../enemy_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
 import { SPELLS } from "../magic_backbone.js";
 import { isSpellKnown } from "./magic.js";
-import { grantPlayerXp, grantSkillXp, pushToast } from "../state/gameState.js";
+import { grantRewardXp, grantSkillXp, pushToast } from "../state/gameState.js";
 import { logger } from "../logger.js";
 
 const done = (complete, current = complete ? 1 : 0, target = 1) => ({ current, target, complete });
@@ -197,9 +197,9 @@ export function grantAchievementReward(state, achievement) {
   const { gold = 0, xp } = achievement.reward ?? {};
   state.gold += gold;
   if (typeof xp === "number") {
-    grantPlayerXp(state, xp);
+    grantRewardXp(state, xp);
   } else if (xp) {
-    if (xp.player) grantPlayerXp(state, xp.player);
+    if (xp.player) grantRewardXp(state, xp.player);
     for (const [skillId, amount] of Object.entries(xp.skill ?? {})) {
       grantSkillXp(state, skillId, amount);
     }

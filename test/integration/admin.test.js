@@ -7,6 +7,9 @@ import { fileURLToPath } from "node:url";
 import { tmuxSession, uniqueSessionName } from "../helpers/tmux.js";
 import { bootstrapCharacter } from "../helpers/bootstrapCharacter.js";
 import { travelDigit, actionDigit } from "../helpers/hotkeys.js";
+// Read rather than assumed: one case below asserts the game honours whatever
+// this is currently set to, instead of the suite depending on a particular value.
+import { game_config } from "../../config.js";
 
 const PROJECT_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const TO_WILDERNESS = travelDigit("town_square", "wilderness");
@@ -27,7 +30,28 @@ async function openMenu(session) {
   await session.waitFor("[S]ave");
 }
 
-test("admin: gated off by default, and unreachable even by hotkey", async (t) => {
+// Asserts the closed gate: no entry in the Menu, and the hotkey no-ops rather
+// than merely being unlisted.
+async function assertGateClosed(session) {
+  assert.doesNotMatch(session.capture(), /\[V\] ?Admin/, "the Menu must not advertise Admin");
+  session.sendKeys("v");
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const pane = session.capture();
+  assert.match(pane, /\[S\]ave/, "still on the Menu");
+  assert.doesNotMatch(pane, /What would you like to edit/);
+}
+
+async function assertGateOpen(session) {
+  assert.match(session.capture(), /\[V\] ?Admin/, "the Menu should advertise Admin");
+  session.sendKeys("v");
+  await session.waitFor("What would you like to edit?");
+}
+
+// ALLOW_ADMIN=false pins the gate shut whatever config.js currently says. This
+// case used to launch with no env var at all and lean on the shipped
+// allow_admin: false, which made it fail the moment someone flipped that flag
+// locally - a test about the gate's mechanism breaking over the gate's setting.
+test("admin: ALLOW_ADMIN=false closes the gate, and it's unreachable even by hotkey", async (t) => {
   const { dir, env } = scratch();
   const session = tmuxSession(uniqueSessionName("apocylta-admin-off"));
   t.after(() => {
@@ -35,19 +59,31 @@ test("admin: gated off by default, and unreachable even by hotkey", async (t) =>
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  // No ALLOW_ADMIN, and config.js ships allow_admin: false.
-  session.start(`env ${env} node main.js`, { width: 120, height: 50, cwd: PROJECT_ROOT });
+  session.start(`env ${env} ALLOW_ADMIN=false node main.js`, { width: 120, height: 50, cwd: PROJECT_ROOT });
   await bootstrapCharacter(session, { name: "Nobody" });
 
   await openMenu(session);
-  assert.doesNotMatch(session.capture(), /\[V\] ?Admin/, "the Menu must not advertise Admin");
+  await assertGateClosed(session);
+});
 
-  // The handler no-ops rather than merely being unlisted.
-  session.sendKeys("v");
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  const pane = session.capture();
-  assert.match(pane, /\[S\]ave/, "still on the Menu");
-  assert.doesNotMatch(pane, /What would you like to edit/);
+// The other half: with no env var, the config flag itself decides. Whichever way
+// it's set, this asserts the game agrees with it - so it passes on a checkout
+// with admin on and on one with it off, while still failing if the flag and the
+// Menu ever disagree.
+test(`admin: with no env override, the Menu follows game_config.allow_admin (currently ${game_config.allow_admin})`, async (t) => {
+  const { dir, env } = scratch();
+  const session = tmuxSession(uniqueSessionName("apocylta-admin-config"));
+  t.after(() => {
+    session.kill();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  session.start(`env ${env} node main.js`, { width: 120, height: 50, cwd: PROJECT_ROOT });
+  await bootstrapCharacter(session, { name: "Configured" });
+
+  await openMenu(session);
+  if (game_config.allow_admin === true) await assertGateOpen(session);
+  else await assertGateClosed(session);
 });
 
 test("admin: hub, stat editing, infinite items and a forced quest objective", async (t) => {

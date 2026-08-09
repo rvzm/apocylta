@@ -1,5 +1,6 @@
 import { formatCommandRow } from "../../format.js";
 import { switchScreen } from "../../router.js";
+import { MAX_PLAYER_LEVEL } from "../../../skill_backbone.js";
 import {
   adjust,
   enterList,
@@ -25,7 +26,7 @@ const FIELDS = [
   { id: "mp", label: "Mana", get: (s) => s.mp, max: (s) => s.mpMax },
   { id: "mpMax", label: "Max Mana", get: (s) => s.mpMax, min: 1 },
   { id: "gold", label: "Gold", get: (s) => s.gold },
-  { id: "level", label: "Level", get: (s) => s.level, min: 1 },
+  { id: "level", label: "Level", get: (s) => s.level, min: 1, max: () => MAX_PLAYER_LEVEL },
   { id: "experience", label: "Experience", get: (s) => s.experience },
 ];
 

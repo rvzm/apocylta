@@ -1,10 +1,15 @@
-import { startedQuests, objectiveStatus, claimCompletedQuests } from "../../data/quests.js";
+import { startedQuests, objectiveStatus, claimCompletedQuests, walkObjectives } from "../../data/quests.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
-function objectiveLine(state, questId, label) {
-  const { current, target, complete } = objectiveStatus(state, questId, label);
-  return `    ${complete ? "[x]" : "[ ]"} ${label} (${current}/${target})`;
+// A group's children indent under it, and the group's own line ends in a colon
+// to read as a heading rather than as another thing to go and do. Counters stay
+// on every row: a group's is "required children done / required children".
+function objectiveLine(state, questId, { path, label, depth, optional, group }) {
+  const { current, target, complete } = objectiveStatus(state, questId, path);
+  const indent = "    ".repeat(depth + 1);
+  const tail = optional ? " (optional)" : "";
+  return `${indent}${complete ? "[x]" : "[ ]"} ${label}${group ? ":" : ""} (${current}/${target})${tail}`;
 }
 
 function buildBody(state) {
@@ -19,7 +24,7 @@ function buildBody(state) {
     lines.push("In Progress:");
     for (const { id, quest } of inProgress) {
       lines.push(`  ${quest.name}`);
-      for (const label of Object.keys(quest.objectives)) lines.push(objectiveLine(state, id, label));
+      for (const node of walkObjectives(quest)) lines.push(objectiveLine(state, id, node));
       lines.push(`    Reward: ${quest.reward.gold}gp, ${quest.reward.xp}xp`, "");
     }
   }

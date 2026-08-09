@@ -9,6 +9,21 @@ import {
   canCastSpell,
   castSpell,
 } from "../../data/magic.js";
+import { SPELLS } from "../../magic_backbone.js";
+
+// Picked out of the catalog rather than named: which spells carry a `learn`
+// cost is tuning data that has already been re-pitched once (cure lost its cost
+// and frost_spike gained one when every spell got a rarity), and these tests
+// are about the mechanics, not about any particular spell.
+const COSTED = Object.keys(SPELLS).find((id) => SPELLS[id].learn && !SPELLS[id].starter);
+const FREE = Object.keys(SPELLS).find((id) => !SPELLS[id].learn && !SPELLS[id].starter);
+
+// Enough magic level to be allowed to learn anything these tests reach for.
+function mage(spellId) {
+  const state = createInitialState();
+  state.skills.magic.level = SPELLS[spellId]?.level ?? 1;
+  return state;
+}
 
 test("isSpellKnown(): the starter spell is known from the start regardless of magic level", () => {
   const state = createInitialState();
@@ -26,34 +41,40 @@ test("isSpellUnlocked(): gated by magic skill level against the spell's own `lev
 });
 
 test("canLearnSpell()/learnSpell(): spends the learn cost, adds to state.spells, refuses without ingredients", () => {
-  const state = createInitialState();
-  assert.equal(canLearnSpell(state, "cure"), false, "no ingredients yet");
+  const state = mage(COSTED);
+  const cost = SPELLS[COSTED].learn;
+  assert.equal(canLearnSpell(state, COSTED), false, "no ingredients yet");
 
-  state.inventory = { ley_crystals: 2, arcane_shard: 2 };
-  assert.equal(canLearnSpell(state, "cure"), true);
+  // One spare of each, so the spend is visible in what's left.
+  state.inventory = Object.fromEntries(Object.entries(cost).map(([id, qty]) => [id, qty + 1]));
+  assert.equal(canLearnSpell(state, COSTED), true);
 
-  const message = learnSpell(state, "cure");
-  assert.match(message, /Cure/);
-  assert.equal(state.spells.has("cure"), true);
-  assert.equal(state.inventory.ley_crystals, 1); // cure needs 1 of each
-  assert.equal(state.inventory.arcane_shard, 1);
-  assert.equal(isSpellKnown(state, "cure"), true);
+  const message = learnSpell(state, COSTED);
+  assert.match(message, new RegExp(SPELLS[COSTED].name));
+  assert.equal(state.spells.has(COSTED), true);
+  for (const id of Object.keys(cost)) {
+    assert.equal(state.inventory[id], 1, `${id} should be spent down to the spare`);
+  }
+  assert.equal(isSpellKnown(state, COSTED), true);
 });
 
 test("learnSpell(): a spell with no `learn` cost only needs the level gate", () => {
-  const state = createInitialState();
-  state.skills.magic.level = 3;
-  assert.equal(canLearnSpell(state, "frost_spike"), true);
-  assert.ok(learnSpell(state, "frost_spike"));
-  assert.equal(state.spells.has("frost_spike"), true);
+  const state = mage(FREE);
+  assert.equal(canLearnSpell(state, FREE), true);
+  assert.ok(learnSpell(state, FREE));
+  assert.equal(state.spells.has(FREE), true);
 });
 
 test("learnSpell(): refuses (returns null) once already known, doesn't double-spend", () => {
-  const state = createInitialState();
-  state.inventory = { ley_crystals: 5, arcane_shard: 5 };
-  learnSpell(state, "cure");
-  assert.equal(learnSpell(state, "cure"), null);
-  assert.equal(state.inventory.ley_crystals, 4); // only spent once
+  const state = mage(COSTED);
+  const cost = SPELLS[COSTED].learn;
+  state.inventory = Object.fromEntries(Object.entries(cost).map(([id, qty]) => [id, qty * 2]));
+
+  learnSpell(state, COSTED);
+  assert.equal(learnSpell(state, COSTED), null);
+  for (const [id, qty] of Object.entries(cost)) {
+    assert.equal(state.inventory[id], qty, "only spent once");
+  }
 });
 
 test("canCastSpell()/castSpell(): heal clamps at hpMax and spends mp", () => {
@@ -111,11 +132,11 @@ test("castSpell(): debuff and poison land on the target rather than the caster",
   state.spells = new Set(["weaken", "poison"]);
   const target = { id: "weak_goblin", name: "Weak Goblin", hp: 30, hpMax: 30 };
 
-  castSpell(state, "weaken", target); // debuff: { attack: -5 }
-  assert.equal(target.attackDebuff, -5);
+  castSpell(state, "weaken", target);
+  assert.equal(target.attackDebuff, SPELLS.weaken.debuff.attack);
 
-  castSpell(state, "poison", target); // poison: { dps: 5, duration: 3 }
-  assert.deepEqual(target.poison, { dps: 5, remaining: 3 });
+  castSpell(state, "poison", target);
+  assert.deepEqual(target.poison, { dps: SPELLS.poison.poison.dps, remaining: SPELLS.poison.poison.duration });
   assert.equal(state.hp, state.hpMax, "the caster should be untouched");
 });
 

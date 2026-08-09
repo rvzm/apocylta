@@ -1,4 +1,5 @@
 import { ALL_ITEMS, STATIONS, ITEM_TYPES, METALURGY } from "../../item_backbone.js";
+import { indoorTimeLine, packLine } from "../../data/flavor.js";
 import {
   normalizeResult,
   primaryResultId,
@@ -120,6 +121,13 @@ function switchTab(state, ui, direction) {
 }
 
 export const stationCraftScreen = {
+  subHeader: [
+    "The bench is scored and scorched from everything made on it before this.",
+    "Tools hang above it in the order someone else found useful.",
+    indoorTimeLine,
+    packLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "stationSelect"),
     LEFT: (state, ui) => switchTab(state, ui, -1),

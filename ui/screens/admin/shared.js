@@ -16,8 +16,18 @@ import { switchScreen } from "../../router.js";
 // the consumer (logger.js's DEBUG_LEVEL, db_backbone.js's DB_PATH). Resolved
 // per call rather than cached, so flipping game_config at runtime takes effect
 // immediately and tests can set the env var.
+//
+// ALLOW_ADMIN decides in BOTH directions when it's set: "true" opens the gate,
+// anything else closes it, and only an unset (or empty) value falls through to
+// the config flag. It used to be an OR against the config, which meant the env
+// could only ever open the gate - so there was no way to pin it shut, and
+// test/integration/admin.test.js's closed-gate case silently depended on
+// config.js shipping allow_admin: false. Flipping that flag broke a test that
+// had nothing to do with the flag's value.
 export function adminEnabled() {
-  return process.env.ALLOW_ADMIN === "true" || game_config.allow_admin === true;
+  const override = process.env.ALLOW_ADMIN;
+  if (override !== undefined && override !== "") return override === "true";
+  return game_config.allow_admin === true;
 }
 
 // Belt-and-braces for every admin screen's onEnter: if the gate closed while

@@ -8,7 +8,27 @@ import { game_config } from "../../config.js";
 
 // ------------------------------------------------------------------- gate
 
-test("adminEnabled(): off by default, opened by config or the env override", (t) => {
+test("adminEnabled(): follows the config flag when no env override is set", (t) => {
+  const original = game_config.allow_admin;
+  t.after(() => {
+    game_config.allow_admin = original;
+    delete process.env.ALLOW_ADMIN;
+  });
+  delete process.env.ALLOW_ADMIN;
+
+  game_config.allow_admin = false;
+  assert.equal(adminEnabled(), false);
+
+  game_config.allow_admin = true;
+  assert.equal(adminEnabled(), true);
+});
+
+// The env override is what lets a test drive (or lock out) these screens without
+// editing config.js, matching DEBUG_LEVEL/DB_PATH. It has to work in BOTH
+// directions: as an OR against the config it could only ever open the gate, so
+// the closed-gate integration case had to lean on config.js's shipped value and
+// broke whenever someone flipped it.
+test("adminEnabled(): ALLOW_ADMIN overrides the config flag in both directions", (t) => {
   const original = game_config.allow_admin;
   t.after(() => {
     game_config.allow_admin = original;
@@ -16,16 +36,23 @@ test("adminEnabled(): off by default, opened by config or the env override", (t)
   });
 
   game_config.allow_admin = false;
-  assert.equal(adminEnabled(), false);
+  process.env.ALLOW_ADMIN = "true";
+  assert.equal(adminEnabled(), true, "opens a gate the config leaves shut");
 
   game_config.allow_admin = true;
-  assert.equal(adminEnabled(), true);
+  process.env.ALLOW_ADMIN = "false";
+  assert.equal(adminEnabled(), false, "and closes one the config leaves open");
 
-  // The env override is what lets an integration test drive these screens
-  // without editing config.js, matching DEBUG_LEVEL/DB_PATH.
-  game_config.allow_admin = false;
-  process.env.ALLOW_ADMIN = "true";
-  assert.equal(adminEnabled(), true);
+  // Anything that isn't "true" is off - no truthiness games with "0"/"no".
+  for (const value of ["0", "no", "TRUE", "1"]) {
+    process.env.ALLOW_ADMIN = value;
+    assert.equal(adminEnabled(), false, `ALLOW_ADMIN=${value} should not open the gate`);
+  }
+
+  // An empty value is treated as unset, so `env ALLOW_ADMIN= ...` falls through
+  // to the config rather than silently locking the editors out.
+  process.env.ALLOW_ADMIN = "";
+  assert.equal(adminEnabled(), true, "empty means unset, so the config decides");
 });
 
 // --------------------------------------------------------------- stepping

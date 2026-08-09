@@ -118,33 +118,45 @@ test("openLine(): handles hours that wrap past midnight", () => {
   assert.match(openLine(at(12), market), /shutters are down/, "midday is not");
 });
 
-test("firstVisitLine(): only on a location you haven't stood in", () => {
+test("firstVisitLine(): distinguishes a first arrival from a return", () => {
   const state = createInitialState();
-  assert.equal(firstVisitLine(state, { id: "town_square" }), null, "seeded as visited");
-  assert.match(firstVisitLine(state, { id: "wilderness" }), /never been/);
+  assert.match(firstVisitLine(state, { id: "town_square", name: "town square" }), /back at town square/);
+  assert.match(firstVisitLine(state, { id: "wilderness", name: "wilderness" }), /never been/);
 });
 
-test("dangerLine(): only outside a safe zone", () => {
-  assert.equal(dangerLine(createInitialState(), { safe: true }), null);
-  assert.match(dangerLine(createInitialState(), { safe: false }), /back to the wall/);
+test("dangerLine(): reads the location's safe flag either way", () => {
+  const state = createInitialState();
+  assert.match(dangerLine(state, { safe: true, name: "the park" }), /safe here/);
+  assert.match(dangerLine(state, { safe: false, name: "the ruins" }), /back to the wall/);
 });
 
 // -------------------------------------------------------- player state
 
-test("healthLine(): quiet while healthy, louder as you drop", () => {
+test("healthLine(): gets bleaker as you drop, in order", () => {
   const state = createInitialState();
-  assert.equal(healthLine(state), null);
+  assert.match(healthLine(state), /full health/, "untouched at exactly max");
 
-  state.hp = state.hpMax * 0.5;
-  assert.match(healthLine(state), /hurt/);
+  const said = [0.95, 0.85, 0.7, 0.55, 0.4, 0.2, 0.05].map((f) => {
+    state.hp = state.hpMax * f;
+    return healthLine(state);
+  });
 
-  state.hp = state.hpMax * 0.2;
-  assert.match(healthLine(state), /bad way/);
+  // 0.95 sits in the gap between the <=0.9 band and the ==1 case.
+  assert.equal(said[0], null);
+  assert.match(said[1], /bruised/);
+  assert.match(said[2], /banged up/);
+  assert.match(said[3], /slowing you down/);
+  assert.match(said[4], /feel it in your movements/);
+  assert.match(said[5], /bad way/);
+  assert.match(said[6], /critical/);
 });
 
-test("packLine(): quiet until the backpack is nearly full", () => {
+test("packLine(): quiet only when the pack is empty", () => {
   const state = createInitialState();
   assert.equal(packLine(state), null);
+
+  state.inventory = { wood: 1 };
+  assert.match(packLine(state), /a few things/);
 
   // backpackSlotsUsed counts distinct non-tool, non-potion ids against the
   // belt-derived cap, which is 100 with no belt equipped - and only ids that

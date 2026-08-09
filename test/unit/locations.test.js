@@ -59,28 +59,24 @@ test("every location resolves to plain strings", () => {
 // blank plus the flavour has to fit inside that with room for a lastMessage.
 const MAX_BODY_LINES = 18;
 
+// Rows, not lines: blessed wraps rather than truncating, and the flavour is
+// indented by 4 inside a 118-wide pane, so a long sentence costs two rows
+// instead of vanishing. Long prose is fine - it just has to be counted.
+const USABLE_WIDTH = 114;
+
+function renderedRows(location, state) {
+  const flavor = resolveFlavorText(location, state);
+  const wrapped = flavor.reduce((rows, line) => rows + Math.max(1, Math.ceil(line.length / USABLE_WIDTH)), 0);
+  return 2 + wrapped; // description + spacer
+}
+
 test("no location renders a body taller than the pane", () => {
   const tooLong = [];
   for (const state of sampleStates()) {
     for (const [id, location] of Object.entries(LOCATIONS)) {
-      const lines = 2 + resolveFlavorText(location, state).length; // description + spacer
-      if (lines > MAX_BODY_LINES) tooLong.push(`${id}: ${lines} lines`);
+      const rows = renderedRows(location, state);
+      if (rows > MAX_BODY_LINES) tooLong.push(`${id}: ${rows} rows once wrapped`);
     }
   }
   assert.deepEqual(tooLong, []);
-});
-
-// The location screen indents flavour by 4 and the pane is 118 wide at 120
-// columns; blessed wraps rather than truncating, so an over-long line costs a
-// row rather than vanishing. Worth catching before it eats the budget above.
-test("no flavour line is long enough to wrap at 120 columns", () => {
-  const wide = [];
-  for (const state of sampleStates()) {
-    for (const [id, location] of Object.entries(LOCATIONS)) {
-      for (const line of resolveFlavorText(location, state)) {
-        if (line.length + 4 > 114) wide.push(`${id}: ${line.length + 4} cols - "${line.slice(0, 40)}..."`);
-      }
-    }
-  }
-  assert.deepEqual(wide, []);
 });

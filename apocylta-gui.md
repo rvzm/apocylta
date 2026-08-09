@@ -40,6 +40,39 @@ Below the one-line description, a location's flavour text fills out the pane. So
 Every location builds its own command legend dynamically - actions available there (numbered), hub features present there (lettered), plus the fixed `[T]ravel`/`[K]Stations`/`[M]enu`. `[C] Quest Board` above happens to land on the same letter as this doc's older `[C]heck the quest board` mockup, but it's a coincidence of which letters were free, not a naming convention - see [Quests](#quests) below for what's actually behind it now.
 
 
+## Character Creation
+
+`[N]ew Game` from the title runs a wizard: name, difficulty, starter pack, race, class, then proficient
+skills. Every step after the name is a list you move through with the arrow keys and confirm with `[C]`,
+and `[B]ack` steps to the previous one, so nothing is committed until the last screen:
+```
+_________________________________________________________________________
+| apocylta | [town square] | gp: 0                   [idle]      7:40pm  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|   - Casual: A Relaxed Difficulty. Enemies have less HP and deal less  |
+|     damage. Players gain more XP.                                     |
+|   - Easy: An Easy Difficulty...                                       |
+|   - Normal: A Standard Difficulty...                                  |
+|   - Hard: A Challenging Difficulty...                                 |
+|   - Survival: A Survival Difficulty...                                |
+|   - Nightmare: A Nightmare Difficulty...                              |
+|   - Demon Lord: A Demon Lord Difficulty...                            |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Name: Rae - choose your difficulty: |_________________________________|
+|                                                                       |
+| [C]onfirm | [B]ack                                                    |
+|_______________________________________________________________________|
+```
+The header is already drawing during creation, which is why it shows a location and a clock before you
+have a character - it just leaves the name and level segment out until there's one to show.
+
+The last step is different: skills are a multi-select. `[T]oggle` marks one, and the prompt counts you in
+(`Pick 2 skills to be Proficient in (0/2 selected)`) - `[C]onfirm` refuses until the count is exact,
+because how many you get is set by the difficulty you picked two screens earlier. Confirming there is what
+actually creates the character and drops you into the world.
+
 ## Movement
 
 Players move around using the travel menu to visit places within the world. Picking a destination is a single numbered keypress - no typing, no confirm step:
@@ -107,16 +140,18 @@ Players complete actions, which looks like this:
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 5500 Gather scraps    7:58pm |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
-|  The Town square - a wonderful hub for various shops. | elapsed: 16s  |
+|  The Town square - a wonderful hub for various shops. | elapsed: 46s  |
 |                                                                       |
 |    You are searching for scraps along the streets of the              |
 |    town square.                                                       |
 |                                                                       |
-|                                                                       |
+|    You found 1 Bottle.                                                |
+|    You turn over some rubble and find nothing worth taking.           |
+|    You found 2 Stone.                                                 |
+|    You found 2 Scrap Metal.                                           |
+|    next attempt in 4s                                                 |
 |                                                                       |
 |    gathered: [1] Bottle | [1] Plastic | [2] Stone | [2] Scrap Metal   |
-|                                                                       |
-|                                                                       |
 |_______________________________________________________________________|
 | hp: 100 | mp: 100 | [ SAFE ZONE ] | foraging: 1 xp: +++------------ |  |
 | +25 xp so far (0 levels)                                             |
@@ -128,6 +163,12 @@ _________________________________________________________________________
 |_______________________________________________________________________|
 ```
 While an action is running, the header center shows its name (`Gather scraps` above) instead of `[idle]`, and the status bar grows a live skill/xp readout: the acting skill's level, a color-banded progress bar toward its next level (white → blue → yellow → green → gold as it fills, bold from yellow on), and how much xp and how many levels you've picked up this session.
+
+You don't gather continuously - you make an **attempt** every so often, and attempts can come up empty. The last few show in the middle of the pane, newest at the bottom, with a countdown to the next one so a long wait doesn't look like the game has stopped. A miss costs you the attempt and pays no skill xp at all; only what you actually take adds to the `gathered:` line at the bottom, which is the running total for the whole session.
+
+How long you wait between attempts is set by your **difficulty**, and it's the main thing separating a relaxed run from a punishing one: one second on Casual, ten on Normal, thirty on Nightmare, a full minute on Demon Lord. Your odds improve with the skill you're using and get worse the further above you the thing you're after is - a tin seam gives itself up readily at mining level 1, while a mithril one at that level almost never will. Skill in fishing, mining or foraging is worth having for the hit rate alone, quite apart from what it unlocks.
+
+Difficulty drives the danger too, on its own clock rather than the gathering one: harder difficulties roll for an ambush more often *and* are likelier to turn up a whole pack rather than a single enemy.
 
 
 ## Combat
@@ -178,9 +219,47 @@ Gathering in a dangerous location can also get you jumped: an ambush cancels wha
 
 ### Losing
 
-If your HP reaches zero you lose everything in your backpack and wake up back in the town square with the gold and starter items a new character gets. Your equipment, skills and levels all survive.
+If your HP reaches zero you get a screen of your own, and it's the one screen with a single key on it:
+```
+_________________________________________________________________________
+| apocylta | Rae Lv.4 | [town square] | gp: 0        [idle]      7:58pm  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Everything goes dark.                                                 |
+|                                                                       |
+|     You come to back at the town square, stripped of everything you   |
+|     carried.                                                          |
+|                                                                       |
+|     Lost: 21 items and 340 gold.                                      |
+|     Kept: whatever you had equipped, your skills, and your levels.    |
+|                                                                       |
+|     You've been handed the basics again: a belt and a wooden dagger.  |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| You survived. Barely. |_______________________________________________|
+|                                                                       |
+| [X] Continue                                                          |
+|_______________________________________________________________________|
+```
+Your backpack and your purse are gone; your equipment, skills and levels survive, and you're handed the
+same basics a new character gets. `[X]` puts you back at the town square at full health.
 
-On `survival` and `nightmare` difficulty there is no waking up: death deletes the save outright and returns you to the title screen.
+On `survival` and `nightmare` there is no waking up. The same screen says so plainly, and `[X]` returns
+you to the title rather than to the world:
+```
+| You are dead.                                                         |
+|                                                                       |
+|     Rae fell on nightmare difficulty. There is no waking up from that.|
+|                                                                       |
+|     Everything is gone: 21 items, 340 gold, and the save itself.      |
+|                                                                       |
+|     Press X to return to the title screen.                            |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| This run is over. |___________________________________________________|
+```
+The deletion is real and happens here, not earlier: both the numbered save slot the run was bound to and
+the autosave file are removed. If you were carrying a revive when you dropped, it was spent automatically
+before any of this - you never see this screen while one is in your pack.
 
 
 ## Mining
@@ -214,12 +293,45 @@ Coal and gemstones aren't on the list, because they aren't things you go looking
 ```
 Coal is common enough to be reliable; a gem is a genuine find, roughly once every forty seconds of digging. Which gems can appear depends on the mine - a basic mine turns up rubies, sapphires and emeralds, and you have to get down to the deeper caves before a diamond or an opal is possible.
 
+## Fishing
+
+Fishing works the same way, and reads the same on screen - but you reach it through the numbered `Fish` action rather than a hub feature, since fishing is something you do at a place with water rather than somewhere you go. What's swimming depends on the water: a riverbank lists the freshwater species, the docks list the saltwater ones, and a few species live in both and show up wherever there's water at all. Each row says how it's caught, because that decides what you need on you:
+```
+_________________________________________________________________________
+| apocylta | Rae Lv.4 | [riverbank] | gp: 1000         [idle]     7:38pm |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|   Something breaks the surface further out, then doesn't again.       |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|   - Pike (bait, requires fishing lvl 1)                               |
+|   - Trout (rod, requires fishing lvl 1)                               |
+|   - Shrimp (net, requires fishing lvl 1)                              |
+|   - Salmon (rod, requires fishing lvl 5)                              |
+|   - Tilapia (bait, requires fishing lvl 5)                            |
+|                                                                       |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ DANGER ] |                                      |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| What would you like to fish for? |____________________________________|
+|                                                                       |
+| [B]ack | [C]hoose                                                     |
+|_______________________________________________________________________|
+```
+Three things have to line up before a fish will bite, and picking one you're not ready for says which is missing rather than blocking the screen: your fishing level ("Requires fishing level 10."), the rod you have equipped ("You need a better fishing rod equipped to catch that.") - a starter rod won't land a tuna no matter how good you've got - and, for anything not caught on the rod alone, the right gear in your backpack ("You need a fishing net in your backpack to catch that.").
+
+Bait is the one thing fishing uses up: a bait species costs one per catch, while nets and hooks are yours for good. Run the pouch dry mid-session and the trip simply ends, with a note in the header to say why:
+```
+| You're out of bait.                                                   |
+```
+The far end of the list is a different kind of fishing. The ancients - the leviathan, the kraken, the things that live where the water stops being water - don't come up as a fish you can cook. What you haul in is a scale, a tooth, a bone; materials rather than dinner. Everything else can be cooked six ways at a campfire or cooking station, and how you prepare it matters: raw is barely worth eating, cooked is honest food, and smoking or baking a rare catch puts it near the best stew in the game.
+
 ## Inventory
 
 Players can view their inventory (or backpack). Tools don't live here anymore - they've moved to the Toolbelt (below). The backpack sorts itself into tabs by item type automatically (only types you're actually carrying show up), and the left/right arrow keys switch between them - the active tab is shown in brackets in the border:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 1000      [idle]     7:38pm  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|  Your Backpack                                                        |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | [All]| weapon | armor | scrap                                         |
 |   - [10] Bottle                                                       |
@@ -253,6 +365,114 @@ A Revive is the one thing you never use on purpose - try it from the backpack an
 That check happens before anything treats the blow as a death, so on Survival and Nightmare a Revive is the difference between a close call and the end of the run. Carry more than one and the weakest goes first. They're apothecary stock, sold alongside potions.
 
 Potions work the same way mid-fight (the [P]otion pick on the combat screen), down to the empty bottle and the alchemy xp - it's the same code either way.
+
+## Shops
+
+Shops are locations rather than screens you open from anywhere - you travel into the weapons shop, and its
+hub features are what's behind the counter. Buying lists the shop's stock grouped by item type, priced off
+rarity:
+```
+_________________________________________________________________________
+| apocylta | Rae Lv.4 | [weapons shop] | gp: 5500    [idle]      9:12am  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|   The racks are picked over, but there's steel here if you can pay.   |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Weapon:                                                               |
+|   - Tin Sword - 10gp                                                  |
+|   - Copper Sword - 50gp                                               |
+|   - Iron Sword - 10gp                                                 |
+|   - Steel Sword - 50gp                                                |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| What would you like to buy? |_________________________________________|
+|                                                                       |
+| [B]ack | [P]urchase                                                   |
+|_______________________________________________________________________|
+```
+Stock above your barter level simply isn't offered - the skill decides what a trader is willing to put in
+front of you, so the same shop grows better inventory as you get better at haggling.
+
+Shops keep **hours**. Turn up outside them and the door doesn't open at all: the location tells you when
+to come back, and the shop hotkeys refuse rather than showing an empty counter.
+
+Selling is a multi-select, so you can clear out a haul in one pass. `[T]oggle` ticks a line, `[S]ell`
+commits the lot:
+```
+| Food:                                                                 |
+|   [ ] [2] Raw Pike - 4gp ea                                           |
+| Scrap:                                                                |
+|   [x] [12] Stone - 4gp ea                                             |
+|   [x] [4] Wood Plank - 4gp ea                                         |
+| Weapon:                                                               |
+|   [ ] [1] Iron Dagger - 4gp ea                                        |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Select items to sell, then confirm. |_________________________________|
+|                                                                       |
+| [B]ack | [T]oggle | [S]ell                                            |
+|_______________________________________________________________________|
+```
+Selling returns 40% of what buying the same thing would cost, and pays barter xp scaled by what went
+across the counter.
+
+The housing district sells one thing, and it's the one that unlocks a home of your own:
+```
+|   - House Deed - 1000gp                                               |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Buy a house (gp: 5500) |______________________________________________|
+|                                                                       |
+| [B]ack | [P]urchase                                                   |
+|_______________________________________________________________________|
+```
+Once you own one, the same screen starts listing stations to build in it, and `[J] Go Home` appears at
+locations that offer it.
+
+## Crafting
+
+`[K] Stations` at any location with a bench lists what's available there. At your own house the list is
+whatever you've bought; everywhere else it's whatever the location happens to have:
+```
+|   - Cooking Station                                                   |
+|   - Crafting Table                                                    |
+|   - Alchemy Table                                                     |
+|   - Anvil                                                             |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Which station would you like to use? |________________________________|
+|                                                                       |
+| [B]ack | [C]hoose                                                     |
+|_______________________________________________________________________|
+```
+Choosing one opens its recipes, tabbed by what they produce and grouped inside each tab. Every line lists
+what it needs, so you can see what you're short of without leaving the bench:
+```
+_________________________________________________________________________
+| apocylta | Rae Lv.4 | [safehouse] | gp: 5500       [idle]      9:20am  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|   Someone has kept this fire going. The pot is still warm.            |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ [All]| Food ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Baked:                                                                |
+|   - Baked Pike (needs: 1x Raw Pike, 1x Flour)                         |
+|   - Bread (needs: 2x Flour, 1x water)                                 |
+| Cooked food:                                                          |
+|   - Cooked Pike (needs: 1x Raw Pike)                                  |
+|   - Cooked Rabbit (needs: 1x Raw Rabbit)                              |
+| Grilled:                                                              |
+|   - Grilled Pike (needs: 1x Raw Pike, 1x Firewood)                    |
+| Pickled:                                                              |
+|   - Pickled Pike (needs: 1x Raw Pike, 1x Vinegar)                     |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Cooking Station - what would you like to craft? |_____________________|
+|                                                                       |
+| [B]ack | [<>] Switch tab | [C]raft                                    |
+|_______________________________________________________________________|
+```
+Only recipes you can actually afford are listed, which is why the list grows as your pack fills. `water`
+is the one ingredient with no item behind it - it comes off the water bottle on your belt, so recipes
+needing it are unavailable with no belt equipped.
+
+Crafting pays xp scaled by the rarity of what you made, and counts toward `craftItem` quest objectives.
 
 ## Spellbook
 
@@ -314,6 +534,8 @@ The Toolbelt is where your equipped tool and slingshot live, alongside everythin
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [cave mines] | gp: 1000       [idle]     7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|  Your Toolbelt                                                        |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Equipped Belt:      Leather Belt                                     |
 |  Equipped Tool:      Iron Pickaxe                                     |
 |  Water Bottle:       100/100                                          |
@@ -329,22 +551,25 @@ _________________________________________________________________________
 | What would you like to do? |__________________________________________|
 |                                                                       |
 | [S]wap Tool            | [C]hange Slingshot                           |
-| [B]ackpack             | [J]ournal                                    |
+| [X] Spellbook          | [B]ackpack                                   |
+| [J]ournal              | [ESC] Back to Location                       |
 |_______________________________________________________________________|
 ```
 With no belt equipped, the water bottle, slingshot ammo, and quiver caps all drop to 0 (unusable until you put one on), while the backpack and potion pouch fall back to a small baseline instead of going away entirely - any belt is a strict upgrade. `[S]wap Tool` opens a picker just like the mining one above, grouped into tabs by tool category (pickaxe, axe, hammer, etc.); `[C]hange Slingshot` opens the same kind of picker without tabs, since there's only one slingshot category.
 
 ## Quests
 
-Quest boards show up as a hub feature at some locations (town square has one). Only quests you're high enough level for, and that aren't locked, show up - pick one and accept it:
+Quest boards show up as a hub feature at some locations (town square has one). Only quests you're high enough level for, and that aren't locked, show up - pick one and accept it.
+
+Note the second bar under the header: some screens carry a line of atmosphere there, and the line changes as the hours pass rather than being the same text every time. The Mine, the shops and the crafting benches have one too. It's separate from the prompt at the bottom, which tells you what the screen is for - this one is just scene-setting:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| The board is thick with paper, most of it months out of date.         |
+|_______________________________________________________________________|
 |   - Getting Started (Lv.1) - reward: 100gp, 100xp                     |
 |   - Mine! Mine! Mine! (Lv.1) - reward: 100gp, 100xp                   |
-|                                                                       |
-|                                                                       |
 |                                                                       |
 |                                                                       |
 |                                                                       |
@@ -368,6 +593,15 @@ _________________________________________________________________________
 |     [ ] Buy a House (0/1)                                             |
 |     Reward: 100gp, 100xp                                              |
 |                                                                       |
+|   You've Done It!                                                     |
+|     [ ] Acquire a Mythic Weapon (0/1)                                 |
+|     [ ] Defeat The Mad Bert Brothers: (1/3)                           |
+|         [x] Defeat Hubert (1/1)                                       |
+|         [ ] Defeat Gilbert (0/1)                                      |
+|         [ ] Defeat Hilbert (0/1)                                      |
+|     [ ] Find the lost ledger (0/1) (optional)                         |
+|     Reward: 1000gp, 1000xp                                            |
+|                                                                       |
 | Completed:                                                            |
 |   (nothing claimed yet)                                               |
 |_______________________________________________________________________|
@@ -379,6 +613,10 @@ _________________________________________________________________________
 |_______________________________________________________________________|
 ```
 Objective checkboxes update live as you make progress - no need to reopen the Journal. `[C]laim Rewards` grants gold and xp for every fully-checked-off quest in one go and moves it down to "Completed"; it's a no-op ("Nothing ready to claim yet.") if nothing's done yet. Enemy-defeating objectives count kills from your lifetime tally, so kills you made before accepting the quest still count - the same way item-acquiring objectives already work.
+
+Bigger quests group related work together. A line ending in a colon is a heading rather than a task: its own checkbox ticks when everything indented beneath it is done, and the count beside it is how many of those you've finished. Anything marked `(optional)` is exactly that - it tracks and ticks like the rest, but the quest will hand over its reward whether or not you bother with it.
+
+Objectives can also ask for a kind of thing rather than a specific one: "a Mythic Weapon" means any weapon of that rarity, so how you get there is up to you.
 
 ## Achievements
 
@@ -445,7 +683,7 @@ In save mode, choosing an occupied slot asks you to confirm before overwriting i
 
 ## Admin
 
-Off by default. Set `allow_admin: true` in `config.js`'s `game_config` (or run with `ALLOW_ADMIN=true`) and the Menu grows a `[V] Admin` entry; leave it off and the entry isn't listed and the key does nothing. Everything under it writes state directly - no level gates, no slot caps, no rewards paid:
+Off by default. Set `allow_admin: true` in `config.js`'s `game_config` (or run with `ALLOW_ADMIN=true`) and the Menu grows a `[V] Admin` entry; leave it off and the entry isn't listed and the key does nothing. `ALLOW_ADMIN` wins over the config flag whichever way it's set, so `ALLOW_ADMIN=false` locks the editors out of a build that ships with them on. Everything under it writes state directly - no level gates, no slot caps, no rewards paid:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]     7:38pm   |
@@ -546,3 +784,76 @@ Bolded only works where the hotkey is actually the first letter of the label. Pl
 **Colorize** turns colour off for terminals that don't do colour. Bold text and the highlighted row you're standing on both stay, because those aren't colour - they're video attributes, and they work on a monochrome terminal. Without the highlight there'd be no way to tell what's selected.
 
 The three timestamps at the bottom are recorded for you, not editable. The title screen uses them too - it knows whether this is your first run or a return visit, and tells you how long it's been.
+
+
+## The Companion Web Page
+
+While the game is running it also serves a small read-only page at `http://localhost:4000/`, meant for a
+second monitor. It polls the live game every five seconds, so it follows along with whatever you're doing
+in the terminal - there is nothing to press, and nothing you do there affects the run.
+
+```
++-----------------------------------------------------------------------+
+|  apocylta  playercard             [ Export HTML ] [ Export JSON ]     |
+|  [Playercard] Toolbelt  Backpack  Quests  Achievements                |
+|-----------------------------------------------------------------------|
+|  Rae                              Human Warrior - Normal              |
+|  Level 4          1,240 xp        [town square]  [ SAFE ZONE ]        |
+|  HP 100/100  ############   MP  86/100  ########--                    |
+|                                                                       |
+|  Gather scraps (46s) - You found 2 Stone. (next in 4s)                |
+|      gathered: Stone x2 | Wood Plank x1                               |
+|                                                                       |
+|  Skills                                                               |
+|    Mining      Lv.6   ######----     Fishing   Lv.2   ##--------      |
+|    Foraging    Lv.4   ###-------     Barter    Lv.5   #####-----      |
++-----------------------------------------------------------------------+
+```
+
+The five tabs all come from the same poll - switching between them is instant and doesn't fetch anything:
+
+- **Playercard** - who you are, where you are, health and mana, your live action (including the last
+  attempt and the countdown to the next one), your skills, and - only while they apply - the fight you're
+  in and the tally of everything you've ever killed. An idle character simply reads `Idle`.
+- **Toolbelt** - equipped belt, tool and slingshot, and the capacities they give you.
+- **Backpack** - your inventory, grouped into sub-tabs by item type, with a second row for subtypes once
+  there are enough categories to be worth navigating.
+- **Quests** - accepted quests and their objective checklists.
+- **Achievements** - the full catalog with live progress, unlocked and locked.
+
+**[Export HTML]** and **[Export JSON]** appear only if exporting is enabled in `config.js`.
+
+**[Export HTML]** downloads `apocylta_pc_<player>.html`: the whole page with your current data baked into
+it. That copy renders itself once and never polls, so it keeps working with the game closed, on another
+machine, or attached to a message - every tab and sub-tab still switches, it just shows the moment it was
+taken.
+
+**[Export JSON]** downloads `apocylta_pc_<player>.json` - the same snapshot, without the page around it.
+A few kilobytes instead of fifty, small enough to paste into a message, and it's the format the reader
+page below reads.
+
+### The reader page
+
+`http://localhost:4000/apocylta_player.html` is the other end of [Export JSON]. It's the same card with
+nothing in it: paste a card's JSON into the box (or pick the downloaded file) and press Import, and it
+draws itself from that text alone - no game running, no server involved, nothing uploaded.
+
+```
++-----------------------------------------------------------------------+
+|  apocylta  playercard reader                                          |
+|-----------------------------------------------------------------------|
+|  Paste the JSON a playercard's [Export JSON] button saved, then press |
+|  Import. Nothing is uploaded and nothing is stored - the card is drawn |
+|  here in your browser, from that text alone.                          |
+|                                                                       |
+|  +-----------------------------------------------------------------+  |
+|  | { "name": "Rae", "level": 4, ...                               |  |
+|  |                                                                 |  |
+|  +-----------------------------------------------------------------+  |
+|  [ Import ]   or choose a file: [ Choose File ]                       |
++-----------------------------------------------------------------------+
+```
+
+Once it's read one, the paste box gives way to the full five-tab card and a **[Load another]** button, and
+the footer reads `imported card` beside the date the export was taken. Because the page is a single
+self-contained file, it works just as well dropped on any static host as it does served from the game.

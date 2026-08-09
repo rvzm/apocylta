@@ -25,19 +25,20 @@ export const CLASSES = {
 // Difficulty Levels: Casual, Easy, Normal, Hard, Survival, Nightmare
 // Each difficulty level has its own modifiers
 export const DIFFICULTY_LEVELS = {
-    "casual": { name: "Casual", logic: { actionTic: 1, enemyAi: 0.5, enemySpawn: 0.5, profSkills: 5 }, modifiers: { enemyHp: 0.5, enemyDps: 0.5, playerXp: 1.5 }, desc: "A Relaxed Difficulty. Enemies have less HP and deal less damage. Players gain more XP." },
-    "easy": { name: "Easy", logic: { actionTic: 1, enemyAi: 0.75, enemySpawn: 0.75, profSkills: 3 }, modifiers: { enemyHp: 0.75, enemyDps: 0.75, playerXp: 1.25 }, desc: "An Easy Difficulty. Enemies have less HP and deal less damage. Players gain more XP." },
-    "normal": { name: "Normal", logic: { actionTic: 1, enemyAi: 1, enemySpawn: 1, profSkills: 2 }, modifiers: { enemyHp: 1, enemyDps: 1, playerXp: 1 }, desc: "A Standard Difficulty. Enemies have normal HP and deal normal damage. Players gain normal XP." },
-    "hard": { name: "Hard", logic: { actionTic: 1, enemyAi: 1.25, enemySpawn: 1.25, profSkills: 1 }, modifiers: { enemyHp: 1.25, enemyDps: 1.25, playerXp: 0.75 }, desc: "A Challenging Difficulty. Enemies have more HP and deal more damage. Players gain less XP." },
+    "casual": { name: "Casual", logic: { actionTic: 10, enemyAi: 0.5, enemySpawn: 0.5, profSkills: 5, gatherTime: 1 }, modifiers: { enemyHp: 0.5, enemyDps: 0.5, playerXp: 1.5, groupSpawn: 0.25 }, desc: "A Relaxed Difficulty. Enemies have less HP and deal less damage. Players gain more XP." },
+    "easy": { name: "Easy", logic: { actionTic: 5, enemyAi: 0.75, enemySpawn: 0.75, profSkills: 3, gatherTime: 5 }, modifiers: { enemyHp: 0.75, enemyDps: 0.75, playerXp: 1.25, groupSpawn: .5 }, desc: "An Easy Difficulty. Enemies have less HP and deal less damage. Players gain more XP." },
+    "normal": { name: "Normal", logic: { actionTic: 3, enemyAi: 1, enemySpawn: 1, profSkills: 2, gatherTime: 10 }, modifiers: { enemyHp: 1, enemyDps: 1, playerXp: 1, groupSpawn: 1 }, desc: "A Standard Difficulty. Enemies have normal HP and deal normal damage. Players gain normal XP." },
+    "hard": { name: "Hard", logic: { actionTic: 2, enemyAi: 1.25, enemySpawn: 1.25, profSkills: 1, gatherTime: 15 }, modifiers: { enemyHp: 1.25, enemyDps: 1.25, playerXp: 0.75, groupSpawn: 1.25 }, desc: "A Challenging Difficulty. Enemies have more HP and deal more damage. Players gain less XP." },
     // Ultra hard - No skill proficiencies, enemies have more HP and deal more damage, players gain less XP.
-    "survival": { name: "Survival", logic: { actionTic: 1, enemyAi: 1.5, enemySpawn: 1.5, profSkills: 0 }, modifiers: { enemyHp: 1.5, enemyDps: 1.5, playerXp: 0.5, proficiency: 0.5 }, desc: "A Survival Difficulty. Enemies have much more HP and deal much more damage. Players gain much less XP." },
-    "nightmare": { name: "Nightmare", logic: { actionTic: 1, enemyAi: 2, enemySpawn: 2, profSkills: 0 }, modifiers: { enemyHp: 2, enemyDps: 2, playerXp: 0.25, proficiency: 0 }, desc: "A Nightmare Difficulty. Enemies have extreme HP and deal extreme damage. Players gain extreme less XP." },
+    "survival": { name: "Survival", logic: { actionTic: 2, enemyAi: 1.5, enemySpawn: 1.5, profSkills: 0, gatherTime: 20 }, modifiers: { enemyHp: 1.5, enemyDps: 1.5, playerXp: 0.5, proficiency: 0.5, groupSpawn: 2 }, desc: "A Survival Difficulty. Enemies have much more HP and deal much more damage. Players gain much less XP." },
+    "nightmare": { name: "Nightmare", logic: { actionTic: 1, enemyAi: 2, enemySpawn: 2, profSkills: 0, gatherTime: 30 }, modifiers: { enemyHp: 2, enemyDps: 2, playerXp: 0.25, proficiency: 0, groupSpawn: 2.5 }, desc: "A Nightmare Difficulty. Enemies have extreme HP and deal extreme damage. Players gain extreme less XP." },
+    "demon_lord": { name: "Demon Lord", logic: { actionTic: 1, enemyAi: 5, enemySpawn: 5, profSkills: 0, gatherTime: 60 }, modifiers: { enemyHp: 5, enemyDps: 5, playerXp: 0.1, proficiency: 0, groupSpawn: 3.5 }, desc: "A Demon Lord Difficulty. Enemies have insane HP and deal insane damage. Players gain insane less XP." },
 }
 
 
 // Player Starter Items, given for every new character, regardless of race or class
 export const STARTER_ITEMS = {
-    armor: ["leather_belt"],
+    belt: ["leather_belt"],
     weapons: ["wooden_dagger"],
 };
 
@@ -97,6 +98,28 @@ export function profSkillsFor(difficultyId) {
   return DIFFICULTY_LEVELS[difficultyId]?.logic?.profSkills ?? 5;
 };
 
+// Seconds between gather attempts while a timed action runs (state/gameLoop.js).
+// The whole pacing brake: at the old flat 3s every difficulty handed out twenty
+// guaranteed items a minute. Floored at 1 because it's used as a modulo against
+// a per-second tick - a 0 would divide the loop by zero and fire every tick.
+export function gatherTimeFor(difficultyId) {
+  return Math.max(1, DIFFICULTY_LEVELS[difficultyId]?.logic?.gatherTime ?? 3);
+};
+
+// Seconds between ambush rolls while gathering. Deliberately its own cadence
+// rather than riding the gather attempt: tying the two together made the
+// hardest difficulties the SAFEST, since they wait longest between attempts.
+export function encounterTicFor(difficultyId) {
+  return Math.max(1, DIFFICULTY_LEVELS[difficultyId]?.logic?.actionTic ?? 3);
+};
+
+// How much more likely a spawn roll is to turn up a group than a lone enemy
+// (data/combat.js's spawnEncounter weights the pool by it). 1 is neutral - the
+// uniform pick it used to be - and 0 keeps groups out of a difficulty entirely.
+export function groupSpawnFor(difficultyId) {
+  return DIFFICULTY_LEVELS[difficultyId]?.modifiers?.groupSpawn ?? 1;
+};
+
 
 // ** Future Feature: Skill Trees **
 
@@ -130,6 +153,7 @@ export const SKILL_TREES = {
                 "warrior_spirit": { name: "Warrior Spirit", effect: { combatDmgVsHighHpUp: 5 }, maxlevel: 5, desc: "Increases damage dealt to enemies with high HP by 5% per level, up to 25%." },
                 "battle_meditation": { name: "Battle Meditation", effect: { combatHpRegenUp: 5 }, maxlevel: 5, desc: "Increases health regeneration during combat by 5% per level, up to 25%." },
                 "tactical_mastery": { name: "Tactical Mastery", effect: { combatDmgVsMultipleUp: 5 }, maxlevel: 5, desc: "Increases damage dealt to multiple enemies by 5% per level, up to 25%." },
+                "overdive": { name: "Overdrive", effect: { combatDmgVsBossUp: 5 }, maxlevel: 5, desc: "Increases 'extra health' that can be stored beyond maximum health by 5% per level, up to 25%." },
             },
             survival: {
                 "keen_eyesight": { name: "Keen Eyesight", effect: { gatherUp: 5 }, maxlevel: 5, desc: "Increases gathering efficiency by 5% per level, up to 25%." },

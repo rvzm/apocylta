@@ -1,5 +1,6 @@
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { getBuyPrice, isPurchasable, getBarterXp, canAfford, chargeGold } from "../../data/shops.js";
+import { indoorTimeLine, openLine } from "../../data/flavor.js";
 import { addItem, grantSkillXp } from "../../state/gameState.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
@@ -46,6 +47,15 @@ function selectedItemId(ui) {
 }
 
 export const shopBuyScreen = {
+  // Shared by every buying shop, so the lines stay generic and openLine does
+  // the location-specific work off the current location's openHours.
+  subHeader: [
+    "Everything here has been owned before, and most of it shows it.",
+    "Prices are chalked on a board and rubbed out often.",
+    openLine,
+    indoorTimeLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "location"),
     P: (state, ui) => {

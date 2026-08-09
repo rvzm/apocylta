@@ -1,6 +1,7 @@
 import { STATIONS } from "../../item_backbone.js";
 import { getStationRecipes, stationIdsAtLocation } from "../../data/stations.js";
 import { getCurrentLocation } from "../../state/gameState.js";
+import { indoorTimeLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
@@ -22,6 +23,12 @@ function selectedStationId(ui) {
 }
 
 export const stationSelectScreen = {
+  subHeader: [
+    "Benches and burners, all of it scavenged and none of it matching.",
+    "Somebody's half-finished work is still clamped to the nearest bench.",
+    indoorTimeLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "location"),
     C: (state, ui) => {

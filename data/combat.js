@@ -7,10 +7,10 @@
 // Every function that rolls takes an `rng` last parameter defaulting to
 // Math.random, so tests can inject a deterministic sequence.
 
-import { getEnemy, expandEnemy } from "../enemy_backbone.js";
+import { getEnemy, expandEnemy, isGroup } from "../enemy_backbone.js";
 import { SPELLS } from "../magic_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
-import { DIFFICULTY_LEVELS, STARTER_ITEMS } from "../player_backbone.js";
+import { DIFFICULTY_LEVELS, STARTER_ITEMS, groupSpawnFor } from "../player_backbone.js";
 import { SKILL_BLOCKS } from "../skill_backbone.js";
 import { combat_config, player_config } from "../config.js";
 import { rollLootByType } from "./actions.js";
@@ -18,7 +18,7 @@ import { recordEnemyDefeated } from "./quests.js";
 import { evaluateAchievements } from "./achievements.js";
 import { castSpell } from "./magic.js";
 import { useItem, attemptRevive } from "./items.js";
-import { addItem, removeItem, grantSkillXp, grantPlayerXp, getCurrentLocation, moveTo } from "../state/gameState.js";
+import { addItem, removeItem, grantSkillXp, grantRewardXp, getCurrentLocation, moveTo } from "../state/gameState.js";
 import { logger } from "../logger.js";
 
 const UNARMED_DAMAGE = 2;
@@ -49,7 +49,7 @@ const FLEE_BASE_CHANCE = 0.4;
 const GOLD_PER_XP = 0.6;
 const LOOT_TYPES = ["scrap", "crafting", "treasure"];
 
-const PERMADEATH_DIFFICULTIES = new Set(["survival", "nightmare"]);
+const PERMADEATH_DIFFICULTIES = new Set(["survival", "nightmare", "demon_lord"]);
 
 const MAX_LOG_LINES = 40;
 
@@ -152,12 +152,33 @@ export function buildEncounter(state, enemyId, { boss = false } = {}) {
   };
 }
 
+// Groups and lone enemies sit side by side in a location's `enemies` pool, so a
+// uniform pick made a pack exactly as likely as a single goblin at every
+// difficulty. DIFFICULTY_LEVELS' modifiers.groupSpawn weights the group entries
+// instead: 1 is the old uniform behaviour, and 0 keeps packs out entirely.
 export function spawnEncounter(state, { boss = false } = {}, rng = Math.random) {
   const location = getCurrentLocation(state);
   const pool = boss ? (Array.isArray(location?.boss) ? location.boss : []) : location?.enemies ?? [];
   const valid = pool.filter((id) => getEnemy(id));
   if (!valid.length) return null;
-  return buildEncounter(state, valid[Math.floor(rng() * valid.length)], { boss });
+
+  const groupWeight = Math.max(0, groupSpawnFor(state.difficulty));
+  const weights = valid.map((id) => (isGroup(id) ? groupWeight : 1));
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  // Every entry weighing 0 (a groupSpawn of 0 in a pool of nothing but packs)
+  // would leave nothing to pick - no encounter is the honest answer there.
+  if (total <= 0) return null;
+
+  let roll = rng() * total;
+  let picked = valid[valid.length - 1];
+  for (let i = 0; i < valid.length; i++) {
+    roll -= weights[i];
+    if (roll < 0) {
+      picked = valid[i];
+      break;
+    }
+  }
+  return buildEncounter(state, picked, { boss });
 }
 
 // Bosses are gated on a rule skill_backbone.js already declares
@@ -292,9 +313,10 @@ function killEnemy(state, enemy, rng) {
   const mods = modifiersFor(state);
   const lines = [`${enemy.name} goes down.`];
 
-  // grantSkillXp applies the difficulty multiplier itself; grantPlayerXp is
-  // deliberately flat (see gameState.js), so scale the direct award here.
-  grantPlayerXp(state, def.xp * (mods.playerXp ?? 1));
+  // grantSkillXp applies the difficulty multiplier itself, so the direct award
+  // gets it here. grantRewardXp then scales it against the player's level, so a
+  // kill is worth as much at 100 as it was at 10 (see gameState.js).
+  grantRewardXp(state, def.xp * (mods.playerXp ?? 1));
   grantSkillXp(state, "fighting", Math.round(def.xp / 2));
 
   const gold = Math.max(1, Math.round(def.xp * GOLD_PER_XP));
@@ -355,14 +377,14 @@ export function resolveDefeat(state) {
 // A group's own xp is a completion bonus for clearing the whole pack, paid on
 // top of what each member already granted through killEnemy(). Scaled by the
 // difficulty's playerXp modifier the same way killEnemy's direct award is,
-// since grantPlayerXp itself is deliberately flat (see gameState.js).
+// since grantRewardXp scales for level but not for difficulty (see gameState.js).
 // combat.sourceId is the only place the group id survives into the encounter.
 function awardGroupBonus(state, combat) {
   const group = getEnemy(combat.sourceId);
   if (!group?.members || !group.xp) return [];
 
   const mods = modifiersFor(state);
-  grantPlayerXp(state, group.xp * (mods.playerXp ?? 1));
+  grantRewardXp(state, group.xp * (mods.playerXp ?? 1));
   logger.info("combat", `Cleared ${combat.sourceId}: +${group.xp} bonus xp.`);
   return [`  You cleared the ${group.name}. +${group.xp} bonus xp.`];
 }

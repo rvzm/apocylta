@@ -1,5 +1,5 @@
 import { QUESTS } from "../../../quest_backbone.js";
-import { objectiveStatus, isQuestComplete } from "../../../data/quests.js";
+import { objectiveStatus, isQuestComplete, walkObjectives, resolveObjective } from "../../../data/quests.js";
 import { colorTag, formatCommandRow } from "../../format.js";
 import { switchScreen } from "../../router.js";
 import { enterList, exitList, paint, requireAdmin, rowBuilder, selectedId } from "./shared.js";
@@ -38,6 +38,13 @@ function toggleObjective(state, ui) {
     return;
   }
   if (!label) return toggleAccepted(state, ui);
+
+  // A group's status is the sum of its children, so forcing it directly would
+  // be a lie its own rows contradict - force the children instead.
+  if (resolveObjective(QUESTS[questId], label)?.subObjectives) {
+    state.lastMessage = "That's a group - force its sub-objectives instead.";
+    return;
+  }
 
   record.adminForced ??= {};
   if (record.adminForced[label]) delete record.adminForced[label];
@@ -82,11 +89,13 @@ function buildRows(state) {
     const header = `  [${record ? "x" : " "}] ${quest.name.padEnd(26)} (${tags})`;
     rows.push(record?.status === "completed" ? colorTag(header, "green") : header, questId);
 
-    for (const label of Object.keys(quest.objectives ?? {})) {
-      const { current, target, complete } = objectiveStatus(state, questId, label);
-      const forced = !!record?.adminForced?.[label];
-      const line = `      [${complete ? "x" : " "}] ${label} (${current}/${target})${forced ? "  <- forced" : ""}`;
-      rows.push(forced ? colorTag(line, "yellow") : line, `${questId}::${label}`);
+    for (const { path, label, depth, optional, group } of walkObjectives(quest)) {
+      const { current, target, complete } = objectiveStatus(state, questId, path);
+      const forced = !!record?.adminForced?.[path];
+      const tags = [optional ? "optional" : null, forced ? "<- forced" : null].filter(Boolean).join("  ");
+      const indent = " ".repeat(6 + depth * 4);
+      const line = `${indent}[${complete ? "x" : " "}] ${label}${group ? ":" : ""} (${current}/${target})${tags ? `  ${tags}` : ""}`;
+      rows.push(forced ? colorTag(line, "yellow") : line, `${questId}::${path}`);
     }
     rows.push("");
   }

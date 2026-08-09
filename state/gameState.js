@@ -1,5 +1,14 @@
 import { LOCATIONS } from "../data/locations.js";
-import { SKILLS, skillLevelCost, PROFICIENCY_XP_MULTIPLIER } from "../skill_backbone.js";
+import {
+  SKILLS,
+  skillLevelCost,
+  playerLevelCost,
+  playerXpScale,
+  PROFICIENCY_XP_MULTIPLIER,
+  PLAYER_XP_SHARE_PER_SKILL_LEVEL,
+  MAX_SKILL_LEVEL,
+  MAX_PLAYER_LEVEL,
+} from "../skill_backbone.js";
 import { RACES, CLASSES, DIFFICULTY_LEVELS, STARTER_ITEMS } from "../player_backbone.js";
 import { player_config } from "../config.js";
 import { STARTER_PACKS, ALL_ITEMS } from "../item_backbone.js";
@@ -17,10 +26,10 @@ function createInitialSkills() {
 
 function createInitialEquipment() {
   return {
-    weapon: null,
+    weapon: STARTER_ITEMS.weapons[0] || null,
     tool: null,
     slingshot: null,
-    belt: null,
+    belt: STARTER_ITEMS.belt[0] || null,
     head: null,
     torso: null,
     legs: null,
@@ -198,28 +207,41 @@ export function grantSkillXp(state, skillId, amount) {
   const rounded = Math.round(xpGain);
   skill.xp += rounded;
   logger.full("gameState", `Granted ${rounded} ${skillId} xp (total ${skill.xp}).`);
-  while (skill.xp >= skillLevelCost(skill.level + 1)) {
+  // XP past MAX_SKILL_LEVEL keeps accumulating and simply buys nothing - the
+  // running total is what the action screen's "gained this session" delta is
+  // measured against, so clamping it would make a maxed skill look idle.
+  while (skill.level < MAX_SKILL_LEVEL && skill.xp >= skillLevelCost(skill.level + 1)) {
     skill.level += 1;
     logger.info("gameState", `${skillId} leveled up to ${skill.level}.`);
-    grantPlayerXp(state, skillLevelCost(skill.level) / 10);
+    grantPlayerXp(state, skillLevelCost(skill.level) * PLAYER_XP_SHARE_PER_SKILL_LEVEL);
   }
 }
 
-// Player xp/leveling is separate from skill xp/leveling, but reuses the same
-// skillLevelCost() curve rather than inventing a second formula. The main
-// source is grantSkillXp() above (a fraction of skillLevelCost(newLevel) per
-// skill level gained); quest rewards (data/quests.js's completeQuest()) grant
-// a flat catalog amount directly. Neither re-applies difficulty/proficiency
-// multipliers here - grantSkillXp already resolved those before its loop
-// runs, and quest rewards are flat by design.
+// Player xp/leveling runs on its own curve (skill_backbone.js's
+// playerLevelCost), much steeper than a skill's - see the comment there for why
+// the two must not share one. The main source is grantSkillXp() above, a share
+// of each new skill level's threshold.
+//
+// This is the RAW pool adder: whatever it's handed goes straight in. Rewards
+// from combat/quests/achievements go through grantRewardXp() below instead, so
+// they're scaled to the player's level. Neither re-applies difficulty or
+// proficiency multipliers - grantSkillXp resolved those before its loop ran,
+// and the reward sites apply the difficulty multiplier themselves.
 export function grantPlayerXp(state, amount) {
   const rounded = Math.round(amount);
   state.experience += rounded;
   logger.full("gameState", `Granted ${rounded} player xp (total ${state.experience}).`);
-  while (state.experience >= skillLevelCost(state.level + 1)) {
+  while (state.level < MAX_PLAYER_LEVEL && state.experience >= playerLevelCost(state.level + 1)) {
     state.level += 1;
     logger.info("gameState", `Player leveled up to ${state.level}.`);
   }
+}
+
+// Flat rewards - a kill, a quest hand-in, an achievement - scaled so they're
+// worth at level 100 roughly what they were worth at level 10. Without this a
+// 1000-xp quest goes from most of a level to 0.09% of one across a run.
+export function grantRewardXp(state, amount) {
+  grantPlayerXp(state, amount * playerXpScale(state.level));
 }
 
 // Turns a staged character-creation draft ({name, starterPackId, raceId,

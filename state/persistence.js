@@ -1,7 +1,7 @@
 import { db } from "../db_backbone.js";
 import { createInitialState } from "./gameState.js";
 import { LOCATIONS } from "../data/locations.js";
-import { SKILLS } from "../skill_backbone.js";
+import { SKILLS, playerLevelFromXp } from "../skill_backbone.js";
 import { isGroup } from "../enemy_backbone.js";
 import { game_config } from "../config.js";
 
@@ -204,8 +204,12 @@ export function loadGame(slotId) {
   state.race = playerRow.race;
   state.class = playerRow.class;
   state.difficulty = playerRow.difficulty;
-  state.level = playerRow.level;
   state.experience = playerRow.experience;
+  // Derived from the banked xp rather than trusted from the row: saves written
+  // before the player curve was rescaled carry a level from the old, far
+  // shallower one (a level-783 character with mid-double-digit skills). Nothing
+  // is discarded - the same xp simply buys fewer levels now.
+  state.level = playerLevelFromXp(state.experience);
   state.gold = playerRow.gold;
   state.currentLocationId = LOCATIONS[playerRow.current_location_id]
     ? playerRow.current_location_id
@@ -299,7 +303,7 @@ export function listSaveSlots() {
   const slots = [];
   for (let slotId = 1; slotId <= slotCount; slotId++) {
     const row = db
-      .prepare(`SELECT name, level, race, class, current_location_id, saved_at FROM player WHERE id = ?`)
+      .prepare(`SELECT name, level, experience, race, class, current_location_id, saved_at FROM player WHERE id = ?`)
       .get(slotId);
     slots.push(
       row
@@ -307,7 +311,10 @@ export function listSaveSlots() {
             slotId,
             empty: false,
             name: row.name,
-            level: row.level,
+            // Derived the same way loadGame() derives it, so the picker
+            // advertises the level you'll actually get rather than the one a
+            // save written against the old player curve happens to store.
+            level: playerLevelFromXp(row.experience),
             race: row.race,
             class: row.class,
             currentLocationId: row.current_location_id,

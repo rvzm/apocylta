@@ -15,6 +15,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+// Safe to import statically: skill_backbone.js is a leaf with no imports of its
+// own, so it can't drag in one of the import-time-env-var modules above.
+import { playerLevelCost } from "../../skill_backbone.js";
 
 const scratchDir = fs.mkdtempSync(path.join(os.tmpdir(), "apocylta-test-"));
 process.env.DB_PATH = path.join(scratchDir, "test.sqlite");
@@ -210,7 +213,10 @@ test("listSaveSlots() reports empty vs. populated slots with a summary", async (
   state.race = "elf";
   state.class = "ranger";
   state.difficulty = "normal";
+  // Level and xp have to agree: both loadGame() and listSaveSlots() derive the
+  // level from the banked xp rather than trusting the stored number.
   state.level = 4;
+  state.experience = playerLevelCost(4);
   state.currentLocationId = "wilderness";
   saveGame(state, 2);
 

@@ -6,6 +6,10 @@ import { skillLevelCost } from "../skill_backbone.js";
 import { colorTag } from "./format.js";
 
 const INFO_BAR_HEIGHT = 3;
+// The optional second header bar. Bordered, so it needs 3 rows to show one
+// line of text - and it takes those 3 from the content pane while visible.
+export const SUB_BAR_HEIGHT = 3;
+export const CONTENT_TOP = INFO_BAR_HEIGHT;
 
 // Builds the fixed apocylta widget tree: a 2/3-height top panel (header +
 // main content) and a 1/3-height bottom panel (status + command box),
@@ -79,6 +83,21 @@ export function buildLayout() {
     height: 1,
     tags: true,
     align: "right",
+  });
+
+  // A screen-specific flavour bar, slotted between the header and the content
+  // pane. Hidden by default and shown only for screens declaring a `subHeader`
+  // - see ui/subHeader.js, which also moves mainContent/inventoryList down to
+  // make room. Screens that don't opt in pay nothing.
+  const subHeaderBar = blessed.box({
+    parent: topPanel,
+    top: INFO_BAR_HEIGHT,
+    left: 0,
+    width: "100%",
+    height: SUB_BAR_HEIGHT,
+    border: { type: "line" },
+    tags: true,
+    hidden: true,
   });
 
   const mainContent = blessed.box({
@@ -180,6 +199,7 @@ export function buildLayout() {
     headerLeft,
     headerCenter,
     headerRight,
+    subHeaderBar,
     mainContent,
     inventoryList,
     bottomPanel,

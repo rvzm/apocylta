@@ -1,4 +1,4 @@
-<title>apocylta - playercard</title>
+<title>apocylta - playercard reader</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
@@ -456,20 +456,104 @@
     color: var(--green);
   }
   /* shared:style end */
+
+  /* --- reader-only ---------------------------------------------------------
+     Outside the shared region on purpose: the drift test compares only what
+     sits between the markers, so anything this page adds has to live here. */
+  #import-panel[hidden],
+  #pc-body[hidden] {
+    display: none;
+  }
+
+  #import-panel .blurb {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin: 0 0 12px;
+    line-height: 1.5;
+  }
+
+  #import-panel .blurb strong {
+    color: var(--green);
+    font-weight: normal;
+  }
+
+  #import-input {
+    width: 100%;
+    min-height: 220px;
+    resize: vertical;
+    background: #050705;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  #import-input:focus {
+    outline: none;
+    border-color: var(--green-dim);
+  }
+
+  #import-input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .import-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+
+  .file-row {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  #import-file {
+    font: inherit;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .import-error {
+    color: var(--danger);
+    font-size: 0.75rem;
+    margin: 12px 0 0;
+  }
 </style>
 
 <div class="card">
   <div class="header">
     <h1>APOCYLTA</h1>
-    <span class="sub">playercard</span>
-    <!-- Deliberately NOT class="tab-btn": showTab() queries that class
-         document-wide, so clicking either of these would call
-         showTab(undefined) and blank every panel. Both hidden until the server
-         says exports are on. -->
-    <button id="export-btn" class="export-btn" hidden>Export HTML</button>
-    <button id="export-json-btn" class="export-btn" hidden>Export JSON</button>
+    <span class="sub">playercard reader</span>
+    <!-- Same trap as the live page's export buttons: NOT class="tab-btn",
+         which showTab() queries document-wide. -->
+    <button id="reset-btn" class="export-btn" hidden>Load another</button>
   </div>
 
+  <div id="import-panel">
+    <p class="blurb">
+      Paste the JSON a playercard's <strong>[Export JSON]</strong> button saved, then press Import.
+      Nothing is uploaded and nothing is stored - the card is drawn here in your browser, from that
+      text alone.
+    </p>
+    <textarea id="import-input" spellcheck="false" placeholder='{ "name": "Rae", "level": 4, ... }'></textarea>
+    <div class="import-actions">
+      <button id="import-btn" class="export-btn">Import</button>
+      <span class="file-row">
+        or choose a file:
+        <input id="import-file" type="file" accept=".json,application/json" />
+      </span>
+    </div>
+    <p id="import-error" class="import-error" hidden></p>
+  </div>
+
+  <!-- Hidden until an import succeeds: a failed render() leaves this half
+       drawn, and a half-drawn card is worse than the paste box. -->
+  <div id="pc-body" hidden>
   <!-- shared:card start ------------------------------------------------------
        Carried verbatim by apocylta_player.html (which wraps it in a hidden
        #pc-body until something is imported), and pinned identical by
@@ -572,11 +656,10 @@
     <span id="updated"></span>
   </footer>
   <!-- shared:card end -->
+  </div>
 </div>
 
 <script>
-  const REFRESH_MS = 5000;
-
   // shared:render start ------------------------------------------------------
   // Carried verbatim by apocylta_player.html and pinned identical by
   // test/unit/playerPage.test.js, so nothing in here may assume this page's
@@ -902,109 +985,84 @@
 
   // shared:render end
 
-  async function refresh() {
+  // --- Import ---------------------------------------------------------------
+  // This page ships empty and never talks to a server - no fetch, no poll. The
+  // whole card comes from JSON handed over by the player, which is what lets it
+  // sit on a static host with no game running anywhere near it.
+
+  const importPanel = document.getElementById("import-panel");
+  const pcBody = document.getElementById("pc-body");
+  const resetBtn = document.getElementById("reset-btn");
+  const input = document.getElementById("import-input");
+  const errorLine = document.getElementById("import-error");
+
+  function showError(message) {
+    errorLine.textContent = message;
+    errorLine.hidden = false;
+  }
+
+  function clearError() {
+    errorLine.textContent = ""; // not just hidden - a stale message must not come back with the panel
+    errorLine.hidden = true;
+  }
+
+  function looksLikePlayercard(data) {
+    return Boolean(data) && typeof data === "object" && typeof data.name === "string" && Array.isArray(data.skills);
+  }
+
+  function importPayload(text) {
+    clearError();
+
+    if (!String(text).trim()) return showError("Nothing to import - paste a playercard export first.");
+
+    let data;
     try {
-      const res = await fetch("/api/playercard", { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      render(data);
-      setStatus("live", "live");
-    } catch {
-      setStatus("connection lost", "stale");
+      data = JSON.parse(text);
+    } catch (err) {
+      return showError(`That isn't valid JSON: ${err.message}`);
     }
+
+    if (!looksLikePlayercard(data)) {
+      return showError("Valid JSON, but not an apocylta playercard export - it needs a name and a skills list.");
+    }
+
+    // render() is shared with the live page, where the payload always comes
+    // from the server and is always well formed. Here it is whatever was pasted
+    // in, so a missing field throws part-way through - hence the catch, and
+    // hence revealing #pc-body only once it returned.
+    try {
+      render(data);
+    } catch (err) {
+      return showError(`Couldn't render that card: ${err.message}`);
+    }
+
+    importPanel.hidden = true;
+    pcBody.hidden = false;
+    resetBtn.hidden = false;
+    setStatus("imported card", "stale");
+    // render() stamps this as a bare time, which reads as "just now" on a card
+    // that could be weeks old. The full date is the honest version here.
+    document.getElementById("updated").textContent = data.generatedAt
+      ? `exported ${new Date(data.generatedAt).toLocaleString()}`
+      : "";
   }
 
-  // --- Export -------------------------------------------------------------
-  // Two flavours of the same snapshot, both gated on server_config.export:
-  //
-  // [Export HTML] writes a standalone copy of this page - same markup, same
-  // CSS, same render code, with the payload baked in as JSON. Opened from disk
-  // with no game running it renders itself once from that data and never polls,
-  // so every tab still works and the content never changes. Nothing is
-  // stripped: the bootstrap at the bottom of this script is what makes the copy
-  // behave differently, by preferring #pc-snapshot over fetch.
-  //
-  // [Export JSON] writes just the payload. Nothing renders it on its own -
-  // apocylta_player.html is the reader that takes it back and draws this same
-  // card from it, which is what makes a card postable somewhere that won't host
-  // a whole HTML file.
+  document.getElementById("import-btn").addEventListener("click", () => importPayload(input.value));
 
-  const SNAPSHOT_ID = "pc-snapshot";
+  document.getElementById("import-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    input.value = await file.text();
+    e.target.value = ""; // so picking the same file twice still fires change
+    importPayload(input.value);
+  });
 
-  function exportFilename(name, ext) {
-    const slug =
-      String(name || "player")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "") || "player";
-    return `apocylta_pc_${slug}.${ext}`;
-  }
-
-  function downloadBlob(text, filename, mime) {
-    const url = URL.createObjectURL(new Blob([text], { type: mime }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  function buildSnapshotHtml(data) {
-    // Clone so the live page isn't touched. The clone carries whatever the DOM
-    // currently shows - which tab is active, the backpack sub-tab selection -
-    // but render() runs again on open anyway, so the data is what decides.
-    const clone = document.documentElement.cloneNode(true);
-
-    const existing = clone.querySelector(`#${SNAPSHOT_ID}`);
-    if (existing) existing.remove();
-
-    const tag = document.createElement("script");
-    tag.type = "application/json";
-    tag.id = SNAPSHOT_ID;
-    // A closing script tag inside the JSON would end the tag early and
-    // truncate the file, so every "</" is escaped. (Which is also why that
-    // sequence is spelled out rather than written literally in this comment -
-    // the HTML tokeniser doesn't care that it's inside a JS comment.)
-    tag.textContent = JSON.stringify(data).replace(/<\//g, "<\\/");
-    // FIRST child of body, not appended: the page's own script runs during
-    // parsing, so a tag placed after it doesn't exist yet when the bootstrap
-    // at the bottom of that script looks for it - and the copy would poll a
-    // server that isn't there instead of rendering its own data.
-    const body = clone.querySelector("body");
-    body.insertBefore(tag, body.firstChild);
-
-    return `<!doctype html>\n${clone.outerHTML}`;
-  }
-
-  function exportPage() {
-    if (!lastData) return; // nothing polled yet - the name still reads "-"
-    downloadBlob(buildSnapshotHtml(lastData), exportFilename(lastData.name, "html"), "text/html;charset=utf-8");
-  }
-
-  function exportJson() {
-    if (!lastData) return; // same guard as exportPage
-    // Indented, unlike the copy embedded in the HTML export: this one gets
-    // opened in an editor and pasted into the reader by hand.
-    downloadBlob(JSON.stringify(lastData, null, 2), exportFilename(lastData.name, "json"), "application/json;charset=utf-8");
-  }
-
-  document.getElementById("export-btn").addEventListener("click", exportPage);
-  document.getElementById("export-json-btn").addEventListener("click", exportJson);
-
-  // --- Bootstrap ----------------------------------------------------------
-  // An exported copy carries #pc-snapshot and renders from it exactly once.
-  // The live page has no such tag and polls as usual.
-  const snapshot = document.getElementById(SNAPSHOT_ID);
-  if (snapshot) {
-    render(JSON.parse(snapshot.textContent));
-    // No re-exporting a copy - in either format.
-    document.getElementById("export-btn").hidden = true;
-    document.getElementById("export-json-btn").hidden = true;
-    setStatus("static copy", "stale");
-  } else {
-    refresh();
-    setInterval(refresh, REFRESH_MS);
-  }
+  resetBtn.addEventListener("click", () => {
+    input.value = "";
+    clearError();
+    pcBody.hidden = true;
+    resetBtn.hidden = true;
+    importPanel.hidden = false;
+    showTab("playercard"); // a second import starts on the first tab, not the last one viewed
+  });
 </script>

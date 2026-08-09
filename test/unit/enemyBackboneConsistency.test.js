@@ -12,6 +12,7 @@ import {
 } from "../../enemy_backbone.js";
 import { SPELLS } from "../../magic_backbone.js";
 import { QUESTS } from "../../quest_backbone.js";
+import { walkObjectives } from "../../data/quests.js";
 import { LOCATIONS } from "../../data/locations.js";
 import { enemyStrike, buildEncounter } from "../../data/combat.js";
 import { createInitialState } from "../../state/gameState.js";
@@ -230,18 +231,21 @@ test("no location lists more actions than the digit hotkeys can address", () => 
   }
 });
 
+// walkObjectives() rather than the top-level map: the Bert Brothers moved into
+// a subObjectives group, and iterating only the top level would quietly stop
+// checking every enemy id nested inside one.
 test("every defeatEnemy quest objective names resolvable enemies", () => {
   const dangling = [];
   for (const [questId, quest] of Object.entries(QUESTS)) {
-    for (const [label, def] of Object.entries(quest.objectives ?? {})) {
+    for (const { path, def } of walkObjectives(quest)) {
       const target = def.defeatEnemy;
       if (!target) continue;
       if (Array.isArray(target)) {
         for (const enemyId of target) {
-          if (!ALL_ENEMIES[enemyId]) dangling.push(`${enemyId} (${questId} / ${label})`);
+          if (!ALL_ENEMIES[enemyId]) dangling.push(`${enemyId} (${questId} / ${path})`);
         }
       } else if (target.type && !ENEMY_TYPES.includes(target.type)) {
-        dangling.push(`type ${target.type} (${questId} / ${label})`);
+        dangling.push(`type ${target.type} (${questId} / ${path})`);
       }
     }
   }

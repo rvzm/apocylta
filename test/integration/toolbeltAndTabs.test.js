@@ -49,7 +49,10 @@ test("backpack tabs (dynamic, arrow-key driven) and the Toolbelt screen", async 
   // Gather at least one scrap item too, so the backpack has weapon/armor/scrap
   // tabs to cycle through.
   session.sendKeys("1"); // "Gather scraps" - town_square's first interactive action
-  await session.waitFor(/gathered: (?!\(nothing yet\))/);
+  // Attempts are gatherTime seconds apart (10 on Normal, which bootstrapCharacter
+  // confirms) and can miss, so this needs room for several tries - the default
+  // 5s wait predates both and would now time out on cadence alone.
+  await session.waitFor(/gathered: (?!\(nothing yet\))/, 60000);
   session.sendKeys("s"); // Stop action -> back to location
   await session.waitFor("town square");
 

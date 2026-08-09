@@ -38,12 +38,18 @@ export const QUESTS = {
     },
     "home_decked": {
         name: "Home Decked",
-        locked: true,
+        locked: false,
         level: 2,
         reward: { gold: 500, xp: 250 },
         // purchase all home stations
+        // Keyed by label like every other quest - the objectives map is
+        // { "<label>": { <type>: <spec> } }, so putting the type at the top
+        // level handed the evaluator a bare `true` to read as a definition.
         objectives: {
-            acquireStation: ["forge", "cooking_station", "alchemy_table", "crafting_table", "anvil" ],
+            "Buy a House": { acquireHouse: true },
+            "Build every station": {
+                acquireStation: ["forge", "cooking_station", "alchemy_table", "crafting_table", "anvil"],
+            },
         }
     },
     "mine_mine_mine": {
@@ -56,25 +62,54 @@ export const QUESTS = {
             "Acquire 5 Copper Ore": { acquireItem: { "copper_ore": 5 } },
         }
     },
+    "smithy_smithy": {
+        name: "Smithy Smithy",
+        locked: false,
+        level: 2,
+        reward: { gold: 500, xp: 250 },
+        objectives: {
+            "Craft a Copper Sword": { craftItem: { type: "copper_sword", quantity: 1 } },
+            "Craft a Copper Shield": { craftItem: { type: "copper_shield", quantity: 1 } },
+            "Craft a Copper Helmet": { craftItem: { type: "copper_helmet", quantity: 1 } },
+        }
+    },
+    
 
     // Completor
     "youve_done_it": {
         name: "You've Done It!",
-        locked: true,
+        locked: false,
         level: 85,
         completor: true,
         reward: { gold: 1000, xp: 1000 },
         objectives: {
-            "Acquire a Mythic Weapon": { acquireItem: { "mythic_weapon": 1 } },
-            "Acquire a Godlike Armor": { acquireItem: { "godlike_armor": 1 } },
-            "Acquire a Legendary Spell": { learnSpell: ["legendary_spell"] },
+            // `type` narrows the rarity match to an ITEM_TYPES category -
+            // without it a mythic raw fish would finish "Acquire a Mythic Weapon".
+            "Acquire a Mythic Weapon": { acquireItem: { rarity: "mythic", type: "weapon" } },
+            "Acquire a Godlike Armor": { acquireItem: { rarity: "godlike", type: "armor" } },
+            "Acquire a Legendary Spell": { learnSpell: { rarity: "legendary" } },
             "Acquire a bunch of gold": { acquireItem: { "gold": 10000 } },
-            "Acquire a bunch of stuff": { acquireItem: { "gold_bar": 50, "mithril_ore": 50, "adamantite_ore": 50, "stone": 300 } },
+            "Acquire a bunch of stuff": {
+                // acquireItem: { "gold_bar": 50, "mithril_ore": 50, "adamantite_ore": 50, "stone": 300 }
+                subObjectives: {
+                    "Acquire 50 Gold Bars": { acquireItem: { "gold_bar": 50 } },
+                    "Acquire 50 Mithril Ore": { acquireItem: { "mithril_ore": 50 } },
+                    "Acquire 50 Adamantite Ore": { acquireItem: { "adamantite_ore": 50 } },
+                    "Acquire 300 Stone": { acquireItem: { "stone": 300 } },
+                    }
+                 },
             "Defeat a bunch of enemies": { defeatEnemy: { type: "goblin", quantity: 50 } },
-            // "hilbert" was a typo for "hubert" - there is no such enemy id in
-            // enemy_backbone.js, so this objective could never have completed.
-            "Defeat Hubert and Gilbert": { defeatEnemy: ["hubert", "gilbert"] },
+            "Defeat The Mad Bert Brothers": {
+                // defeatEnemy: ["hubert", "gilbert", "hilbert"] },
+                subObjectives: {
+                    "Defeat Hubert": { defeatEnemy: ["hubert"] },
+                    "Defeat Gilbert": { defeatEnemy: ["gilbert"] },
+                    "Defeat Hilbert": { defeatEnemy: ["hilbert"] },
+                }
+            },
+            "Defeat Azrael": { defeatEnemy: ["azrael"] },
             "Defeat Solas": { defeatEnemy: ["solas"] },
+
         }
     }
 };

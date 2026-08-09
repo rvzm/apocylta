@@ -148,6 +148,7 @@ export const GROUP_ENEMIES = {
 export const NAMED_ENEMIES = {
     "hubert":         { name: "Hubert", type: "human", subtype: "boss", hp: 100, dps: 25, spells: ["magic_missle", "fireball", "weaken"], xp: 145, desc: "Hubert, The Vile Kid" },
     "gilbert":          { name: "Gilbert", type: "human", subtype: "boss", hp: 150, dps: 27, spells: ["magic_missle", "fireball", "weaken"], xp: 155, desc: "Gilbert, Huberts older brother." },
+    "hilbert":          { name: "Hilbert", type: "human", subtype: "boss", hp: 200, dps: 30, spells: ["magic_missle", "fireball", "weaken"], xp: 200, desc: "Hilbert, The Mad King" },
     "fatom":            { name: "Fatom", type: "acolyte", subtype: "boss", hp: 250, dps: 35, spells: ["magic_missle", "fireball", "weaken"], xp: 235, desc: "The Dead Queen" },
     "kovetch":          { name: "Kovetch", type: "orc", subtype: "boss", hp: 300, dps: 40, spells: ["magic_missle", "fireball", "weaken"], xp: 300, desc: "Kovetch, The Orc Chieftain" },
     "goblin_king":     { name: "Goblin King", type: "goblin", subtype: "boss", hp: 200, dps: 30, spells: ["magic_missle", "fireball", "weaken"], xp: 250, desc: "The Goblin King" },

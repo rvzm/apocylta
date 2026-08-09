@@ -2,6 +2,7 @@ import { ALL_ITEMS } from "../../item_backbone.js";
 import { getSellPrice, getBarterXp } from "../../data/shops.js";
 import { removeItem, grantSkillXp } from "../../state/gameState.js";
 import { recordItemSold } from "../../data/quests.js";
+import { openLine, packLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
@@ -46,6 +47,14 @@ function selectedItemId(ui) {
 }
 
 export const shopSellScreen = {
+  subHeader: [
+    "The buyer looks over everything twice and offers less the second time.",
+    "A crate by the counter is already full of things someone else gave up on.",
+    "Nothing you brought is worth what you think it is.",
+    packLine,
+    openLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "location"),
     T: (state, ui) => {

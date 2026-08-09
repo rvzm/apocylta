@@ -19,12 +19,16 @@ export const ARMOR_TYPES = ["simple_robe","leather", "tin", "chainmail", "bronze
 export const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "cloak", "ring", "necklace", "belt", "shield"];
 export const MAGE_ROBE_TYPES = ["basic", "advanced", "mythic", "unique", "godlike"];
 export const SCRAP_TYPES = ["metal", "plastic", "wood", "stone", "fabric", "glass", "misc"];
-export const CRAFTING_TYPES = ["woodworking", "metalworking", "tool", "alchemy", "cooking", "smithing", "magic", ...SCRAP_TYPES];
+// "fishing" covers bait/nets/hooks - carried gear that gates a catch by being
+// in the backpack rather than equipped (see the FISHING_ITEMS mapping below).
+export const CRAFTING_TYPES = ["woodworking", "metalworking", "tool", "alchemy", "cooking", "smithing", "magic", "fishing", ...SCRAP_TYPES];
 export const MINING_TYPES = ["tin", "copper", "iron", "cobalt", "mithril", "adamantite", "syllic", "silkre", "runite", "runic", "gold", "fuel", "gemstone"];
 export const SMITHING_TYPES = ["tin", "copper", "bronze", "iron", "cobalt", "black_cobalt", "steel", "black_steel", "mithril", "adamantite", "syllic", "runite", "runic", "gold", "silkre", "fuel", "alloy"];
 export const METAL_TYPES = ["base", "alloy", "precious", "rare", "exotic"];
 export const FOOD_CATAGORIES = ["raw_food", "raw_meat", "raw_fish", "raw_fungi", "raw_vegetables", "raw_herbs", "raw_fruits", "cooked_food"];
-export const FOOD_SUBTYPES = ["basic", "stew", "baked", "brewed", "ingredient"];
+// "grilled"/"smoked"/"pickled" are the fishing preparations (FISHING_RECIPES);
+// "baked" was already here and is shared with the bread/pie recipes.
+export const FOOD_SUBTYPES = ["basic", "stew", "baked", "grilled", "fried", "smoked", "pickled", "brewed", "ingredient"];
 export const POTION_CATAGORIES = ["heal", "mana", "poison", "buff"];
 export const TOOL_CATAGORIES = ["shovel", "pickaxe", "hammer", "saw", "axe", "fishing rod", "lockpick", "combat_aid", "combat_bait", "combat_trap", "combat_bomb"];
 export const KIT_CATAGORIES = ["first_aid", "survival", "tool", "crafting", "armor"];
@@ -50,6 +54,11 @@ export const ITEMS = {
     // - Swords
     "wooden_sword":     { name: "Wooden Sword",     type: "weapon", subtype: "sword", rarity: "common",    damage: 5, durability: 50 },
     "tin_sword":        { name: "Tin Sword",        type: "weapon", subtype: "sword", rarity: "common",    damage: 7, durability: 60 },
+    // Every other weapon line has a copper tier; sword and dagger were the two
+    // that never got one, leaving SMITHING_RECIPES.copper_sword/copper_dagger
+    // pointing at items that didn't exist. Stats sit between tin and bronze,
+    // matching copper_battleaxe/copper_bow's placement on their own lines.
+    "copper_sword":     { name: "Copper Sword",     type: "weapon", subtype: "sword", rarity: "uncommon",  damage: 9, durability: 65 },
     "bronze_sword":     { name: "Bronze Sword",     type: "weapon", subtype: "sword", rarity: "uncommon",  damage: 12, durability: 80 },
     "iron_sword":       { name: "Iron Sword",       type: "weapon", subtype: "sword", rarity: "common",    damage: 10, durability: 100 },
     "cobalt_sword":     { name: "Cobalt Sword",     type: "weapon", subtype: "sword", rarity: "rare",      damage: 15, durability: 120 },
@@ -60,6 +69,7 @@ export const ITEMS = {
     // - Daggers
     "wooden_dagger":     { name: "Wooden Dagger",     type: "weapon", subtype: "dagger", rarity: "common",    damage: 3, durability: 40 },
     "tin_dagger":        { name: "Tin Dagger",        type: "weapon", subtype: "dagger", rarity: "common",    damage: 5, durability: 50 },
+    "copper_dagger":     { name: "Copper Dagger",     type: "weapon", subtype: "dagger", rarity: "uncommon",  damage: 6, durability: 55 },
     "bronze_dagger":     { name: "Bronze Dagger",     type: "weapon", subtype: "dagger", rarity: "uncommon",  damage: 8, durability: 70 },
     "iron_dagger":       { name: "Iron Dagger",       type: "weapon", subtype: "dagger", rarity: "common",    damage: 6, durability: 80 },
     "cobalt_dagger":     { name: "Cobalt Dagger",     type: "weapon", subtype: "dagger", rarity: "rare",      damage: 10, durability: 100 },
@@ -295,7 +305,8 @@ export const ITEMS = {
     "shovel": { name: "Shovel", type: "tool", subtype: "shovel", rarity: "common", durability: 60 },
     "saw":    { name: "Saw",    type: "tool", subtype: "saw",    rarity: "common", durability: 70 },
     "axe":    { name: "Axe",    type: "tool", subtype: "axe",    rarity: "common", durability: 80 },
-    "fishing_rod": { name: "Fishing Rod", type: "tool", subtype: "fishing rod", rarity: "uncommon", durability: 80 },
+    // "fishing_rod" lives in FISHING_ITEMS now, as the basic tier of its own rod
+    // ladder - the starter pack, tool kit and crafting recipe still resolve it.
     "pickaxe": { name: "Pickaxe", type: "tool", subtype: "pickaxe", rarity: "common", durability: 60 },
     "lockpick": { name: "Lockpick", type: "tool", subtype: "lockpick", rarity: "uncommon", durability: 50 },
     // - Advanced Tools
@@ -406,8 +417,9 @@ export const ITEMS = {
 
     
     // Edible Raw Foods
-    "raw_fish": { name: "Raw Fish", type: "food", subtype: "raw_fish", gather: "fish", rarity: "common", health_boost: 5 },
-    "raw_crab": { name: "Raw Crab", type: "food", subtype: "raw_fish", gather: "fish", rarity: "common", health_boost: 5 },
+    // The generic "raw_fish"/"raw_crab" pair used to live here. Every catch is
+    // now a named species in FISHING_ITEMS below (which owns raw_crab), and the
+    // subtype "raw_fish" survives as the category all of them share.
     "raw_mushroom": { name: "Raw Mushroom", type: "food", subtype: "raw_fungi", gather: "forage", rarity: "common", health_boost: 5 },
     "raw_vegetables": { name: "Raw Vegetables", type: "food", subtype: "raw_vegetables", gather: "forage", rarity: "common", health_boost: 5 },
     "raw_herbs": { name: "Raw Herbs", type: "food", subtype: "raw_herbs", gather: "forage", rarity: "common", health_boost: 5 },
@@ -420,11 +432,11 @@ export const ITEMS = {
     "raw_pork": { name: "Raw Pork", type: "food", subtype: "raw_meat", gather: "hunt", rarity: "common", health_boost: 5 },
     "raw_venison": { name: "Raw Venison", type: "food", subtype: "raw_meat", gather: "hunt", rarity: "common", health_boost: 5 },
     "raw_duck": { name: "Raw Duck", type: "food", subtype: "raw_meat", gather: "hunt", rarity: "common", health_boost: 5 },
-    "raw_lobster": { name: "Raw Lobster", type: "food", subtype: "raw_fish", gather: "fish", rarity: "common", health_boost: 5 },
-    "raw_clam": { name: "Raw Clam", type: "food", subtype: "raw_fish", gather: "fish", rarity: "common", health_boost: 5 },
 
     // Ingredients for Cooking (foragable, uses raw_food subtype)
     "salt": { name: "Salt", type: "food", subtype: "raw_food", rarity: "common", health_boost: 1 },
+    "vinegar": { name: "Vinegar", type: "food", subtype: "raw_food", rarity: "common", health_boost: 1 },
+    "oil": { name: "Oil", type: "food", subtype: "raw_food", rarity: "common", health_boost: 1 },
     "peppercorn": { name: "Peppercorn", type: "food", subtype: "raw_food", rarity: "common", health_boost: 2 },
     "pepper_flakes": { name: "Pepper Flakes", type: "food", subtype: "raw_food", rarity: "common", health_boost: 2 },
     "spices": { name: "Spices", type: "food", subtype: "raw_food", rarity: "common", health_boost: 2 },
@@ -524,10 +536,8 @@ export const ITEMS = {
     "cooked_pork": { name: "Cooked Pork", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
     "cooked_venison": { name: "Cooked Venison", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
     "cooked_duck": { name: "Cooked Duck", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
-    "cooked_fish": { name: "Cooked Fish", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
-    "cooked_crab": { name: "Cooked Crab", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
-    "cooked_lobster": { name: "Cooked Lobster", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
-    "cooked_clam": { name: "Cooked Clam", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
+    // cooked_fish/cooked_crab/cooked_lobster/cooked_clam moved to FISHING_ITEMS,
+    // which cooks each species separately (and six ways).
     "cooked_mushroom": { name: "Cooked Mushroom", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
     "cooked_vegetables": { name: "Cooked Vegetables", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
     "cooked_fruits": { name: "Cooked Fruits", type: "food", subtype: "cooked_food", rarity: "common", health_boost: 15 },
@@ -979,101 +989,123 @@ export const MAGIC_ITEMS = {
 
 // Smithing Recipes - Recipes for crafting items at a forge or anvil, using various metals and other materials
 export const SMITHING_RECIPES = {
-    global: { station: "forge", skill: "smithing" },
+    global: { station: ["anvil", "forge", "blast_furnace", "smithing_table", "mythic_forge", "apocyltian_forge"], skill: "smithing" },
     // Bars
-    "tin_bar": { ingredients: { "tin_ore": 1, "coal": 1 }, result: "tin_bar" },
-    "copper_bar": { ingredients: { "copper_ore": 1, "coal": 1 }, result: "copper_bar" },
-    "bronze_bar": { ingredients: { "tin_ore": 1, "copper_ore": 1, "coal": 1 }, result: "bronze_bar" },
-    "iron_bar": { ingredients: { "iron_ore": 1, "coal": 1 }, result: "iron_bar" },
-    "cobalt_bar": { ingredients: { "cobalt_ore": 1, "coal": 1 }, result: "cobalt_bar" },
-    "steel_bar": { ingredients: { "iron_ore": 1, "bronze_bar": 1, "coal": 2 }, result: "steel_bar" },
-    "mithril_bar": { ingredients: { "mithril_ore": 1, "coal": 2 }, result: "mithril_bar" },
-    "adamantite_bar": { ingredients: { "adamantite_ore": 1, "coal": 3 }, result: "adamantite_bar" },
-    "syllic_bar": { ingredients: { "syllic_ore": 1, "coal": 4 }, result: "syllic_bar" },
+    "tin_bar": { ingredients: { "tin_ore": 1, "coal": 1 }, station: [ true ], result: "tin_bar" },
+    "copper_bar": { ingredients: { "copper_ore": 1, "coal": 1 }, station: [ true ], result: "copper_bar" },
+    "bronze_bar": { ingredients: { "tin_ore": 1, "copper_ore": 1, "coal": 1 }, station: [ true ], result: "bronze_bar" },
+    "iron_bar": { ingredients: { "iron_ore": 1, "coal": 1 }, station: [ true ], result: "iron_bar" },
+    "cobalt_bar": { ingredients: { "cobalt_ore": 1, "coal": 1 }, station: [ true ], result: "cobalt_bar" },
+    "steel_bar": { ingredients: { "iron_ore": 1, "bronze_bar": 1, "coal": 2 }, station: [ true ], result: "steel_bar" },
+    "mithril_bar": { ingredients: { "mithril_ore": 1, "coal": 2 }, station: [ true ], result: "mithril_bar" },
+    "adamantite_bar": { ingredients: { "adamantite_ore": 1, "coal": 3 }, station: [ true ], result: "adamantite_bar" },
+    "syllic_bar": { ingredients: { "syllic_ore": 1, "coal": 4 }, station: [ true ], result: "syllic_bar" },
     
     // Weapons
-    "tin_sword": { ingredients: { "tin_bar": 2, "wood": 1 }, result: "tin_sword" },
-    "copper_sword": { ingredients: { "copper_bar": 2, "wood": 1 }, result: "copper_sword" },
-    "bronze_sword": { ingredients: { "bronze_bar": 2, "wood": 1 }, result: "bronze_sword" },
-    "iron_sword": { ingredients: { "iron_bar": 2, "wood": 1 }, result: "iron_sword" },
-    "cobalt_sword": { ingredients: { "cobalt_bar": 2, "wood": 1 }, result: "cobalt_sword" },
-    "steel_sword": { ingredients: { "steel_bar": 2, "wood": 1 }, result: "steel_sword" },
-    "mithril_sword": { ingredients: { "mithril_bar": 2, "wood": 1 }, result: "mithril_sword" },
-    "adamantite_sword": { ingredients: { "adamantite_bar": 2, "wood": 1 }, result: "adamantite_sword" },
-    "syllic_sword": { ingredients: { "syllic_bar": 2, "wood": 1 }, result: "syllic_sword" },
+    "tin_sword": { ingredients: { "tin_bar": 2, "wood": 1 }, station: [ true ], result: "tin_sword" },
+    "copper_sword": { ingredients: { "copper_bar": 2, "wood": 1 }, station: [ true ], result: "copper_sword" },
+    "bronze_sword": { ingredients: { "bronze_bar": 2, "wood": 1 }, station: [ true ], result: "bronze_sword" },
+    "iron_sword": { ingredients: { "iron_bar": 2, "wood": 1 }, station: [ true ], result: "iron_sword" },
+    "cobalt_sword": { ingredients: { "cobalt_bar": 2, "wood": 1 }, station: [ true ], result: "cobalt_sword" },
+    "steel_sword": { ingredients: { "steel_bar": 2, "wood": 1 }, station: [ true ], result: "steel_sword" },
+    "mithril_sword": { ingredients: { "mithril_bar": 2, "wood": 1 }, station: [ "blast_furnace" ], result: "mithril_sword" },
+    "adamantite_sword": { ingredients: { "adamantite_bar": 2, "wood": 1 }, station: [ "smithing_table" ], result: "adamantite_sword" },
+    "syllic_sword": { ingredients: { "syllic_bar": 2, "wood": 1 }, station: [ "mythic_forge" ], result: "syllic_sword" },
 
-    "tin_dagger": { ingredients: { "tin_bar": 1, "wood": 1 }, result: "tin_dagger" },
-    "copper_dagger": { ingredients: { "copper_bar": 1, "wood": 1 }, result: "copper_dagger" },
-    "bronze_dagger": { ingredients: { "bronze_bar": 1, "wood": 1 }, result: "bronze_dagger" },
-    "iron_dagger": { ingredients: { "iron_bar": 1, "wood": 1 }, result: "iron_dagger" },
-    "cobalt_dagger": { ingredients: { "cobalt_bar": 1, "wood": 1 }, result: "cobalt_dagger" },
-    "steel_dagger": { ingredients: { "steel_bar": 1, "wood": 1 }, result: "steel_dagger" },
-    "mithril_dagger": { ingredients: { "mithril_bar": 1, "wood": 1 }, result: "mithril_dagger" },
-    "adamantite_dagger": { ingredients: { "adamantite_bar": 1, "wood": 1 }, result: "adamantite_dagger" },
-    "syllic_dagger": { ingredients: { "syllic_bar": 1, "wood": 1 }, result: "syllic_dagger" },
+    "tin_dagger": { ingredients: { "tin_bar": 1, "wood": 1 }, station: [ true ], result: "tin_dagger" },
+    "copper_dagger": { ingredients: { "copper_bar": 1, "wood": 1 }, station: [ true ], result: "copper_dagger" },
+    "bronze_dagger": { ingredients: { "bronze_bar": 1, "wood": 1 }, station: [ true ], result: "bronze_dagger" },
+    "iron_dagger": { ingredients: { "iron_bar": 1, "wood": 1 }, station: [ true ], result: "iron_dagger" },
+    "cobalt_dagger": { ingredients: { "cobalt_bar": 1, "wood": 1 }, station: [ true ], result: "cobalt_dagger" },
+    "steel_dagger": { ingredients: { "steel_bar": 1, "wood": 1 }, station: [ true ], result: "steel_dagger" },
+    "mithril_dagger": { ingredients: { "mithril_bar": 1, "wood": 1 }, station: [ "blast_furnace" ], result: "mithril_dagger" },
+    "adamantite_dagger": { ingredients: { "adamantite_bar": 1, "wood": 1 }, station: [ "smithing_table" ], result: "adamantite_dagger" },
+    "syllic_dagger": { ingredients: { "syllic_bar": 1, "wood": 1 }, station: [ "mythic_forge" ], result: "syllic_dagger" },
 
-    "tin_battleaxe": { ingredients: { "tin_bar": 2, "wood": 1 }, result: "tin_battleaxe" },
-    "copper_battleaxe": { ingredients: { "copper_bar": 2, "wood": 1 }, result: "copper_battleaxe" },
-    "bronze_battleaxe": { ingredients: { "bronze_bar": 2, "wood": 1 }, result: "bronze_battleaxe" },
-    "iron_battleaxe": { ingredients: { "iron_bar": 2, "wood": 1 }, result: "iron_battleaxe" },
-    "cobalt_battleaxe": { ingredients: { "cobalt_bar": 2, "wood": 1 }, result: "cobalt_battleaxe" },
-    "steel_battleaxe": { ingredients: { "steel_bar": 2, "wood": 1 }, result: "steel_battleaxe" },
-    "mithril_battleaxe": { ingredients: { "mithril_bar": 2, "wood": 1 }, result: "mithril_battleaxe" },
-    "adamantite_battleaxe": { ingredients: { "adamantite_bar": 2, "wood": 1 }, result: "adamantite_battleaxe" },
-    "syllic_battleaxe": { ingredients: { "syllic_bar": 2, "wood": 1 }, result: "syllic_battleaxe" },
+    "tin_battleaxe": { ingredients: { "tin_bar": 2, "wood": 1 }, station: [ true ], result: "tin_battleaxe" },
+    "copper_battleaxe": { ingredients: { "copper_bar": 2, "wood": 1 }, station: [ true ], result: "copper_battleaxe" },
+    "bronze_battleaxe": { ingredients: { "bronze_bar": 2, "wood": 1 }, station: [ true ], result: "bronze_battleaxe" },
+    "iron_battleaxe": { ingredients: { "iron_bar": 2, "wood": 1 }, station: [ true ], result: "iron_battleaxe" },
+    "cobalt_battleaxe": { ingredients: { "cobalt_bar": 2, "wood": 1 }, station: [ true ], result: "cobalt_battleaxe" },
+    "steel_battleaxe": { ingredients: { "steel_bar": 2, "wood": 1 }, station: [ true ], result: "steel_battleaxe" },
+    "mithril_battleaxe": { ingredients: { "mithril_bar": 2, "wood": 1 }, station: [ "blast_furnace" ], result: "mithril_battleaxe" },
+    "adamantite_battleaxe": { ingredients: { "adamantite_bar": 2, "wood": 1 }, station: [ "smithing_table" ], result: "adamantite_battleaxe" },
+    "syllic_battleaxe": { ingredients: { "syllic_bar": 2, "wood": 1 }, station: [ "mythic_forge" ], result: "syllic_battleaxe" },
 
     // Armors
-    "bronze_helmet": { ingredients: { "bronze_bar": 2 }, result: "bronze_helmet" },
-    "bronze_gauntlets": { ingredients: { "bronze_bar": 2 }, result: "bronze_gauntlets" },
-    "bronze_chestplate": { ingredients: { "bronze_bar": 4 }, result: "bronze_chestplate" },
-    "bronze_leggings": { ingredients: { "bronze_bar": 3 }, result: "bronze_leggings" },
-    "bronze_boots": { ingredients: { "bronze_bar": 2 }, result: "bronze_boots" },
+    "bronze_helmet": { ingredients: { "bronze_bar": 2 }, station: [ true ], result: "bronze_helmet" },
+    "bronze_gauntlets": { ingredients: { "bronze_bar": 2 }, station: [ true ], result: "bronze_gauntlets" },
+    "bronze_chestplate": { ingredients: { "bronze_bar": 4 }, station: [ true ], result: "bronze_chestplate" },
+    "bronze_leggings": { ingredients: { "bronze_bar": 3 }, station: [ true ], result: "bronze_leggings" },
+    "bronze_boots": { ingredients: { "bronze_bar": 2 }, station: [ true ], result: "bronze_boots" },
     
-    "iron_helmet": { ingredients: { "iron_bar": 2 }, result: "iron_helmet" },
-    "iron_gauntlets": { ingredients: { "iron_bar": 2 }, result: "iron_gauntlets" },
-    "iron_chestplate": { ingredients: { "iron_bar": 4 }, result: "iron_chestplate" },
-    "iron_leggings": { ingredients: { "iron_bar": 3 }, result: "iron_leggings" },
-    "iron_boots": { ingredients: { "iron_bar": 2 }, result: "iron_boots" },
+    "iron_helmet": { ingredients: { "iron_bar": 2 }, station: [ true ], result: "iron_helmet" },
+    "iron_gauntlets": { ingredients: { "iron_bar": 2 }, station: [ true ], result: "iron_gauntlets" },
+    "iron_chestplate": { ingredients: { "iron_bar": 4 }, station: [ true ], result: "iron_chestplate" },
+    "iron_leggings": { ingredients: { "iron_bar": 3 }, station: [ true ], result: "iron_leggings" },
+    "iron_boots": { ingredients: { "iron_bar": 2 }, station: [ true ], result: "iron_boots" },
 
-    "cobalt_helmet": { ingredients: { "cobalt_bar": 2 }, result: "cobalt_helmet" },
-    "cobalt_gauntlets": { ingredients: { "cobalt_bar": 2 }, result: "cobalt_gauntlets" },
-    "cobalt_chestplate": { ingredients: { "cobalt_bar": 4 }, result: "cobalt_chestplate" },
-    "cobalt_leggings": { ingredients: { "cobalt_bar": 3 }, result: "cobalt_leggings" },
-    "cobalt_boots": { ingredients: { "cobalt_bar": 2 }, result: "cobalt_boots" },
+    "cobalt_helmet": { ingredients: { "cobalt_bar": 2 }, station: [ true ], result: "cobalt_helmet" },
+    "cobalt_gauntlets": { ingredients: { "cobalt_bar": 2 }, station: [ true ], result: "cobalt_gauntlets" },
+    "cobalt_chestplate": { ingredients: { "cobalt_bar": 4 }, station: [ true ], result: "cobalt_chestplate" },
+    "cobalt_leggings": { ingredients: { "cobalt_bar": 3 }, station: [ true ], result: "cobalt_leggings" },
+    "cobalt_boots": { ingredients: { "cobalt_bar": 2 }, station: [ true ], result: "cobalt_boots" },
 
-    "steel_helmet": { ingredients: { "steel_bar": 2 }, result: "steel_helmet" },
-    "steel_gauntlets": { ingredients: { "steel_bar": 2 }, result: "steel_gauntlets" },
-    "steel_chestplate": { ingredients: { "steel_bar": 4 }, result: "steel_chestplate" },
-    "steel_leggings": { ingredients: { "steel_bar": 3 }, result: "steel_leggings" },
-    "steel_boots": { ingredients: { "steel_bar": 2 }, result: "steel_boots" },
+    "steel_helmet": { ingredients: { "steel_bar": 2 }, station: [ true ], result: "steel_helmet" },
+    "steel_gauntlets": { ingredients: { "steel_bar": 2 }, station: [ true ], result: "steel_gauntlets" },
+    "steel_chestplate": { ingredients: { "steel_bar": 4 }, station: [ true ], result: "steel_chestplate" },
+    "steel_leggings": { ingredients: { "steel_bar": 3 }, station: [ true ], result: "steel_leggings" },
+    "steel_boots": { ingredients: { "steel_bar": 2 }, station: [ true ], result: "steel_boots" },
 
-    "mithril_helmet": { ingredients: { "mithril_bar": 2 }, result: "mithril_helmet" },
-    "mithril_gauntlets": { ingredients: { "mithril_bar": 2 }, result: "mithril_gauntlets" },
-    "mithril_chestplate": { ingredients: { "mithril_bar": 4 }, result: "mithril_chestplate" },
-    "mithril_leggings": { ingredients: { "mithril_bar": 3 }, result: "mithril_leggings" },
-    "mithril_boots": { ingredients: { "mithril_bar": 2 }, result: "mithril_boots" },
+    "mithril_helmet": { ingredients: { "mithril_bar": 2 }, station: [ "blast_furnace" ], result: "mithril_helmet" },
+    "mithril_gauntlets": { ingredients: { "mithril_bar": 2 }, station: [ "blast_furnace" ], result: "mithril_gauntlets" },
+    "mithril_chestplate": { ingredients: { "mithril_bar": 4 }, station: [ "blast_furnace" ], result: "mithril_chestplate" },
+    "mithril_leggings": { ingredients: { "mithril_bar": 3 }, station: [ "blast_furnace" ], result: "mithril_leggings" },
+    "mithril_boots": { ingredients: { "mithril_bar": 2 }, station: [ "blast_furnace" ], result: "mithril_boots" },
 
-    "adamantite_helmet": { ingredients: { "adamantite_bar": 2 }, result: "adamantite_helmet" },
-    "adamantite_gauntlets": { ingredients: { "adamantite_bar": 2 }, result: "adamantite_gauntlets" },
-    "adamantite_chestplate": { ingredients: { "adamantite_bar": 4 }, result: "adamantite_chestplate" },
-    "adamantite_leggings": { ingredients: { "adamantite_bar": 3 }, result: "adamantite_leggings" },
-    "adamantite_boots": { ingredients: { "adamantite_bar": 2 }, result: "adamantite_boots" },
+    "adamantite_helmet": { ingredients: { "adamantite_bar": 2 }, station: [ "smithing_table" ], result: "adamantite_helmet" },
+    "adamantite_gauntlets": { ingredients: { "adamantite_bar": 2 }, station: [ "smithing_table"], result: "adamantite_gauntlets" },
+    "adamantite_chestplate": { ingredients: { "adamantite_bar": 4 }, station: [ "smithing_table" ], result: "adamantite_chestplate" },
+    "adamantite_leggings": { ingredients: { "adamantite_bar": 3 }, station: [ "smithing_table" ], result: "adamantite_leggings" },
+    "adamantite_boots": { ingredients: { "adamantite_bar": 2 }, station: [ "smithing_table" ], result: "adamantite_boots" },
 
-    "syllic_helmet": { ingredients: { "syllic_bar": 2 }, result: "syllic_helmet" },
-    "syllic_gauntlets": { ingredients: { "syllic_bar": 2 }, result: "syllic_gauntlets" },
-    "syllic_chestplate": { ingredients: { "syllic_bar": 4 }, result: "syllic_chestplate" },
-    "syllic_leggings": { ingredients: { "syllic_bar": 3 }, result: "syllic_leggings" },
-    "syllic_boots": { ingredients: { "syllic_bar": 2 }, result: "syllic_boots" },
+    "syllic_helmet": { ingredients: { "syllic_bar": 2 }, station: [ "mythic_forge" ], result: "syllic_helmet" },
+    "syllic_gauntlets": { ingredients: { "syllic_bar": 2 }, station: [ "mythic_forge" ], result: "syllic_gauntlets" },
+    "syllic_chestplate": { ingredients: { "syllic_bar": 4 }, station: [ "mythic_forge" ], result: "syllic_chestplate" },
+    "syllic_leggings": { ingredients: { "syllic_bar": 3 }, station: [ "mythic_forge" ], result: "syllic_leggings" },
+    "syllic_boots": { ingredients: { "syllic_bar": 2 }, station: [ "mythic_forge" ], result: "syllic_boots" },
 
     // Shields
-    "bronze_shield": { ingredients: { "bronze_bar": 3, "wood": 1 }, result: "bronze_shield" },
-    "iron_shield": { ingredients: { "iron_bar": 3, "wood": 1 }, result: "iron_shield" },
-    "steel_shield": { ingredients: { "steel_bar": 3, "wood": 1 }, result: "steel_shield" },
-    "mithril_shield": { ingredients: { "mithril_bar": 3, "wood": 1 }, result: "mithril_shield" },
-    "adamantite_shield": { ingredients: { "adamantite_bar": 3, "wood": 1 }, result: "adamantite_shield" },
-    "syllic_shield": { ingredients: { "syllic_bar": 3, "wood": 1 }, result: "syllic_shield" },
+    "bronze_shield": { ingredients: { "bronze_bar": 3, "wood": 1 }, station: [ true ], result: "bronze_shield" },
+    "iron_shield": { ingredients: { "iron_bar": 3, "wood": 1 }, station: [ true ], result: "iron_shield" },
+    "steel_shield": { ingredients: { "steel_bar": 3, "wood": 1 }, station: [ true ], result: "steel_shield" },
+    "mithril_shield": { ingredients: { "mithril_bar": 3, "wood": 1 }, station: [ "blast_furnace" ], result: "mithril_shield" },
+    "adamantite_shield": { ingredients: { "adamantite_bar": 3, "wood": 1 }, station: [ "smithing_table" ], result: "adamantite_shield" },
+    "syllic_shield": { ingredients: { "syllic_bar": 3, "wood": 1 }, station: [ "mythic_forge" ], result: "syllic_shield" },
 
 }
+
+// Smithing recipe helpers
+
+// Station inclusion Check - Stations are hierarchical, so a recipe that lists "forge" is also craftable at "blast_furnace" and "mythic_forge", but not vice versa.
+export function isRecipeSmithableAtStation(recipe, station) {
+    if (!recipe.station || !Array.isArray(recipe.station)) return false;
+    const stationHierarchy = ["anvil", "forge", "blast_furnace", "smithing_table", "mythic_forge", "apocyltian_forge"];
+    const recipeStations = recipe.station.map(s => s.toLowerCase());
+    const stationIndex = stationHierarchy.indexOf(station.toLowerCase());
+    if (stationIndex === -1) return false;
+    for (const recipeStation of recipeStations) {
+        const recipeStationIndex = stationHierarchy.indexOf(recipeStation);
+        if (recipeStationIndex !== -1 && recipeStationIndex <= stationIndex) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+
 export const CRAFTING_RECIPES = {
     global: { station: ["crafting_table", "anvil"], skill: "crafting" },
     "lockpick": { ingredients: { "lockpick_parts": 3 }, tool: "hammer", result: { "lockpick": 5 } },
@@ -1098,10 +1130,8 @@ export const COOKING_RECIPES = {
     "cooked_pork": { ingredients: { "raw_pork": 1 }, result: "cooked_pork" },
     "cooked_venison": { ingredients: { "raw_venison": 1 }, result: "cooked_venison" },
     "cooked_duck": { ingredients: { "raw_duck": 1 }, result: "cooked_duck" },
-    "cooked_fish": { ingredients: { "raw_fish": 1 }, result: "cooked_fish" },
-    "cooked_crab": { ingredients: { "raw_crab": 1 }, result: "cooked_crab" },
-    "cooked_lobster": { ingredients: { "raw_lobster": 1 }, result: "cooked_lobster" },
-    "cooked_clam": { ingredients: { "raw_clam": 1 }, result: "cooked_clam" },
+    // Every fish/crustacean/shellfish/mollusk recipe lives in FISHING_RECIPES,
+    // which registers at these same two stations (see data/stations.js).
     "cooked_mushroom": { ingredients: { "raw_mushroom": 1 }, result: "cooked_mushroom" },
     "cooked_vegetables": { ingredients: { "raw_vegetables": 1 }, result: "cooked_vegetables" },
     "cooked_fruits": { ingredients: { "raw_fruits": 1 }, result: "cooked_fruits" },
@@ -1163,11 +1193,16 @@ export const POTION_RECIPES = {
 // outputs: A list of output types or subtypes that the station can produce (e.g., crafting, cooking, brewing)
 export const STATIONS = {
     "crafting_table": { name: "Crafting Table", type: "station", rarity: "common", outputs: ["crafting"] },
-    "anvil": { name: "Anvil", type: "station", rarity: "uncommon", outputs: ["tools"] },
-    "forge": { name: "Forge", type: "station", rarity: "rare", outputs: ["smithing"] },
     "alchemy_table": { name: "Alchemy Table", type: "station", rarity: "uncommon", outputs: ["potions", "poisons"] },
     "cooking_station": { name: "Cooking Station", type: "station", rarity: "common", outputs: ["cooked_food", "stew", "baked", "brewed"] },
     "campfire": { name: "Campfire", type: "station", rarity: "common", outputs: ["cooked_food", "potions"] },
+    // Forge/Smithing stations
+    "anvil": { name: "Anvil", type: "station", rarity: "common", outputs: ["smithing"] },
+    "forge": { name: "Forge", type: "station", rarity: "common", outputs: ["smithing"] },
+    "blast_furnace": { name: "Blast Furnace", type: "station", rarity: "uncommon", outputs: ["smithing"] },
+    "smithing_table": { name: "Smithing Table", type: "station", rarity: "rare", outputs: ["smithing"] },
+    "mythic_forge": { name: "Mythic Forge", type: "station", rarity: "mythic", outputs: ["smithing"] },
+    "apocyltian_forge": { name: "Apocyltian Forge", type: "station", rarity: "godlike", outputs: ["smithing"] }
 }
 
 // Consumables Logic
@@ -1186,36 +1221,17 @@ export const CONSUME = {
 // Shop Rarity display logic
 export const SHOP_RARITY_DISPLAY = {
     "common": { color: "gray", display: "Common", level: 1 },
-    "uncommon": { color: "green", display: "Uncommon", level: 3 },
-    "rare": { color: "blue", display: "Rare", level: 5 },
-    "epic": { color: "purple", display: "Epic", level: 10 },
-    "legendary": { color: "orange", display: "Legendary", level: 15 },
+    "uncommon": { color: "green", display: "Uncommon", level: 5 },
+    "rare": { color: "blue", display: "Rare", level: 15 },
+    "epic": { color: "purple", display: "Epic", level: 25 },
+    "legendary": { color: "orange", display: "Legendary", level: 35 },
+    "mythic": { color: "red", display: "Mythic", level: 65 },
+    "godlike": { color: "black", display: "Godlike", level: 100 },
 }
 
-// Single lookup covering all catalogs (no id overlap between them) - for
-// anything that needs to display/categorize an item without caring which
-// catalog it came from (inventory screens, loot rolling, etc).
-// Merges a catalog's `global` tag onto every entry before combining - some
-// catalogs (TOOLBELTS) rely on inheriting type/slot from `global` rather
-// than repeating it per entry, the way `global` was always documented to
-// work above (data/stations.js's STATION_RECIPES derivation does the
-// equivalent thing for recipe collections).
-function withGlobalDefaults(catalog) {
-  const { global, ...entries } = catalog;
-  if (!global) return entries;
-  return Object.fromEntries(Object.entries(entries).map(([id, item]) => [id, { ...global, ...item }]));
-}
-
-export const ALL_ITEMS = {
-  ...ITEMS,
-  ...withGlobalDefaults(TREASURE_ITEMS),
-  ...MYTHIC_ITEMS,
-  ...UNIQUE_ITEMS,
-  ...withGlobalDefaults(MINING_RESOURCES),
-  ...withGlobalDefaults(MAGIC_RESOURCES),
-  ...withGlobalDefaults(MAGIC_ITEMS),
-  ...withGlobalDefaults(TOOLBELTS),
-};
+// ALL_ITEMS is built at the very bottom of this file instead of here: it now
+// includes the fishing catalog, which is declared further down, and a `const`
+// can't be spread before it's initialized.
 
 // Resolves an item id to the equipment slot it belongs in ("weapon", or an
 // armor piece's "slot" field), or null if the item can't be equipped.
@@ -1417,3 +1433,682 @@ export function listBlackMarketEnhancements() {
     }
     return enhancements;
 }
+
+// Dedicated Fishing Section
+// Fishing is a unique skill in the game, and it has its own set of items, recipes, and logic. The following section defines the fishing-related items, recipes, and mechanics.
+export const FISHING_TYPES = ["rod", "bait", "net", "hook", "fish", "crustacean", "shellfish", "mollusk"];
+export const FISHING_SUBTYPES = {
+    "rod": ["basic", "crafted", "forged", "enchanted", "mythic", "godlike"],
+    "bait": ["basic", "crafted", "forged", "enchanted", "mythic", "godlike"],
+    "net": ["basic", "crafted", "forged", "enchanted", "mythic", "godlike"],
+    "hook": ["basic", "crafted", "forged", "enchanted", "mythic", "godlike"],
+    "fish": ["shallow", "deep", "offland", "ancient", "mythic", "godlike"],
+    "crustacean": ["shallow", "deep", "offland", "ancient", "mythic", "godlike"],
+    "shellfish": ["shallow", "deep", "offland", "ancient", "mythic", "godlike"],
+    "mollusk": ["fresh", "muck", "swamp", "ancient", "mythic", "godlike"],
+};
+export const FISHING_RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "unique", "exotic", "ancient", "godlike"];
+// Fish, How they are Caught, their Rarity, and Difficulty to Catch
+// No `global` tag here: half these species are crustaceans/shellfish/molluscs,
+// so there is no one type to inherit. What each species IS lives on its catch
+// item in FISHING_ITEMS (`fishingType`), which is what getFishByType() reads.
+export const FISH = {
+    // Common and uncommon fish that can be caught in freshwater and saltwater environments.
+    "pike": { water: "freshwater", caught: "bait", rarity: "common", difficulty: 1, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "perch": { water: "freshwater", caught: "bait", rarity: "common", difficulty: 1, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "bass": { water: "freshwater", caught: "rod", rarity: "common", difficulty: 1, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "trout": { water: "freshwater", caught: "rod", rarity: "common", difficulty: 1, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "carp": { water: "freshwater", caught: "bait", rarity: "common", difficulty: 1, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "catfish": { water: "freshwater", caught: "bait", rarity: "common", difficulty: 1, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "tilapia": { water: "freshwater", caught: "bait", rarity: "uncommon", difficulty: 2, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    
+    "sturgeon": { water: true, caught: "rod", rarity: "uncommon", difficulty: 2, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "salmon": { water: true, caught: "rod", rarity: "uncommon", difficulty: 2, desc: "A freshwater fish that is commonly found in lakes and rivers." },
+    "shrimp": { water: true, caught: "net", rarity: "common", difficulty: 1, desc: "A saltwater crustacean that is commonly found in oceans." },
+    "crab": { water: true, caught: "net", rarity: "common", difficulty: 1, desc: "A saltwater crustacean that is commonly found in oceans." },
+    "clam": { water: true, caught: "hook", rarity: "common", difficulty: 1, desc: "A saltwater shellfish that is commonly found in oceans." },
+        
+    "tuna": { water: "saltwater", caught: "rod", rarity: "rare", difficulty: 3, desc: "A saltwater fish that is commonly found in oceans." },
+    "lobster": { water: "saltwater", caught: "net", rarity: "uncommon", difficulty: 2, desc: "A saltwater crustacean that is commonly found in oceans." },
+    "mussel": { water: "saltwater", caught: "hook", rarity: "common", difficulty: 1, desc: "A saltwater shellfish that is commonly found in oceans." },
+    "oyster": { water: "saltwater", caught: "bait", rarity: "uncommon", difficulty: 2, desc: "A saltwater mollusk that is commonly found in oceans." },
+    // Rare, Ancient, Epic, and Legendary fish.
+    // - Freshwater
+    "catfish_king": { water: "freshwater", caught: "rod", rarity: "epic", difficulty: 5, desc: "A legendary freshwater fish that is commonly found in lakes and rivers." },
+    "golden_trout": { water: "freshwater", caught: "rod", rarity: "legendary", difficulty: 6, desc: "A legendary freshwater fish that is commonly found in lakes and rivers." },
+    "raibow_salmon": { water: "freshwater", caught: "rod", rarity: "legendary", difficulty: 7, desc: "A mythic freshwater fish that is commonly found in lakes and rivers." },
+    "giant_carp": { water: "freshwater", caught: "rod", rarity: "mythic", difficulty: 8, desc: "A mythic freshwater fish that is commonly found in lakes and rivers." },
+    "giant_catfish": { water: "freshwater", caught: "rod", rarity: "mythic", difficulty: 9, desc: "A mythic freshwater fish that is commonly found in lakes and rivers." },
+    // - Saltwater
+    "anglerfish": { water: "freshwater", caught: "rod", rarity: "rare", difficulty: 4, desc: "A rare freshwater fish that is commonly found in lakes and rivers." },
+    "giant_tuna": { water: "saltwater", caught: "rod", rarity: "rare", difficulty: 4, desc: "A rare saltwater fish that is commonly found in oceans." },
+    "giant_lobster": { water: "saltwater", caught: "net", rarity: "epic", difficulty: 5, desc: "A legendary saltwater crustacean that is commonly found in oceans." },
+    "giant_crab": { water: "saltwater", caught: "net", rarity: "epic", difficulty: 5, desc: "A legendary saltwater crustacean that is commonly found in oceans." },
+    "giant_clam": { water: "saltwater", caught: "hook", rarity: "epic", difficulty: 5, desc: "A legendary saltwater shellfish that is commonly found in oceans." },
+    "giant_mussel": { water: "saltwater", caught: "hook", rarity: "epic", difficulty: 5, desc: "A legendary saltwater shellfish that is commonly found in oceans." },
+    "giant_oyster": { water: "saltwater", caught: "bait", rarity: "epic", difficulty: 5, desc: "A legendary saltwater mollusk that is commonly found in oceans." },
+    // Mythic, unique, exotic, ancient, and godlike fish. Saltwater only.
+    "barboros": { water: "saltwater", caught: "hook", rarity: "legendary", difficulty: 6, desc: "A mythic saltwater creature that is commonly found in oceans." },
+    "kraken": { water: "saltwater", caught: "net", rarity: "legendary", difficulty: 6, desc: "A legendary saltwater creature that is commonly found in oceans." },
+    "leviathan": { water: "saltwater", caught: "net", rarity: "mythic", difficulty: 7, desc: "A mythic saltwater creature that is commonly found in oceans." },
+    "poseidon": { water: "saltwater", caught: "net", rarity: "godlike", difficulty: 8, desc: "A godlike saltwater creature that is commonly found in oceans." },
+    "tarvus": { water: "saltwater", caught: "rod", rarity: "godlike", difficulty: 9, desc: "A godlike saltwater creature that is commonly found in oceans." },
+    // Top level Godlike fish, only obtainable through special events or quests.
+    "leviathan_king": { water: "saltwater", caught: "net", rarity: "godlike", difficulty: 10, desc: "A godlike saltwater creature that is only obtainable through special events or quests." },
+    "poseidon_king": { water: "saltwater", caught: "net", rarity: "godlike", difficulty: 10, desc: "A godlike saltwater creature that is only obtainable through special events or quests." },
+    "tarvus_king": { water: "saltwater", caught: "rod", rarity: "godlike", difficulty: 10, desc: "A godlike saltwater creature that is only obtainable through special events or quests." },
+};
+// Authored in fishing vocabulary: `type` is one of FISHING_TYPES and `subtype`
+// one of FISHING_SUBTYPES, neither of which the engine speaks. withFishingDefaults()
+// at the bottom of this section translates every entry into a canonical
+// ITEM_TYPES item (keeping the fishing vocabulary as `fishingType`/`fishingTier`)
+// and exports the result as FISHING_CATALOG - that, not this, is what ALL_ITEMS
+// carries. No `global` tag: the mapping supplies the shared fields instead.
+export const FISHING_ITEMS = {
+    // Basic Fishing items.
+    "fishing_rod": { name: "Fishing Rod", type: "rod", subtype: "basic", rarity: "common", desc: "A basic fishing rod for catching fish." },
+    "fishing_bait": { name: "Fishing Bait", type: "bait", subtype: "basic", rarity: "common", desc: "Basic bait for attracting fish." },
+    "fishing_net": { name: "Fishing Net", type: "net", subtype: "basic", rarity: "common", desc: "A basic net for catching multiple fish at once." },
+    "fishing_hook": { name: "Fishing Hook", type: "hook", subtype: "basic", rarity: "common", desc: "A basic hook for catching fish." },
+    // Crafted Fishing items.
+    "crafted_fishing_rod": { name: "Crafted Fishing Rod", type: "rod", subtype: "crafted", rarity: "uncommon", desc: "A crafted fishing rod for catching fish." },
+    "crafted_fishing_bait": { name: "Crafted Fishing Bait", type: "bait", subtype: "crafted", rarity: "uncommon", desc: "Crafted bait for attracting fish." },
+    "crafted_fishing_net": { name: "Crafted Fishing Net", type: "net", subtype: "crafted", rarity: "uncommon", desc: "A crafted net for catching multiple fish at once." },
+    "crafted_fishing_hook": { name: "Crafted Fishing Hook", type: "hook", subtype: "crafted", rarity: "uncommon", desc: "A crafted hook for catching fish." },
+    // Forged Fishing items.
+    "forged_fishing_rod": { name: "Forged Fishing Rod", type: "rod", subtype: "forged", rarity: "rare", desc: "A forged fishing rod for catching fish." },
+    "forged_fishing_bait": { name: "Forged Fishing Bait", type: "bait", subtype: "forged", rarity: "rare", desc: "Forged bait for attracting fish." },
+    "forged_fishing_net": { name: "Forged Fishing Net", type: "net", subtype: "forged", rarity: "rare", desc: "A forged net for catching multiple fish at once." },
+    "forged_fishing_hook": { name: "Forged Fishing Hook", type: "hook", subtype: "forged", rarity: "rare", desc: "A forged hook for catching fish." },
+    // Enchanted Fishing items.
+    "enchanted_fishing_rod": { name: "Enchanted Fishing Rod", type: "rod", subtype: "enchanted", rarity: "epic", desc: "An enchanted fishing rod for catching fish." },
+    "enchanted_fishing_bait": { name: "Enchanted Fishing Bait", type: "bait", subtype: "enchanted", rarity: "epic", desc: "Enchanted bait for attracting fish." },
+    "enchanted_fishing_net": { name: "Enchanted Fishing Net", type: "net", subtype: "enchanted", rarity: "epic", desc: "An enchanted net for catching multiple fish at once." },
+    "enchanted_fishing_hook": { name: "Enchanted Fishing Hook", type: "hook", subtype: "enchanted", rarity: "epic", desc: "An enchanted hook for catching fish." },
+    // Mythic Fishing items.
+    "mythic_fishing_rod": { name: "Mythic Fishing Rod", type: "rod", subtype: "mythic", rarity: "legendary", desc: "A mythic fishing rod for catching fish." },
+    "mythic_fishing_bait": { name: "Mythic Fishing Bait", type: "bait", subtype: "mythic", rarity: "legendary", desc: "Mythic bait for attracting fish." },
+    "mythic_fishing_net": { name: "Mythic Fishing Net", type: "net", subtype: "mythic", rarity: "legendary", desc: "A mythic net for catching multiple fish at once." },
+    "mythic_fishing_hook": { name: "Mythic Fishing Hook", type: "hook", subtype: "mythic", rarity: "legendary", desc: "A mythic hook for catching fish." },
+    // Godlike Fishing items.
+    "godlike_fishing_rod": { name: "Godlike Fishing Rod", type: "rod", subtype: "godlike", rarity: "mythic", desc: "A godlike fishing rod for catching fish." },
+    "godlike_fishing_bait": { name: "Godlike Fishing Bait", type: "bait", subtype: "godlike", rarity: "mythic", desc: "Godlike bait for attracting fish." },
+    "godlike_fishing_net": { name: "Godlike Fishing Net", type: "net", subtype: "godlike", rarity: "mythic", desc: "A godlike net for catching multiple fish at once." },
+    "godlike_fishing_hook": { name: "Godlike Fishing Hook", type: "hook", subtype: "godlike", rarity: "mythic", desc: "A godlike hook for catching fish." },
+    // Fish and other aquatic creatures.
+    // INGREDIENTS -- From Ancient to Godlike, these are the raw materials for cooking and crafting.
+    "leviathan_scale": { name: "Leviathan Scale", type: "fish", subtype: "ancient", rarity: "mythic", desc: "A scale from the legendary Leviathan fish." },
+    "leviathan_tooth": { name: "Leviathan Tooth", type: "fish", subtype: "ancient", rarity: "mythic", desc: "A tooth from the legendary Leviathan fish." },
+    "leviathan_flesh": { name: "Leviathan Flesh", type: "fish", subtype: "ancient", rarity: "mythic", desc: "Flesh from the legendary Leviathan fish." },
+    "leviathan_bone": { name: "Leviathan Bone", type: "fish", subtype: "ancient", rarity: "mythic", desc: "A bone from the legendary Leviathan fish." },
+    "poseidon_scale": { name: "Poseidon Scale", type: "fish", subtype: "ancient", rarity: "godlike", desc: "A scale from the legendary Poseidon fish." },
+    "poseidon_tooth": { name: "Poseidon Tooth", type: "fish", subtype: "ancient", rarity: "godlike", desc: "A tooth from the legendary Poseidon fish." },
+    "poseidon_flesh": { name: "Poseidon Flesh", type: "fish", subtype: "ancient", rarity: "godlike", desc: "Flesh from the legendary Poseidon fish." },
+    "poseidon_bone": { name: "Poseidon Bone", type: "fish", subtype: "ancient", rarity: "godlike", desc: "A bone from the legendary Poseidon fish." },
+    "tarvus_scale": { name: "Tarvus Scale", type: "fish", subtype: "ancient", rarity: "godlike", desc: "A scale from the legendary Tarvus fish." },
+    "tarvus_tooth": { name: "Tarvus Tooth", type: "fish", subtype: "ancient", rarity: "godlike", desc: "A tooth from the legendary Tarvus fish." },
+    "tarvus_flesh": { name: "Tarvus Flesh", type: "fish", subtype: "ancient", rarity: "godlike", desc: "Flesh from the legendary Tarvus fish." },
+    "tarvus_bone": { name: "Tarvus Bone", type: "fish", subtype: "ancient", rarity: "godlike", desc: "A bone from the legendary Tarvus fish." },
+    "leviathan_king_scale": { name: "Leviathan King Scale", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A scale from the godlike Leviathan King fish." },
+    "leviathan_king_flesh": { name: "Leviathan King Flesh", type: "fish", subtype: "godlike", rarity: "mythic", desc: "Flesh from the godlike Leviathan King fish." },
+    "leviathan_king_tooth": { name: "Leviathan King Tooth", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A tooth from the godlike Leviathan King fish." },
+    "leviathan_king_bone": { name: "Leviathan King Bone", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A bone from the godlike Leviathan King fish." },
+    "poseidon_king_scale": { name: "Poseidon King Scale", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A scale from the godlike Poseidon King fish." },
+    "poseidon_king_flesh": { name: "Poseidon King Flesh", type: "fish", subtype: "godlike", rarity: "mythic", desc: "Flesh from the godlike Poseidon King fish." },
+    "poseidon_king_tooth": { name: "Poseidon King Tooth", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A tooth from the godlike Poseidon King fish." },
+    "poseidon_king_bone": { name: "Poseidon King Bone", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A bone from the godlike Poseidon King fish." },
+    "tarvus_king_scale": { name: "Tarvus King Scale", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A scale from the godlike Tarvus King fish." },
+    "tarvus_king_flesh": { name: "Tarvus King Flesh", type: "fish", subtype: "godlike", rarity: "mythic", desc: "Flesh from the godlike Tarvus King fish." },
+    "tarvus_king_tooth": { name: "Tarvus King Tooth", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A tooth from the godlike Tarvus King fish." },
+    "tarvus_king_bone": { name: "Tarvus King Bone", type: "fish", subtype: "godlike", rarity: "mythic", desc: "A bone from the godlike Tarvus King fish." },
+    // - RAW
+    "raw_pike": { name: "Raw Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A raw pike, fresh from the water." },
+    "raw_perch": { name: "Raw Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A raw perch, fresh from the water." },
+    "raw_bass": { name: "Raw Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A raw bass, fresh from the water." },
+    "raw_trout": { name: "Raw Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A raw trout, fresh from the water." },
+    "raw_carp": { name: "Raw Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A raw carp, fresh from the water." },
+    "raw_catfish": { name: "Raw Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A raw catfish, fresh from the water." },
+    "raw_salmon": { name: "Raw Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A raw salmon, fresh from the water." },
+    "raw_sturgeon": { name: "Raw Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A raw sturgeon, fresh from the water." },
+    "raw_tilapia": { name: "Raw Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A raw tilapia, fresh from the water." },
+    "raw_tuna": { name: "Raw Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A raw tuna, fresh from the water." },
+    "raw_lobster": { name: "Raw Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A raw lobster, fresh from the water." },
+    "raw_shrimp": { name: "Raw Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A raw shrimp, fresh from the water." },
+    "raw_crab": { name: "Raw Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A raw crab, fresh from the water." },
+    "raw_clam": { name: "Raw Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A raw clam, fresh from the water." },
+    "raw_mussel": { name: "Raw Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A raw mussel, fresh from the water." },
+    "raw_oyster": { name: "Raw Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A raw oyster, fresh from the water." },
+    "raw_anglerfish": { name: "Raw Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A raw anglerfish, fresh from the water." },
+    "raw_catfish_king": { name: "Raw Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A raw catfish king, fresh from the water." },
+    "raw_golden_trout": { name: "Raw Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A raw golden trout, fresh from the water." },
+    "raw_raibow_salmon": { name: "Raw Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A raw rainbow salmon, fresh from the water." },
+    "raw_giant_carp": { name: "Raw Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A raw giant carp, fresh from the water." },
+    "raw_giant_catfish": { name: "Raw Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A raw giant catfish, fresh from the water." },
+    "raw_giant_tuna": { name: "Raw Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A raw giant tuna, fresh from the water." },
+    "raw_giant_lobster": { name: "Raw Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A raw giant lobster, fresh from the water." },
+    "raw_giant_crab": { name: "Raw Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A raw giant crab, fresh from the water." },
+    "raw_giant_clam": { name: "Raw Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A raw giant clam, fresh from the water." },
+    "raw_giant_mussel": { name: "Raw Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A raw giant mussel, fresh from the water." },
+    "raw_giant_oyster": { name: "Raw Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A raw giant oyster, fresh from the water." },
+    "raw_kraken": { name: "Raw Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A raw kraken, fresh from the water." },
+    "raw_barboros": { name: "Raw Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A raw barboros, fresh from the water." },
+    // - COOKED
+    "cooked_pike": { name: "Cooked Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A cooked pike, ready to eat." },
+    "cooked_perch": { name: "Cooked Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A cooked perch, ready to eat." },
+    "cooked_bass": { name: "Cooked Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A cooked bass, ready to eat." },
+    "cooked_trout": { name: "Cooked Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A cooked trout, ready to eat." },
+    "cooked_carp": { name: "Cooked Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A cooked carp, ready to eat." },
+    "cooked_catfish": { name: "Cooked Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A cooked catfish, ready to eat." },
+    "cooked_salmon": { name: "Cooked Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A cooked salmon, ready to eat." },
+    "cooked_sturgeon": { name: "Cooked Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A cooked sturgeon, ready to eat." },
+    "cooked_tilapia": { name: "Cooked Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A cooked tilapia, ready to eat." },
+    "cooked_tuna": { name: "Cooked Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A cooked tuna, ready to eat." },
+    "cooked_lobster": { name: "Cooked Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A cooked lobster, ready to eat." },
+    "cooked_shrimp": { name: "Cooked Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A cooked shrimp, ready to eat." },
+    "cooked_crab": { name: "Cooked Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A cooked crab, ready to eat." },
+    "cooked_clam": { name: "Cooked Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A cooked clam, ready to eat." },
+    "cooked_mussel": { name: "Cooked Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A cooked mussel, ready to eat." },
+    "cooked_oyster": { name: "Cooked Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A cooked oyster, ready to eat." },
+    "cooked_anglerfish": { name: "Cooked Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A cooked anglerfish, ready to eat." },
+    "cooked_catfish_king": { name: "Cooked Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A cooked catfish king, ready to eat." },
+    "cooked_golden_trout": { name: "Cooked Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A cooked golden trout, ready to eat." },
+    "cooked_raibow_salmon": { name: "Cooked Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A cooked rainbow salmon, ready to eat." },
+    "cooked_giant_carp": { name: "Cooked Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A cooked giant carp, ready to eat." },
+    "cooked_giant_catfish": { name: "Cooked Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A cooked giant catfish, ready to eat." },
+    "cooked_giant_tuna": { name: "Cooked Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A cooked giant tuna, ready to eat." },
+    "cooked_giant_lobster": { name: "Cooked Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A cooked giant lobster, ready to eat." },
+    "cooked_giant_crab": { name: "Cooked Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A cooked giant crab, ready to eat." },
+    "cooked_giant_clam": { name: "Cooked Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A cooked giant clam, ready to eat." },
+    "cooked_giant_mussel": { name: "Cooked Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A cooked giant mussel, ready to eat." },
+    "cooked_giant_oyster": { name: "Cooked Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A cooked giant oyster, ready to eat." },
+    "cooked_kraken": { name: "Cooked Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A cooked kraken, ready to eat." },
+    "cooked_barboros": { name: "Cooked Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A cooked barboros, ready to eat." },
+    "grilled_pike": { name: "Grilled Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A grilled pike, ready to eat." },
+    "grilled_perch": { name: "Grilled Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A grilled perch, ready to eat." },
+    "grilled_bass": { name: "Grilled Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A grilled bass, ready to eat." },
+    "grilled_trout": { name: "Grilled Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A grilled trout, ready to eat." },
+    "grilled_carp": { name: "Grilled Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A grilled carp, ready to eat." },
+    "grilled_catfish": { name: "Grilled Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A grilled catfish, ready to eat." },
+    "grilled_salmon": { name: "Grilled Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A grilled salmon, ready to eat." },
+    "grilled_sturgeon": { name: "Grilled Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A grilled sturgeon, ready to eat." },
+    "grilled_tilapia": { name: "Grilled Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A grilled tilapia, ready to eat." },
+    "grilled_tuna": { name: "Grilled Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A grilled tuna, ready to eat." },
+    "grilled_lobster": { name: "Grilled Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A grilled lobster, ready to eat." },
+    "grilled_shrimp": { name: "Grilled Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A grilled shrimp, ready to eat." },
+    "grilled_crab": { name: "Grilled Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A grilled crab, ready to eat." },
+    "grilled_clam": { name: "Grilled Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A grilled clam, ready to eat." },
+    "grilled_mussel": { name: "Grilled Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A grilled mussel, ready to eat." },
+    "grilled_oyster": { name: "Grilled Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A grilled oyster, ready to eat." },
+    "grilled_anglerfish": { name: "Grilled Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A grilled anglerfish, ready to eat." },
+    "grilled_catfish_king": { name: "Grilled Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A grilled catfish king, ready to eat." },
+    "grilled_golden_trout": { name: "Grilled Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A grilled golden trout, ready to eat." },
+    "grilled_raibow_salmon": { name: "Grilled Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A grilled rainbow salmon, ready to eat." },
+    "grilled_giant_carp": { name: "Grilled Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A grilled giant carp, ready to eat." },
+    "grilled_giant_catfish": { name: "Grilled Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A grilled giant catfish, ready to eat." },
+    "grilled_giant_tuna": { name: "Grilled Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A grilled giant tuna, ready to eat." },
+    "grilled_giant_lobster": { name: "Grilled Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A grilled giant lobster, ready to eat." },
+    "grilled_giant_crab": { name: "Grilled Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A grilled giant crab, ready to eat." },
+    "grilled_giant_clam": { name: "Grilled Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A grilled giant clam, ready to eat." },
+    "grilled_giant_mussel": { name: "Grilled Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A grilled giant mussel, ready to eat." },
+    "grilled_giant_oyster": { name: "Grilled Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A grilled giant oyster, ready to eat." },
+    "grilled_kraken": { name: "Grilled Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A grilled kraken, ready to eat." },
+    "grilled_barboros": { name: "Grilled Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A grilled barboros, ready to eat." },
+    "baked_pike": { name: "Baked Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A baked pike, ready to eat." },
+    "baked_perch": { name: "Baked Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A baked perch, ready to eat." },
+    "baked_bass": { name: "Baked Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A baked bass, ready to eat." },
+    "baked_trout": { name: "Baked Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A baked trout, ready to eat." },
+    "baked_carp": { name: "Baked Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A baked carp, ready to eat." },
+    "baked_catfish": { name: "Baked Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A baked catfish, ready to eat." },
+    "baked_salmon": { name: "Baked Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A baked salmon, ready to eat." },
+    "baked_sturgeon": { name: "Baked Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A baked sturgeon, ready to eat." },
+    "baked_tilapia": { name: "Baked Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A baked tilapia, ready to eat." },
+    "baked_tuna": { name: "Baked Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A baked tuna, ready to eat." },
+    "baked_lobster": { name: "Baked Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A baked lobster, ready to eat." },
+    "baked_shrimp": { name: "Baked Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A baked shrimp, ready to eat." },
+    "baked_crab": { name: "Baked Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A baked crab, ready to eat." },
+    "baked_clam": { name: "Baked Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A baked clam, ready to eat." },
+    "baked_mussel": { name: "Baked Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A baked mussel, ready to eat." },
+    "baked_oyster": { name: "Baked Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A baked oyster, ready to eat." },
+    "baked_anglerfish": { name: "Baked Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A baked anglerfish, ready to eat." },
+    "baked_catfish_king": { name: "Baked Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A baked catfish king, ready to eat." },
+    "baked_golden_trout": { name: "Baked Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A baked golden trout, ready to eat." },
+    "baked_raibow_salmon": { name: "Baked Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A baked rainbow salmon, ready to eat." },
+    "baked_giant_carp": { name: "Baked Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A baked giant carp, ready to eat." },
+    "baked_giant_catfish": { name: "Baked Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A baked giant catfish, ready to eat." },
+    "baked_giant_tuna": { name: "Baked Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A baked giant tuna, ready to eat." },
+    "baked_giant_lobster": { name: "Baked Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A baked giant lobster, ready to eat." },
+    "baked_giant_crab": { name: "Baked Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A baked giant crab, ready to eat." },
+    "baked_giant_clam": { name: "Baked Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A baked giant clam, ready to eat." },
+    "baked_giant_mussel": { name: "Baked Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A baked giant mussel, ready to eat." },
+    "baked_giant_oyster": { name: "Baked Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A baked giant oyster, ready to eat." },
+    "baked_kraken": { name: "Baked Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A baked kraken, ready to eat." },
+    "baked_barboros": { name: "Baked Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A baked barboros, ready to eat." },
+    "smoked_pike": { name: "Smoked Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A smoked pike, ready to eat." },
+    "smoked_perch": { name: "Smoked Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A smoked perch, ready to eat." },
+    "smoked_bass": { name: "Smoked Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A smoked bass, ready to eat." },
+    "smoked_trout": { name: "Smoked Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A smoked trout, ready to eat." },
+    "smoked_carp": { name: "Smoked Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A smoked carp, ready to eat." },
+    "smoked_catfish": { name: "Smoked Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A smoked catfish, ready to eat." },
+    "smoked_salmon": { name: "Smoked Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A smoked salmon, ready to eat." },
+    "smoked_sturgeon": { name: "Smoked Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A smoked sturgeon, ready to eat." },
+    "smoked_tilapia": { name: "Smoked Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A smoked tilapia, ready to eat." },
+    "smoked_tuna": { name: "Smoked Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A smoked tuna, ready to eat." },
+    "smoked_lobster": { name: "Smoked Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A smoked lobster, ready to eat." },
+    "smoked_shrimp": { name: "Smoked Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A smoked shrimp, ready to eat." },
+    "smoked_crab": { name: "Smoked Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A smoked crab, ready to eat." },
+    "smoked_clam": { name: "Smoked Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A smoked clam, ready to eat." },
+    "smoked_mussel": { name: "Smoked Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A smoked mussel, ready to eat." },
+    "smoked_oyster": { name: "Smoked Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A smoked oyster, ready to eat." },
+    "smoked_anglerfish": { name: "Smoked Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A smoked anglerfish, ready to eat." },
+    "smoked_catfish_king": { name: "Smoked Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A smoked catfish king, ready to eat." },
+    "smoked_golden_trout": { name: "Smoked Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A smoked golden trout, ready to eat." },
+    "smoked_raibow_salmon": { name: "Smoked Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A smoked rainbow salmon, ready to eat." },
+    "smoked_giant_carp": { name: "Smoked Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A smoked giant carp, ready to eat." },
+    "smoked_giant_catfish": { name: "Smoked Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A smoked giant catfish, ready to eat." },
+    "smoked_giant_tuna": { name: "Smoked Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A smoked giant tuna, ready to eat." },
+    "smoked_giant_lobster": { name: "Smoked Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A smoked giant lobster, ready to eat." },
+    "smoked_giant_crab": { name: "Smoked Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A smoked giant crab, ready to eat." },
+    "smoked_giant_clam": { name: "Smoked Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A smoked giant clam, ready to eat." },
+    "smoked_giant_mussel": { name: "Smoked Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A smoked giant mussel, ready to eat." },
+    "smoked_giant_oyster": { name: "Smoked Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A smoked giant oyster, ready to eat." },
+    "smoked_kraken": { name: "Smoked Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A smoked kraken, ready to eat." },
+    "smoked_barboros": { name: "Smoked Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A smoked barboros, ready to eat." },
+    "pickled_pike": { name: "Pickled Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A pickled pike, ready to eat." },
+    "pickled_perch": { name: "Pickled Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A pickled perch, ready to eat." },
+    "pickled_bass": { name: "Pickled Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A pickled bass, ready to eat." },
+    "pickled_trout": { name: "Pickled Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A pickled trout, ready to eat." },
+    "pickled_carp": { name: "Pickled Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A pickled carp, ready to eat." },
+    "pickled_catfish": { name: "Pickled Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A pickled catfish, ready to eat." },
+    "pickled_salmon": { name: "Pickled Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A pickled salmon, ready to eat." },
+    "pickled_sturgeon": { name: "Pickled Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A pickled sturgeon, ready to eat." },
+    "pickled_tilapia": { name: "Pickled Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A pickled tilapia, ready to eat." },
+    "pickled_tuna": { name: "Pickled Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A pickled tuna, ready to eat." },
+    "pickled_lobster": { name: "Pickled Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A pickled lobster, ready to eat." },
+    "pickled_shrimp": { name: "Pickled Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A pickled shrimp, ready to eat." },
+    "pickled_crab": { name: "Pickled Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A pickled crab, ready to eat." },
+    "pickled_clam": { name: "Pickled Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A pickled clam, ready to eat." },
+    "pickled_mussel": { name: "Pickled Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A pickled mussel, ready to eat." },
+    "pickled_oyster": { name: "Pickled Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A pickled oyster, ready to eat." },
+    "pickled_anglerfish": { name: "Pickled Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A pickled anglerfish, ready to eat." },
+    "pickled_catfish_king": { name: "Pickled Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A pickled catfish king, ready to eat." },
+    "pickled_golden_trout": { name: "Pickled Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A pickled golden trout, ready to eat." },
+    "pickled_raibow_salmon": { name: "Pickled Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A pickled rainbow salmon, ready to eat." },
+    "pickled_giant_carp": { name: "Pickled Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A pickled giant carp, ready to eat." },
+    "pickled_giant_catfish": { name: "Pickled Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A pickled giant catfish, ready to eat." },
+    "pickled_giant_tuna": { name: "Pickled Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A pickled giant tuna, ready to eat." },
+    "pickled_giant_lobster": { name: "Pickled Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A pickled giant lobster, ready to eat." },
+    "pickled_giant_crab": { name: "Pickled Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A pickled giant crab, ready to eat." },
+    "pickled_giant_clam": { name: "Pickled Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A pickled giant clam, ready to eat." },
+    "pickled_giant_mussel": { name: "Pickled Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A pickled giant mussel, ready to eat." },
+    "pickled_giant_oyster": { name: "Pickled Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A pickled giant oyster, ready to eat." },
+    "pickled_kraken": { name: "Pickled Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A pickled kraken, ready to eat." },
+    "pickled_barboros": { name: "Pickled Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A pickled barboros, ready to eat." },
+    "fried_pike": { name: "Fried Pike", type: "fish", subtype: "shallow", rarity: "common", desc: "A fried pike, ready to eat." },
+    "fried_perch": { name: "Fried Perch", type: "fish", subtype: "shallow", rarity: "common", desc: "A fried perch, ready to eat." },
+    "fried_bass": { name: "Fried Bass", type: "fish", subtype: "shallow", rarity: "common", desc: "A fried bass, ready to eat." },
+    "fried_trout": { name: "Fried Trout", type: "fish", subtype: "shallow", rarity: "common", desc: "A fried trout, ready to eat." },
+    "fried_carp": { name: "Fried Carp", type: "fish", subtype: "shallow", rarity: "common", desc: "A fried carp, ready to eat." },
+    "fried_catfish": { name: "Fried Catfish", type: "fish", subtype: "shallow", rarity: "common", desc: "A fried catfish, ready to eat." },
+    "fried_salmon": { name: "Fried Salmon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A fried salmon, ready to eat." },
+    "fried_sturgeon": { name: "Fried Sturgeon", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A fried sturgeon, ready to eat." },
+    "fried_tilapia": { name: "Fried Tilapia", type: "fish", subtype: "deep", rarity: "uncommon", desc: "A fried tilapia, ready to eat." },
+    "fried_tuna": { name: "Fried Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A fried tuna, ready to eat." },
+    "fried_lobster": { name: "Fried Lobster", type: "crustacean", subtype: "shallow", rarity: "uncommon", desc: "A fried lobster, ready to eat." },
+    "fried_shrimp": { name: "Fried Shrimp", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A fried shrimp, ready to eat." },
+    "fried_crab": { name: "Fried Crab", type: "crustacean", subtype: "shallow", rarity: "common", desc: "A fried crab, ready to eat." },
+    "fried_clam": { name: "Fried Clam", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A fried clam, ready to eat." },
+    "fried_mussel": { name: "Fried Mussel", type: "shellfish", subtype: "shallow", rarity: "common", desc: "A fried mussel, ready to eat." },
+    "fried_oyster": { name: "Fried Oyster", type: "mollusk", subtype: "fresh", rarity: "uncommon", desc: "A fried oyster, ready to eat." },
+    "fried_anglerfish": { name: "Fried Anglerfish", type: "fish", subtype: "deep", rarity: "rare", desc: "A fried anglerfish, ready to eat." },
+    "fried_catfish_king": { name: "Fried Catfish King", type: "fish", subtype: "deep", rarity: "epic", desc: "A fried catfish king, ready to eat." },
+    "fried_golden_trout": { name: "Fried Golden Trout", type: "fish", subtype: "deep", rarity: "legendary", desc: "A fried golden trout, ready to eat." },
+    "fried_raibow_salmon": { name: "Fried Rainbow Salmon", type: "fish", subtype: "deep", rarity: "legendary", desc: "A fried rainbow salmon, ready to eat." },
+    "fried_giant_carp": { name: "Fried Giant Carp", type: "fish", subtype: "deep", rarity: "mythic", desc: "A fried giant carp, ready to eat." },
+    "fried_giant_catfish": { name: "Fried Giant Catfish", type: "fish", subtype: "deep", rarity: "mythic", desc: "A fried giant catfish, ready to eat." },
+    "fried_giant_tuna": { name: "Fried Giant Tuna", type: "fish", subtype: "deep", rarity: "rare", desc: "A fried giant tuna, ready to eat." },
+    "fried_giant_lobster": { name: "Fried Giant Lobster", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A fried giant lobster, ready to eat." },
+    "fried_giant_crab": { name: "Fried Giant Crab", type: "crustacean", subtype: "shallow", rarity: "epic", desc: "A fried giant crab, ready to eat." },
+    "fried_giant_clam": { name: "Fried Giant Clam", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A fried giant clam, ready to eat." },
+    "fried_giant_mussel": { name: "Fried Giant Mussel", type: "shellfish", subtype: "shallow", rarity: "epic", desc: "A fried giant mussel, ready to eat." },
+    "fried_giant_oyster": { name: "Fried Giant Oyster", type: "mollusk", subtype: "fresh", rarity: "epic", desc: "A fried giant oyster, ready to eat." },
+    "fried_kraken": { name: "Fried Kraken", type: "crustacean", subtype: "deep", rarity: "legendary", desc: "A fried kraken, ready to eat." },
+    "fried_barboros": { name: "Fried Barboros", type: "fish", subtype: "deep", rarity: "legendary", desc: "A fried barboros, ready to eat." }
+};
+
+// Fishing Recipes - How to Cook Fish and Other Aquatic Creatures
+// `global.station`/`global.skill` are what register these at the two cooking
+// stations - data/stations.js derives STATION_RECIPES from this block alone and
+// merges them into the pool COOKING_RECIPES already declares there.
+// `cookingTime` is flavour for now: crafting resolves instantly, so nothing
+// reads it yet.
+export const FISHING_RECIPES = {
+    global: { station: ["cooking_station", "campfire"], skill: "cooking" },
+    // Cooked Fish Recipes
+    "cooked_pike": { name: "Cooked Pike", ingredients: { "raw_pike": 1 }, result: "cooked_pike", cookingTime: 5, desc: "A cooked pike, ready to eat." },
+    "cooked_perch": { name: "Cooked Perch", ingredients: { "raw_perch": 1 }, result: "cooked_perch", cookingTime: 5, desc: "A cooked perch, ready to eat." },
+    "cooked_bass": { name: "Cooked Bass", ingredients: { "raw_bass": 1 }, result: "cooked_bass", cookingTime: 5, desc: "A cooked bass, ready to eat." },
+    "cooked_trout": { name: "Cooked Trout", ingredients: { "raw_trout": 1 }, result: "cooked_trout", cookingTime: 5, desc: "A cooked trout, ready to eat." },
+    "cooked_carp": { name: "Cooked Carp", ingredients: { "raw_carp": 1 }, result: "cooked_carp", cookingTime: 5, desc: "A cooked carp, ready to eat." },
+    "cooked_catfish": { name: "Cooked Catfish", ingredients: { "raw_catfish": 1 }, result: "cooked_catfish", cookingTime: 5, desc: "A cooked catfish, ready to eat." },
+    "cooked_salmon": { name: "Cooked Salmon", ingredients: { "raw_salmon": 1 }, result: "cooked_salmon", cookingTime: 5, desc: "A cooked salmon, ready to eat." },
+    "cooked_tilapia": { name: "Cooked Tilapia", ingredients: { "raw_tilapia": 1 }, result: "cooked_tilapia", cookingTime: 5, desc: "A cooked tilapia, ready to eat." },
+    "cooked_tuna": { name: "Cooked Tuna", ingredients: { "raw_tuna": 1 }, result: "cooked_tuna", cookingTime: 5, desc: "A cooked tuna, ready to eat." },
+    "cooked_lobster": { name: "Cooked Lobster", ingredients: { "raw_lobster": 1 }, result: "cooked_lobster", cookingTime: 5, desc: "A cooked lobster, ready to eat." },
+    "cooked_shrimp": { name: "Cooked Shrimp", ingredients: { "raw_shrimp": 1 }, result: "cooked_shrimp", cookingTime: 5, desc: "A cooked shrimp, ready to eat." },
+    "cooked_crab": { name: "Cooked Crab", ingredients: { "raw_crab": 1 }, result: "cooked_crab", cookingTime: 5, desc: "A cooked crab, ready to eat." },
+    "cooked_clam": { name: "Cooked Clam", ingredients: { "raw_clam": 1 }, result: "cooked_clam", cookingTime: 5, desc: "A cooked clam, ready to eat." },
+    "cooked_mussel": { name: "Cooked Mussel", ingredients: { "raw_mussel": 1 }, result: "cooked_mussel", cookingTime: 5, desc: "A cooked mussel, ready to eat." },
+    "cooked_oyster": { name: "Cooked Oyster", ingredients: { "raw_oyster": 1 }, result: "cooked_oyster", cookingTime: 5, desc: "A cooked oyster, ready to eat." },
+    "cooked_anglerfish": { name: "Cooked Anglerfish", ingredients: { "raw_anglerfish": 1 }, result: "cooked_anglerfish", cookingTime: 5, desc: "A cooked anglerfish, ready to eat." },
+    "cooked_catfish_king": { name: "Cooked Catfish King", ingredients: { "raw_catfish_king": 1 }, result: "cooked_catfish_king", cookingTime: 5, desc: "A cooked catfish king, ready to eat." },
+    "cooked_golden_trout": { name: "Cooked Golden Trout", ingredients: { "raw_golden_trout": 1 }, result: "cooked_golden_trout", cookingTime: 5, desc: "A cooked golden trout, ready to eat." },
+    "cooked_raibow_salmon": { name: "Cooked Rainbow Salmon", ingredients: { "raw_raibow_salmon": 1 }, result: "cooked_raibow_salmon", cookingTime: 5, desc: "A cooked rainbow salmon, ready to eat." },
+    "cooked_giant_carp": { name: "Cooked Giant Carp", ingredients: { "raw_giant_carp": 1 }, result: "cooked_giant_carp", cookingTime: 5, desc: "A cooked giant carp, ready to eat." },
+    "cooked_giant_catfish": { name: "Cooked Giant Catfish", ingredients: { "raw_giant_catfish": 1 }, result: "cooked_giant_catfish", cookingTime: 5, desc: "A cooked giant catfish, ready to eat." },
+    "cooked_giant_tuna": { name: "Cooked Giant Tuna", ingredients: { "raw_giant_tuna": 1 }, result: "cooked_giant_tuna", cookingTime: 5, desc: "A cooked giant tuna, ready to eat." },
+    "cooked_giant_lobster": { name: "Cooked Giant Lobster", ingredients: { "raw_giant_lobster": 1 }, result: "cooked_giant_lobster", cookingTime: 5, desc: "A cooked giant lobster, ready to eat." },
+    "cooked_giant_crab": { name: "Cooked Giant Crab", ingredients: { "raw_giant_crab": 1 }, result: "cooked_giant_crab", cookingTime: 5, desc: "A cooked giant crab, ready to eat." },
+    "cooked_giant_clam": { name: "Cooked Giant Clam", ingredients: { "raw_giant_clam": 1 }, result: "cooked_giant_clam", cookingTime: 5, desc: "A cooked giant clam, ready to eat." },
+    "cooked_giant_mussel": { name: "Cooked Giant Mussel", ingredients: { "raw_giant_mussel": 1 }, result: "cooked_giant_mussel", cookingTime: 5, desc: "A cooked giant mussel, ready to eat." },
+    "cooked_giant_oyster": { name: "Cooked Giant Oyster", ingredients: { "raw_giant_oyster": 1 }, result: "cooked_giant_oyster", cookingTime: 5, desc: "A cooked giant oyster, ready to eat." },
+    "cooked_kraken": { name: "Cooked Kraken", ingredients: { "raw_kraken": 1 }, result: "cooked_kraken", cookingTime: 5, desc: "A cooked kraken, ready to eat." },
+    "cooked_barboros": { name: "Cooked Barboros", ingredients: { "raw_barboros": 1 }, result: "cooked_barboros", cookingTime: 5, desc: "A cooked barboros, ready to eat." },
+    // Grilled Fish Recipes
+    "grilled_pike": { name: "Grilled Pike", ingredients: { "raw_pike": 1, "firewood": 1 }, result: "grilled_pike", cookingTime: 7, desc: "A grilled pike, ready to eat." },
+    "grilled_perch": { name: "Grilled Perch", ingredients: { "raw_perch": 1, "firewood": 1 }, result: "grilled_perch", cookingTime: 7, desc: "A grilled perch, ready to eat." },
+    "grilled_bass": { name: "Grilled Bass", ingredients: { "raw_bass": 1, "firewood": 1 }, result: "grilled_bass", cookingTime: 7, desc: "A grilled bass, ready to eat." },
+    "grilled_trout": { name: "Grilled Trout", ingredients: { "raw_trout": 1, "firewood": 1 }, result: "grilled_trout", cookingTime: 7, desc: "A grilled trout, ready to eat." },
+    "grilled_carp": { name: "Grilled Carp", ingredients: { "raw_carp": 1, "firewood": 1 }, result: "grilled_carp", cookingTime: 7, desc: "A grilled carp, ready to eat." },
+    "grilled_catfish": { name: "Grilled Catfish", ingredients: { "raw_catfish": 1, "firewood": 1 }, result: "grilled_catfish", cookingTime: 7, desc: "A grilled catfish, ready to eat." },
+    "grilled_salmon": { name: "Grilled Salmon", ingredients: { "raw_salmon": 1, "firewood": 1 }, result: "grilled_salmon", cookingTime: 7, desc: "A grilled salmon, ready to eat." },
+    "grilled_tilapia": { name: "Grilled Tilapia", ingredients: { "raw_tilapia": 1, "firewood": 1 }, result: "grilled_tilapia", cookingTime: 7, desc: "A grilled tilapia, ready to eat." },
+    "grilled_tuna": { name: "Grilled Tuna", ingredients: { "raw_tuna": 1, "firewood": 1 }, result: "grilled_tuna", cookingTime: 7, desc: "A grilled tuna, ready to eat." },
+    "grilled_lobster": { name: "Grilled Lobster", ingredients: { "raw_lobster": 1, "firewood": 1 }, result: "grilled_lobster", cookingTime: 7, desc: "A grilled lobster, ready to eat." },
+    "grilled_shrimp": { name: "Grilled Shrimp", ingredients: { "raw_shrimp": 1, "firewood": 1 }, result: "grilled_shrimp", cookingTime: 7, desc: "A grilled shrimp, ready to eat." },
+    "grilled_crab": { name: "Grilled Crab", ingredients: { "raw_crab": 1, "firewood": 1 }, result: "grilled_crab", cookingTime: 7, desc: "A grilled crab, ready to eat." },
+    "grilled_clam": { name: "Grilled Clam", ingredients: { "raw_clam": 1, "firewood": 1 }, result: "grilled_clam", cookingTime: 7, desc: "A grilled clam, ready to eat." },
+    "grilled_mussel": { name: "Grilled Mussel", ingredients: { "raw_mussel": 1, "firewood": 1 }, result: "grilled_mussel", cookingTime: 7, desc: "A grilled mussel, ready to eat." },
+    "grilled_oyster": { name: "Grilled Oyster", ingredients: { "raw_oyster": 1, "firewood": 1 }, result: "grilled_oyster", cookingTime: 7, desc: "A grilled oyster, ready to eat." },
+    "grilled_anglerfish": { name: "Grilled Anglerfish", ingredients: { "raw_anglerfish": 1, "firewood": 1 }, result: "grilled_anglerfish", cookingTime: 7, desc: "A grilled anglerfish, ready to eat." },
+    "grilled_catfish_king": { name: "Grilled Catfish King", ingredients: { "raw_catfish_king": 1, "firewood": 1 }, result: "grilled_catfish_king", cookingTime: 7, desc: "A grilled catfish king, ready to eat." },
+    "grilled_golden_trout": { name: "Grilled Golden Trout", ingredients: { "raw_golden_trout": 1, "firewood": 1 }, result: "grilled_golden_trout", cookingTime: 7, desc: "A grilled golden trout, ready to eat." },
+    "grilled_raibow_salmon": { name: "Grilled Rainbow Salmon", ingredients: { "raw_raibow_salmon": 1, "firewood": 1 }, result: "grilled_raibow_salmon", cookingTime: 7, desc: "A grilled rainbow salmon, ready to eat." },
+    "grilled_giant_carp": { name: "Grilled Giant Carp", ingredients: { "raw_giant_carp": 1, "firewood": 1 }, result: "grilled_giant_carp", cookingTime: 7, desc: "A grilled giant carp, ready to eat." },
+    "grilled_giant_catfish": { name: "Grilled Giant Catfish", ingredients: { "raw_giant_catfish": 1, "firewood": 1 }, result: "grilled_giant_catfish", cookingTime: 7, desc: "A grilled giant catfish, ready to eat." },
+    "grilled_giant_tuna": { name: "Grilled Giant Tuna", ingredients: { "raw_giant_tuna": 1, "firewood": 1 }, result: "grilled_giant_tuna", cookingTime: 7, desc: "A grilled giant tuna, ready to eat." },
+    "grilled_giant_lobster": { name: "Grilled Giant Lobster", ingredients: { "raw_giant_lobster": 1, "firewood": 1 }, result: "grilled_giant_lobster", cookingTime: 7, desc: "A grilled giant lobster, ready to eat." },
+    "grilled_giant_crab": { name: "Grilled Giant Crab", ingredients: { "raw_giant_crab": 1, "firewood": 1 }, result: "grilled_giant_crab", cookingTime: 7, desc: "A grilled giant crab, ready to eat." },
+    "grilled_giant_clam": { name: "Grilled Giant Clam", ingredients: { "raw_giant_clam": 1, "firewood": 1 }, result: "grilled_giant_clam", cookingTime: 7, desc: "A grilled giant clam, ready to eat." },
+    "grilled_giant_mussel": { name: "Grilled Giant Mussel", ingredients: { "raw_giant_mussel": 1, "firewood": 1 }, result: "grilled_giant_mussel", cookingTime: 7, desc: "A grilled giant mussel, ready to eat." },
+    "grilled_giant_oyster": { name: "Grilled Giant Oyster", ingredients: { "raw_giant_oyster": 1, "firewood": 1 }, result: "grilled_giant_oyster", cookingTime: 7, desc: "A grilled giant oyster, ready to eat." },
+    "grilled_kraken": { name: "Grilled Kraken", ingredients: { "raw_kraken": 1, "firewood": 1 }, result: "grilled_kraken", cookingTime: 7, desc: "A grilled kraken, ready to eat." },
+    "grilled_barboros": { name: "Grilled Barboros", ingredients: { "raw_barboros": 1, "firewood": 1 }, result: "grilled_barboros", cookingTime: 7, desc: "A grilled barboros, ready to eat." },
+    // Baked Fish Recipes
+    "baked_pike": { name: "Baked Pike", ingredients: { "raw_pike": 1, "flour": 1 }, result: "baked_pike", cookingTime: 10, desc: "A baked pike, ready to eat." },
+    "baked_perch": { name: "Baked Perch", ingredients: { "raw_perch": 1, "flour": 1 }, result: "baked_perch", cookingTime: 10, desc: "A baked perch, ready to eat." },
+    "baked_bass": { name: "Baked Bass", ingredients: { "raw_bass": 1, "flour": 1 }, result: "baked_bass", cookingTime: 10, desc: "A baked bass, ready to eat." },
+    "baked_trout": { name: "Baked Trout", ingredients: { "raw_trout": 1, "flour": 1 }, result: "baked_trout", cookingTime: 10, desc: "A baked trout, ready to eat." },
+    "baked_carp": { name: "Baked Carp", ingredients: { "raw_carp": 1, "flour": 1 }, result: "baked_carp", cookingTime: 10, desc: "A baked carp, ready to eat." },
+    "baked_catfish": { name: "Baked Catfish", ingredients: { "raw_catfish": 1, "flour": 1 }, result: "baked_catfish", cookingTime: 10, desc: "A baked catfish, ready to eat." },
+    "baked_salmon": { name: "Baked Salmon", ingredients: { "raw_salmon": 1, "flour": 1 }, result: "baked_salmon", cookingTime: 10, desc: "A baked salmon, ready to eat." },
+    "baked_tilapia": { name: "Baked Tilapia", ingredients: { "raw_tilapia": 1, "flour": 1 }, result: "baked_tilapia", cookingTime: 10, desc: "A baked tilapia, ready to eat." },
+    "baked_tuna": { name: "Baked Tuna", ingredients: { "raw_tuna": 1, "flour": 1 }, result: "baked_tuna", cookingTime: 10, desc: "A baked tuna, ready to eat." },
+    "baked_lobster": { name: "Baked Lobster", ingredients: { "raw_lobster": 1, "flour": 1 }, result: "baked_lobster", cookingTime: 10, desc: "A baked lobster, ready to eat." },
+    "baked_shrimp": { name: "Baked Shrimp", ingredients: { "raw_shrimp": 1, "flour": 1 }, result: "baked_shrimp", cookingTime: 10, desc: "A baked shrimp, ready to eat." },
+    "baked_crab": { name: "Baked Crab", ingredients: { "raw_crab": 1, "flour": 1 }, result: "baked_crab", cookingTime: 10, desc: "A baked crab, ready to eat." },
+    "baked_clam": { name: "Baked Clam", ingredients: { "raw_clam": 1, "flour": 1 }, result: "baked_clam", cookingTime: 10, desc: "A baked clam, ready to eat." },
+    "baked_mussel": { name: "Baked Mussel", ingredients: { "raw_mussel": 1, "flour": 1 }, result: "baked_mussel", cookingTime: 10, desc: "A baked mussel, ready to eat." },
+    "baked_oyster": { name: "Baked Oyster", ingredients: { "raw_oyster": 1, "flour": 1 }, result: "baked_oyster", cookingTime: 10, desc: "A baked oyster, ready to eat." },
+    "baked_anglerfish": { name: "Baked Anglerfish", ingredients: { "raw_anglerfish": 1, "flour": 1 }, result: "baked_anglerfish", cookingTime: 10, desc: "A baked anglerfish, ready to eat." },
+    "baked_catfish_king": { name: "Baked Catfish King", ingredients: { "raw_catfish_king": 1, "flour": 1 }, result: "baked_catfish_king", cookingTime: 10, desc: "A baked catfish king, ready to eat." },
+    "baked_golden_trout": { name: "Baked Golden Trout", ingredients: { "raw_golden_trout": 1, "flour": 1 }, result: "baked_golden_trout", cookingTime: 10, desc: "A baked golden trout, ready to eat." },
+    "baked_raibow_salmon": { name: "Baked Rainbow Salmon", ingredients: { "raw_raibow_salmon": 1, "flour": 1 }, result: "baked_raibow_salmon", cookingTime: 10, desc: "A baked rainbow salmon, ready to eat." },
+    "baked_giant_carp": { name: "Baked Giant Carp", ingredients: { "raw_giant_carp": 1, "flour": 1 }, result: "baked_giant_carp", cookingTime: 10, desc: "A baked giant carp, ready to eat." },
+    "baked_giant_catfish": { name: "Baked Giant Catfish", ingredients: { "raw_giant_catfish": 1, "flour": 1 }, result: "baked_giant_catfish", cookingTime: 10, desc: "A baked giant catfish, ready to eat." },
+    "baked_giant_tuna": { name: "Baked Giant Tuna", ingredients: { "raw_giant_tuna": 1, "flour": 1 }, result: "baked_giant_tuna", cookingTime: 10, desc: "A baked giant tuna, ready to eat." },
+    "baked_giant_lobster": { name: "Baked Giant Lobster", ingredients: { "raw_giant_lobster": 1, "flour": 1 }, result: "baked_giant_lobster", cookingTime: 10, desc: "A baked giant lobster, ready to eat." },
+    "baked_giant_crab": { name: "Baked Giant Crab", ingredients: { "raw_giant_crab": 1, "flour": 1 }, result: "baked_giant_crab", cookingTime: 10, desc: "A baked giant crab, ready to eat." },
+    "baked_giant_clam": { name: "Baked Giant Clam", ingredients: { "raw_giant_clam": 1, "flour": 1 }, result: "baked_giant_clam", cookingTime: 10, desc: "A baked giant clam, ready to eat." },
+    "baked_giant_mussel": { name: "Baked Giant Mussel", ingredients: { "raw_giant_mussel": 1, "flour": 1 }, result: "baked_giant_mussel", cookingTime: 10, desc: "A baked giant mussel, ready to eat." },
+    "baked_giant_oyster": { name: "Baked Giant Oyster", ingredients: { "raw_giant_oyster": 1, "flour": 1 }, result: "baked_giant_oyster", cookingTime: 10, desc: "A baked giant oyster, ready to eat." },
+    "baked_kraken": { name: "Baked Kraken", ingredients: { "raw_kraken": 1, "flour": 1 }, result: "baked_kraken", cookingTime: 10, desc: "A baked kraken, ready to eat." },
+    "baked_barboros": { name: "Baked Barboros", ingredients: { "raw_barboros": 1, "flour": 1 }, result: "baked_barboros", cookingTime: 10, desc: "A baked barboros, ready to eat." },
+    // Smoked Fish Recipes
+    "smoked_pike": { name: "Smoked Pike", ingredients: { "raw_pike": 1, "firewood": 1, "coal": 1 }, result: "smoked_pike", cookingTime: 15, desc: "A smoked pike, ready to eat." },
+    "smoked_perch": { name: "Smoked Perch", ingredients: { "raw_perch": 1, "firewood": 1, "coal": 1 }, result: "smoked_perch", cookingTime: 15, desc: "A smoked perch, ready to eat." },
+    "smoked_bass": { name: "Smoked Bass", ingredients: { "raw_bass": 1, "firewood": 1, "coal": 1 }, result: "smoked_bass", cookingTime: 15, desc: "A smoked bass, ready to eat." },
+    "smoked_trout": { name: "Smoked Trout", ingredients: { "raw_trout": 1, "firewood": 1, "coal": 1 }, result: "smoked_trout", cookingTime: 15, desc: "A smoked trout, ready to eat." },
+    "smoked_carp": { name: "Smoked Carp", ingredients: { "raw_carp": 1, "firewood": 1, "coal": 1 }, result: "smoked_carp", cookingTime: 15, desc: "A smoked carp, ready to eat." },
+    "smoked_catfish": { name: "Smoked Catfish", ingredients: { "raw_catfish": 1, "firewood": 1, "coal": 1 }, result: "smoked_catfish", cookingTime: 15, desc: "A smoked catfish, ready to eat." },
+    "smoked_salmon": { name: "Smoked Salmon", ingredients: { "raw_salmon": 1, "firewood": 1, "coal": 1 }, result: "smoked_salmon", cookingTime: 15, desc: "A smoked salmon, ready to eat." },
+    "smoked_tilapia": { name: "Smoked Tilapia", ingredients: { "raw_tilapia": 1, "firewood": 1, "coal": 1 }, result: "smoked_tilapia", cookingTime: 15, desc: "A smoked tilapia, ready to eat." },
+    "smoked_tuna": { name: "Smoked Tuna", ingredients: { "raw_tuna": 1, "firewood": 1, "coal": 1 }, result: "smoked_tuna", cookingTime: 15, desc: "A smoked tuna, ready to eat." },
+    "smoked_lobster": { name: "Smoked Lobster", ingredients: { "raw_lobster": 1, "firewood": 1, "coal": 1 }, result: "smoked_lobster", cookingTime: 15, desc: "A smoked lobster, ready to eat." },
+    "smoked_shrimp": { name: "Smoked Shrimp", ingredients: { "raw_shrimp": 1, "firewood": 1, "coal": 1 }, result: "smoked_shrimp", cookingTime: 15, desc: "A smoked shrimp, ready to eat." },
+    "smoked_crab": { name: "Smoked Crab", ingredients: { "raw_crab": 1, "firewood": 1, "coal": 1 }, result: "smoked_crab", cookingTime: 15, desc: "A smoked crab, ready to eat." },
+    "smoked_clam": { name: "Smoked Clam", ingredients: { "raw_clam": 1, "firewood": 1, "coal": 1 }, result: "smoked_clam", cookingTime: 15, desc: "A smoked clam, ready to eat." },
+    "smoked_mussel": { name: "Smoked Mussel", ingredients: { "raw_mussel": 1, "firewood": 1, "coal": 1 }, result: "smoked_mussel", cookingTime: 15, desc: "A smoked mussel, ready to eat." },
+    "smoked_oyster": { name: "Smoked Oyster", ingredients: { "raw_oyster": 1, "firewood": 1, "coal": 1 }, result: "smoked_oyster", cookingTime: 15, desc: "A smoked oyster, ready to eat." },
+    "smoked_anglerfish": { name: "Smoked Anglerfish", ingredients: { "raw_anglerfish": 1, "firewood": 1, "coal": 1 }, result: "smoked_anglerfish", cookingTime: 15, desc: "A smoked anglerfish, ready to eat." },
+    "smoked_catfish_king": { name: "Smoked Catfish King", ingredients: { "raw_catfish_king": 1, "firewood": 1, "coal": 1 }, result: "smoked_catfish_king", cookingTime: 15, desc: "A smoked catfish king, ready to eat." },
+    "smoked_golden_trout": { name: "Smoked Golden Trout", ingredients: { "raw_golden_trout": 1, "firewood": 1, "coal": 1 }, result: "smoked_golden_trout", cookingTime: 15, desc: "A smoked golden trout, ready to eat." },
+    "smoked_raibow_salmon": { name: "Smoked Rainbow Salmon", ingredients: { "raw_raibow_salmon": 1, "firewood": 1, "coal": 1 }, result: "smoked_raibow_salmon", cookingTime: 15, desc: "A smoked rainbow salmon, ready to eat." },
+    "smoked_giant_carp": { name: "Smoked Giant Carp", ingredients: { "raw_giant_carp": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_carp", cookingTime: 15, desc: "A smoked giant carp, ready to eat." },
+    "smoked_giant_catfish": { name: "Smoked Giant Catfish", ingredients: { "raw_giant_catfish": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_catfish", cookingTime: 15, desc: "A smoked giant catfish, ready to eat." },
+    "smoked_giant_tuna": { name: "Smoked Giant Tuna", ingredients: { "raw_giant_tuna": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_tuna", cookingTime: 15, desc: "A smoked giant tuna, ready to eat." },
+    "smoked_giant_lobster": { name: "Smoked Giant Lobster", ingredients: { "raw_giant_lobster": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_lobster", cookingTime: 15, desc: "A smoked giant lobster, ready to eat." },
+    "smoked_giant_crab": { name: "Smoked Giant Crab", ingredients: { "raw_giant_crab": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_crab", cookingTime: 15, desc: "A smoked giant crab, ready to eat." },
+    "smoked_giant_clam": { name: "Smoked Giant Clam", ingredients: { "raw_giant_clam": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_clam", cookingTime: 15, desc: "A smoked giant clam, ready to eat." },
+    "smoked_giant_mussel": { name: "Smoked Giant Mussel", ingredients: { "raw_giant_mussel": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_mussel", cookingTime: 15, desc: "A smoked giant mussel, ready to eat." },
+    "smoked_giant_oyster": { name: "Smoked Giant Oyster", ingredients: { "raw_giant_oyster": 1, "firewood": 1, "coal": 1 }, result: "smoked_giant_oyster", cookingTime: 15, desc: "A smoked giant oyster, ready to eat." },
+    "smoked_kraken": { name: "Smoked Kraken", ingredients: { "raw_kraken": 1, "firewood": 1, "coal": 1 }, result: "smoked_kraken", cookingTime: 15, desc: "A smoked kraken, ready to eat." },
+    "smoked_barboros": { name: "Smoked Barboros", ingredients: { "raw_barboros": 1, "firewood": 1, "coal": 1 }, result: "smoked_barboros", cookingTime: 15, desc: "A smoked barboros, ready to eat." },
+    // Pickled Fish Recipes
+    "pickled_pike": { name: "Pickled Pike", ingredients: { "raw_pike": 1, "vinegar": 1 }, result: "pickled_pike", cookingTime: 20, desc: "A pickled pike, ready to eat." },
+    "pickled_perch": { name: "Pickled Perch", ingredients: { "raw_perch": 1, "vinegar": 1 }, result: "pickled_perch", cookingTime: 20, desc: "A pickled perch, ready to eat." },
+    "pickled_bass": { name: "Pickled Bass", ingredients: { "raw_bass": 1, "vinegar": 1 }, result: "pickled_bass", cookingTime: 20, desc: "A pickled bass, ready to eat." },
+    "pickled_trout": { name: "Pickled Trout", ingredients: { "raw_trout": 1, "vinegar": 1 }, result: "pickled_trout", cookingTime: 20, desc: "A pickled trout, ready to eat." },
+    "pickled_carp": { name: "Pickled Carp", ingredients: { "raw_carp": 1, "vinegar": 1 }, result: "pickled_carp", cookingTime: 20, desc: "A pickled carp, ready to eat." },
+    "pickled_catfish": { name: "Pickled Catfish", ingredients: { "raw_catfish": 1, "vinegar": 1 }, result: "pickled_catfish", cookingTime: 20, desc: "A pickled catfish, ready to eat." },
+    "pickled_salmon": { name: "Pickled Salmon", ingredients: { "raw_salmon": 1, "vinegar": 1 }, result: "pickled_salmon", cookingTime: 20, desc: "A pickled salmon, ready to eat." },
+    "pickled_tilapia": { name: "Pickled Tilapia", ingredients: { "raw_tilapia": 1, "vinegar": 1 }, result: "pickled_tilapia", cookingTime: 20, desc: "A pickled tilapia, ready to eat." },
+    "pickled_tuna": { name: "Pickled Tuna", ingredients: { "raw_tuna": 1, "vinegar": 1 }, result: "pickled_tuna", cookingTime: 20, desc: "A pickled tuna, ready to eat." },
+    "pickled_lobster": { name: "Pickled Lobster", ingredients: { "raw_lobster": 1, "vinegar": 1 }, result: "pickled_lobster", cookingTime: 20, desc: "A pickled lobster, ready to eat." },
+    "pickled_shrimp": { name: "Pickled Shrimp", ingredients: { "raw_shrimp": 1, "vinegar": 1 }, result: "pickled_shrimp", cookingTime: 20, desc: "A pickled shrimp, ready to eat." },
+    "pickled_crab": { name: "Pickled Crab", ingredients: { "raw_crab": 1, "vinegar": 1 }, result: "pickled_crab", cookingTime: 20, desc: "A pickled crab, ready to eat." },
+    "pickled_clam": { name: "Pickled Clam", ingredients: { "raw_clam": 1, "vinegar": 1 }, result: "pickled_clam", cookingTime: 20, desc: "A pickled clam, ready to eat." },
+    "pickled_mussel": { name: "Pickled Mussel", ingredients: { "raw_mussel": 1, "vinegar": 1 }, result: "pickled_mussel", cookingTime: 20, desc: "A pickled mussel, ready to eat." },
+    "pickled_oyster": { name: "Pickled Oyster", ingredients: { "raw_oyster": 1, "vinegar": 1 }, result: "pickled_oyster", cookingTime: 20, desc: "A pickled oyster, ready to eat." },
+    "pickled_anglerfish": { name: "Pickled Anglerfish", ingredients: { "raw_anglerfish": 1, "vinegar": 1 }, result: "pickled_anglerfish", cookingTime: 20, desc: "A pickled anglerfish, ready to eat." },
+    "pickled_catfish_king": { name: "Pickled Catfish King", ingredients: { "raw_catfish_king": 1, "vinegar": 1 }, result: "pickled_catfish_king", cookingTime: 20, desc: "A pickled catfish king, ready to eat." },
+    "pickled_golden_trout": { name: "Pickled Golden Trout", ingredients: { "raw_golden_trout": 1, "vinegar": 1 }, result: "pickled_golden_trout", cookingTime: 20, desc: "A pickled golden trout, ready to eat." },
+    "pickled_raibow_salmon": { name: "Pickled Rainbow Salmon", ingredients: { "raw_raibow_salmon": 1, "vinegar": 1 }, result: "pickled_raibow_salmon", cookingTime: 20, desc: "A pickled rainbow salmon, ready to eat." },
+    "pickled_giant_carp": { name: "Pickled Giant Carp", ingredients: { "raw_giant_carp": 1, "vinegar": 1 }, result: "pickled_giant_carp", cookingTime: 20, desc: "A pickled giant carp, ready to eat." },
+    "pickled_giant_catfish": { name: "Pickled Giant Catfish", ingredients: { "raw_giant_catfish": 1, "vinegar": 1 }, result: "pickled_giant_catfish", cookingTime: 20, desc: "A pickled giant catfish, ready to eat." },
+    "pickled_giant_tuna": { name: "Pickled Giant Tuna", ingredients: { "raw_giant_tuna": 1, "vinegar": 1 }, result: "pickled_giant_tuna", cookingTime: 20, desc: "A pickled giant tuna, ready to eat." },
+    "pickled_giant_lobster": { name: "Pickled Giant Lobster", ingredients: { "raw_giant_lobster": 1, "vinegar": 1 }, result: "pickled_giant_lobster", cookingTime: 20, desc: "A pickled giant lobster, ready to eat." },
+    "pickled_giant_crab": { name: "Pickled Giant Crab", ingredients: { "raw_giant_crab": 1, "vinegar": 1 }, result: "pickled_giant_crab", cookingTime: 20, desc: "A pickled giant crab, ready to eat." },
+    "pickled_giant_clam": { name: "Pickled Giant Clam", ingredients: { "raw_giant_clam": 1, "vinegar": 1 }, result: "pickled_giant_clam", cookingTime: 20, desc: "A pickled giant clam, ready to eat." },
+    "pickled_giant_mussel": { name: "Pickled Giant Mussel", ingredients: { "raw_giant_mussel": 1, "vinegar": 1 }, result: "pickled_giant_mussel", cookingTime: 20, desc: "A pickled giant mussel, ready to eat." },
+    "pickled_giant_oyster": { name: "Pickled Giant Oyster", ingredients: { "raw_giant_oyster": 1, "vinegar": 1 }, result: "pickled_giant_oyster", cookingTime: 20, desc: "A pickled giant oyster, ready to eat." },
+    "pickled_kraken": { name: "Pickled Kraken", ingredients: { "raw_kraken": 1, "vinegar": 1 }, result: "pickled_kraken", cookingTime: 20, desc: "A pickled kraken, ready to eat." },
+    "pickled_barboros": { name: "Pickled Barboros", ingredients: { "raw_barboros": 1, "vinegar": 1 }, result: "pickled_barboros", cookingTime: 20, desc: "A pickled barboros, ready to eat." },
+    // Fried Fish Recipes
+    "fried_pike": { name: "Fried Pike", ingredients: { "raw_pike": 1, "oil": 1 }, result: "fried_pike", cookingTime: 8, desc: "A fried pike, ready to eat." },
+    "fried_perch": { name: "Fried Perch", ingredients: { "raw_perch": 1, "oil": 1 }, result: "fried_perch", cookingTime: 8, desc: "A fried perch, ready to eat." },
+    "fried_bass": { name: "Fried Bass", ingredients: { "raw_bass": 1, "oil": 1 }, result: "fried_bass", cookingTime: 8, desc: "A fried bass, ready to eat." },
+    "fried_trout": { name: "Fried Trout", ingredients: { "raw_trout": 1, "oil": 1 }, result: "fried_trout", cookingTime: 8, desc: "A fried trout, ready to eat." },
+    "fried_carp": { name: "Fried Carp", ingredients: { "raw_carp": 1, "oil": 1 }, result: "fried_carp", cookingTime: 8, desc: "A fried carp, ready to eat." },
+    "fried_catfish": { name: "Fried Catfish", ingredients: { "raw_catfish": 1, "oil": 1 }, result: "fried_catfish", cookingTime: 8, desc: "A fried catfish, ready to eat." },
+    "fried_salmon": { name: "Fried Salmon", ingredients: { "raw_salmon": 1, "oil": 1 }, result: "fried_salmon", cookingTime: 8, desc: "A fried salmon, ready to eat." },
+    "fried_tilapia": { name: "Fried Tilapia", ingredients: { "raw_tilapia": 1, "oil": 1 }, result: "fried_tilapia", cookingTime: 8, desc: "A fried tilapia, ready to eat." },
+    "fried_tuna": { name: "Fried Tuna", ingredients: { "raw_tuna": 1, "oil": 1 }, result: "fried_tuna", cookingTime: 8, desc: "A fried tuna, ready to eat." },
+    "fried_lobster": { name: "Fried Lobster", ingredients: { "raw_lobster": 1, "oil": 1 }, result: "fried_lobster", cookingTime: 8, desc: "A fried lobster, ready to eat." },
+    "fried_shrimp": { name: "Fried Shrimp", ingredients: { "raw_shrimp": 1, "oil": 1 }, result: "fried_shrimp", cookingTime: 8, desc: "A fried shrimp, ready to eat." },
+    "fried_crab": { name: "Fried Crab", ingredients: { "raw_crab": 1, "oil": 1 }, result: "fried_crab", cookingTime: 8, desc: "A fried crab, ready to eat." },
+    "fried_clam": { name: "Fried Clam", ingredients: { "raw_clam": 1, "oil": 1 }, result: "fried_clam", cookingTime: 8, desc: "A fried clam, ready to eat." },
+    "fried_mussel": { name: "Fried Mussel", ingredients: { "raw_mussel": 1, "oil": 1 }, result: "fried_mussel", cookingTime: 8, desc: "A fried mussel, ready to eat." },
+    "fried_oyster": { name: "Fried Oyster", ingredients: { "raw_oyster": 1, "oil": 1 }, result: "fried_oyster", cookingTime: 8, desc: "A fried oyster, ready to eat." },
+    "fried_anglerfish": { name: "Fried Anglerfish", ingredients: { "raw_anglerfish": 1, "oil": 1 }, result: "fried_anglerfish", cookingTime: 8, desc: "A fried anglerfish, ready to eat." },
+    "fried_catfish_king": { name: "Fried Catfish King", ingredients: { "raw_catfish_king": 1, "oil": 1 }, result: "fried_catfish_king", cookingTime: 8, desc: "A fried catfish king, ready to eat." },
+    "fried_golden_trout": { name: "Fried Golden Trout", ingredients: { "raw_golden_trout": 1, "oil": 1 }, result: "fried_golden_trout", cookingTime: 8, desc: "A fried golden trout, ready to eat." },
+    "fried_raibow_salmon": { name: "Fried Rainbow Salmon", ingredients: { "raw_raibow_salmon": 1, "oil": 1 }, result: "fried_raibow_salmon", cookingTime: 8, desc: "A fried rainbow salmon, ready to eat." },
+    "fried_giant_carp": { name: "Fried Giant Carp", ingredients: { "raw_giant_carp": 1, "oil": 1 }, result: "fried_giant_carp", cookingTime: 8, desc: "A fried giant carp, ready to eat." },
+    "fried_giant_catfish": { name: "Fried Giant Catfish", ingredients: { "raw_giant_catfish": 1, "oil": 1 }, result: "fried_giant_catfish", cookingTime: 8, desc: "A fried giant catfish, ready to eat." },
+    "fried_giant_tuna": { name: "Fried Giant Tuna", ingredients: { "raw_giant_tuna": 1, "oil": 1 }, result: "fried_giant_tuna", cookingTime: 8, desc: "A fried giant tuna, ready to eat." },
+    "fried_giant_lobster": { name: "Fried Giant Lobster", ingredients: { "raw_giant_lobster": 1, "oil": 1 }, result: "fried_giant_lobster", cookingTime: 8, desc: "A fried giant lobster, ready to eat." },
+    "fried_giant_crab": { name: "Fried Giant Crab", ingredients: { "raw_giant_crab": 1, "oil": 1 }, result: "fried_giant_crab", cookingTime: 8, desc: "A fried giant crab, ready to eat." },
+    "fried_giant_clam": { name: "Fried Giant Clam", ingredients: { "raw_giant_clam": 1, "oil": 1 }, result: "fried_giant_clam", cookingTime: 8, desc: "A fried giant clam, ready to eat." },
+    "fried_giant_mussel": { name: "Fried Giant Mussel", ingredients: { "raw_giant_mussel": 1, "oil": 1 }, result: "fried_giant_mussel", cookingTime: 8, desc: "A fried giant mussel, ready to eat." },
+    "fried_giant_oyster": { name: "Fried Giant Oyster", ingredients: { "raw_giant_oyster": 1, "oil": 1 }, result: "fried_giant_oyster", cookingTime: 8, desc: "A fried giant oyster, ready to eat." },
+    "fried_kraken": { name: "Fried Kraken", ingredients: { "raw_kraken": 1, "oil": 1 }, result: "fried_kraken", cookingTime: 8, desc: "A fried kraken, ready to eat." },
+    "fried_barboros": { name: "Fried Barboros", ingredients: { "raw_barboros": 1, "oil": 1 }, result: "fried_barboros", cookingTime: 8, desc: "A fried barboros, ready to eat." }
+};
+
+// --- Fishing catalog -> canonical items -------------------------------------
+// FISHING_ITEMS is authored in fishing vocabulary. Everything downstream (the
+// backpack tabs, equipSlotOf, rollLootByType, data/items.js's consumeEffectOf,
+// shop pricing) only understands ITEM_TYPES, so the translation happens once,
+// here, rather than teaching each of those about rods and molluscs.
+
+// Rods are the one fishing item that equips, so they're the one that needs a
+// durability. Tiers, not rarity: a mythic-rarity rod and the mythic TIER rod
+// are different axes in this data.
+const FISHING_ROD_DURABILITY = { basic: 80, crafted: 100, forged: 140, enchanted: 180, mythic: 250, godlike: 400 };
+
+// The preparations, keyed by the id prefix that names them. `subtype` is the
+// canonical food subtype (all of them declared in FOOD_SUBTYPES/FOOD_CATAGORIES
+// above), and `boost` the base healing before the rarity bonus below.
+const FISH_PREPARATIONS = {
+    raw:     { subtype: "raw_fish",    boost: 5  },
+    cooked:  { subtype: "cooked_food", boost: 15 },
+    pickled: { subtype: "pickled",     boost: 18 },
+    grilled: { subtype: "grilled",     boost: 20 },
+    fried:   { subtype: "fried",       boost: 20 },
+    baked:   { subtype: "baked",       boost: 22 },
+    smoked:  { subtype: "smoked",      boost: 25 },
+};
+
+// What the rarer catches are worth as food. Without this a smoked kraken heals
+// exactly as much as a smoked pike, which makes the whole difficulty ladder
+// pointless the moment you can cook.
+const FISH_RARITY_BOOST = { common: 0, uncommon: 5, rare: 10, epic: 20, legendary: 35, mythic: 50, godlike: 75 };
+
+const CATCH_TYPES = ["fish", "crustacean", "shellfish", "mollusk"];
+
+// The fishing `type` -> canonical (type, subtype) mapping. Bait/nets/hooks are
+// deliberately NOT type "tool": equipSlotOf() would then put them in the single
+// tool slot, competing with the rod, when what gates a catch is simply carrying
+// them (see data/fishing.js).
+function canonicalFishingFields(id, item) {
+    if (item.type === "rod") {
+        return { type: "tool", subtype: "fishing rod", durability: FISHING_ROD_DURABILITY[item.subtype] ?? 80 };
+    }
+    if (["bait", "net", "hook"].includes(item.type)) {
+        return { type: "crafting", subtype: "fishing" };
+    }
+    const prep = FISH_PREPARATIONS[id.split("_")[0]];
+    // A catch-typed item with no preparation prefix is a body part (leviathan_scale,
+    // tarvus_bone...) - a trophy/material, not something you eat.
+    if (!prep) return { type: "crafting", subtype: "fishing" };
+    return {
+        type: "food",
+        subtype: prep.subtype,
+        health_boost: prep.boost + (FISH_RARITY_BOOST[item.rarity] ?? 0),
+        gather: "fish",
+    };
+}
+
+// Keeps the authored vocabulary as `fishingType`/`fishingTier` - data/fishing.js
+// gates on those, and losing them to the canonical fields would leave nothing
+// to tell a net from a hook.
+function withFishingDefaults(catalog) {
+    const { global, ...entries } = catalog;
+    return Object.fromEntries(
+        Object.entries(entries).map(([id, item]) => {
+            const { type, subtype, ...rest } = item;
+            return [id, { ...rest, fishingType: type, fishingTier: subtype, ...canonicalFishingFields(id, item) }];
+        })
+    );
+}
+
+export const FISHING_CATALOG = withFishingDefaults(FISHING_ITEMS);
+
+// Species names longest-first, so "leviathan_king_scale" resolves to
+// leviathan_king rather than to leviathan - the same shadowing problem
+// data/stations.js's METAL_MATCH_ORDER solves for black_cobalt/cobalt.
+const SPECIES_MATCH_ORDER = Object.keys(FISH).sort((a, b) => b.length - a.length);
+
+// What a species yields when caught: its raw catch item, or - for the ancients
+// and their kings, which have no "raw_" form - the scales/teeth/flesh/bones
+// named after it. Returns [] for a species with neither, which data/fishing.js
+// reads as "not catchable yet" rather than crashing on an undefined item.
+export function catchItemsFor(speciesId) {
+    if (`raw_${speciesId}` in FISHING_CATALOG) return [`raw_${speciesId}`];
+    return Object.keys(FISHING_CATALOG).filter(
+        (id) => id.startsWith(`${speciesId}_`) && SPECIES_MATCH_ORDER.find((s) => id.startsWith(`${s}_`)) === speciesId
+    );
+}
+
+// Fishing Helpers
+export function getFishByRarity(rarity) {
+    return Object.keys(FISH).filter(fish => FISH[fish].rarity === rarity);
+}
+
+export function getRecipeByResult(result) {
+    return Object.keys(FISHING_RECIPES).find(recipe => FISHING_RECIPES[recipe].result === result);
+}
+
+// A species' type ("fish", "crustacean", ...) lives on its catch item, not on
+// the FISH entry - see the comment on FISH above.
+export function getFishByType(type) {
+    return Object.keys(FISH).filter(fish => FISHING_CATALOG[catchItemsFor(fish)[0]]?.fishingType === type);
+}
+
+export function getRecipeByIngredient(ingredient) {
+    return Object.keys(FISHING_RECIPES).filter(recipe => ingredient in (FISHING_RECIPES[recipe].ingredients ?? {}));
+}
+export function getFishByWaterType(waterType) {
+    return Object.keys(FISH).filter(fish => FISH[fish].water === waterType);
+}
+export function getRecipeByName(name) {
+    return Object.keys(FISHING_RECIPES).find(recipe => FISHING_RECIPES[recipe].name === name);
+}
+// And a helper to get requested info from the FISH and FISHING_RECIPES objects
+export function getFishInfo(fishName) {
+    return FISH[fishName] || null;
+}
+
+export function getRecipeInfo(recipeName) {
+    return FISHING_RECIPES[recipeName] || null;
+}
+
+// Single lookup covering all catalogs (no id overlap between them) - for
+// anything that needs to display/categorize an item without caring which
+// catalog it came from (inventory screens, loot rolling, etc).
+// Merges a catalog's `global` tag onto every entry before combining - some
+// catalogs (TOOLBELTS) rely on inheriting type/slot from `global` rather
+// than repeating it per entry, the way `global` was always documented to
+// work at the top of this file (data/stations.js's STATION_RECIPES derivation
+// does the equivalent thing for recipe collections).
+//
+// This sits at the bottom of the file rather than beside the other catalogs
+// because FISHING_CATALOG is declared just above, and a const can't be spread
+// before it's initialized.
+function withGlobalDefaults(catalog) {
+  const { global, ...entries } = catalog;
+  if (!global) return entries;
+  return Object.fromEntries(Object.entries(entries).map(([id, item]) => [id, { ...global, ...item }]));
+}
+
+export const ALL_ITEMS = {
+  ...ITEMS,
+  ...withGlobalDefaults(TREASURE_ITEMS),
+  ...MYTHIC_ITEMS,
+  ...UNIQUE_ITEMS,
+  ...withGlobalDefaults(MINING_RESOURCES),
+  ...withGlobalDefaults(MAGIC_RESOURCES),
+  ...withGlobalDefaults(MAGIC_ITEMS),
+  ...withGlobalDefaults(TOOLBELTS),
+  ...FISHING_CATALOG,
+};

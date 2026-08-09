@@ -1,4 +1,5 @@
 import { renderChrome } from "./layout.js";
+import { resolveSubHeader, applySubHeader } from "./subHeader.js";
 
 const SCREENS = {};
 
@@ -13,6 +14,10 @@ export function getScreen(name) {
 export function renderCurrentScreen(state, ui) {
   renderChrome(state, ui);
   const screen = SCREENS[state.currentScreen];
+  // Before the screen renders, so a list sizes itself to the height it will
+  // actually have. Screens declare `subHeader` and the bar takes care of
+  // itself - see ui/subHeader.js.
+  applySubHeader(ui, resolveSubHeader(screen, state));
   if (screen) screen.render(state, ui);
 }
 

@@ -8,14 +8,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as IB from "../../item_backbone.js";
+import { SKILL_BLOCKS } from "../../skill_backbone.js";
 
 const {
   ITEM_TYPES, WEAPON_TYPES, ARMOR_TYPES, ARMOR_SLOTS, MINING_TYPES, SMITHING_TYPES,
   FOOD_CATAGORIES, FOOD_SUBTYPES, POTION_CATAGORIES, TOOL_CATAGORIES, KIT_CATAGORIES,
   SET_CATAGORIES, MAGIC_CATAGORIES, ITEM_RARITIES,
   ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, TREASURE_ITEMS, STARTER_PACKS, METALURGY,
-  MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS,
-  SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, ALL_ITEMS,
+  MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS, FISHING_CATALOG,
+  SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, FISHING_RECIPES, ALL_ITEMS,
+  FISH, catchItemsFor, equipSlotOf,
 } = IB;
 
 // "water" is the one recipe ingredient with no backing item id by design
@@ -31,13 +33,18 @@ const KNOWN_NON_ITEM_INGREDIENTS = new Set(["water"]);
 // Pinned explicitly (same treatment as the crafting_table/anvil
 // STATION_RECIPES bug in test/unit/stations.test.js) rather than silently
 // inventing item stats/ingredient substitutions that weren't asked for.
+// copper_sword/copper_dagger used to be listed here too - the quest
+// "smithy_smithy" asks you to craft a copper sword, so the missing items became
+// a blocked objective rather than a curiosity, and both were added to ITEMS.
 const KNOWN_DANGLING_RECIPE_REFS = new Set([
-  "SMITHING_RECIPES.copper_sword: result \"copper_sword\"",
-  "SMITHING_RECIPES.copper_dagger: result \"copper_dagger\"",
   "COOKING_RECIPES.pie: ingredient \"fruit\"",
 ]);
 
-const ITEM_CATALOGS = { ITEMS, TREASURE_ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, MAGIC_ITEMS, MINING_RESOURCES, MAGIC_RESOURCES, TOOLBELTS };
+// FISHING_CATALOG rather than FISHING_ITEMS: the raw catalog is authored in
+// fishing vocabulary (type "rod", "mollusk"...) and only becomes a real item
+// once withFishingDefaults() has mapped it, which is the form ALL_ITEMS carries
+// and therefore the form these invariants apply to.
+const ITEM_CATALOGS = { ITEMS, TREASURE_ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, MAGIC_ITEMS, MINING_RESOURCES, MAGIC_RESOURCES, TOOLBELTS, FISHING_CATALOG };
 
 function entries(catalog) {
   return Object.entries(catalog).filter(([id]) => id !== "global");
@@ -169,9 +176,9 @@ test("every smithing item's subtype is declared in SMITHING_TYPES", () => {
   assert.deepEqual(offenders, []);
 });
 
-test("every recipe ingredient/result resolves to a real item (SMITHING/CRAFTING/COOKING/POTION_RECIPES)", () => {
+test("every recipe ingredient/result resolves to a real item (SMITHING/CRAFTING/COOKING/POTION/FISHING_RECIPES)", () => {
   const offenders = [];
-  for (const [name, recipes] of Object.entries({ SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES })) {
+  for (const [name, recipes] of Object.entries({ SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, FISHING_RECIPES })) {
     for (const [key, recipe] of entries(recipes)) {
       for (const ingId of Object.keys(recipe.ingredients ?? {})) {
         if (KNOWN_NON_ITEM_INGREDIENTS.has(ingId)) continue;
@@ -222,6 +229,43 @@ test("every SET's pieces and KIT's contents/recipes resolve to real items", () =
         for (const rId of item.recipes ?? []) if (!(rId in ALL_ITEMS)) offenders.push(`KIT ${catName}.${id}: recipe-result "${rId}"`);
       }
     }
+  }
+  assert.deepEqual(offenders, []);
+});
+
+// The fishing catalog reaches ALL_ITEMS through withFishingDefaults() rather
+// than a `global` tag, so its own mapping needs the same proof TOOLBELTS gets
+// below: rods equip, bait/nets/hooks deliberately don't (they'd fight the rod
+// for the single tool slot), and every catch is edible food.
+test("ALL_ITEMS resolves the fishing catalog into canonical items", () => {
+  assert.equal(ALL_ITEMS.fishing_rod?.type, "tool");
+  assert.equal(ALL_ITEMS.fishing_rod?.subtype, "fishing rod");
+  assert.equal(equipSlotOf("fishing_rod"), "tool");
+
+  assert.equal(ALL_ITEMS.fishing_bait?.type, "crafting");
+  assert.equal(equipSlotOf("fishing_bait"), null, "bait must not compete with the rod for the tool slot");
+  assert.equal(equipSlotOf("fishing_net"), null);
+
+  assert.equal(ALL_ITEMS.raw_pike?.subtype, "raw_fish");
+  assert.ok(ALL_ITEMS.smoked_tuna?.health_boost > 0, "cooked catches have to be edible");
+
+  // Body parts (leviathan_scale, tarvus_bone...) are materials, not food.
+  assert.equal(ALL_ITEMS.leviathan_scale?.type, "crafting");
+  assert.equal(ALL_ITEMS.leviathan_scale?.health_boost, undefined);
+
+  // The authored vocabulary survives the mapping - data/fishing.js gates on it.
+  assert.equal(ALL_ITEMS.fishing_net?.fishingType, "net");
+  assert.equal(ALL_ITEMS.godlike_fishing_rod?.fishingTier, "godlike");
+});
+
+test("every FISH species is catchable: a required level, a rod that reaches it, and something to put in the pack", () => {
+  const rodTiers = Object.values(SKILL_BLOCKS.fishing.tools);
+  const offenders = [];
+  for (const [id, fish] of Object.entries(FISH)) {
+    const level = SKILL_BLOCKS.fishing.catches[fish.difficulty];
+    if (level == null) offenders.push(`FISH.${id}: difficulty ${fish.difficulty} has no catches level`);
+    else if (!rodTiers.some((tier) => tier >= level)) offenders.push(`FISH.${id}: no rod reaches level ${level}`);
+    if (catchItemsFor(id).length === 0) offenders.push(`FISH.${id}: no catch item`);
   }
   assert.deepEqual(offenders, []);
 });

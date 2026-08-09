@@ -46,6 +46,13 @@ function startAction(state, ui, actionId) {
     switchScreen(state, ui, "combat");
     return;
   }
+  // Actions that need a choice first hand off to their picker screen, which
+  // begins the action itself once something is selected. Data-driven so that
+  // stays one branch no matter how many actions grow a selector.
+  if (action.select) {
+    switchScreen(state, ui, action.select);
+    return;
+  }
   beginAction(state, actionId);
   logger.info("location", `Started action ${actionId} at ${location.id}.`);
   switchScreen(state, ui, "action");

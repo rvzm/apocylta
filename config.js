@@ -17,16 +17,23 @@ export const game_config = {
   saveSlots: 3, // Number of save slots available to players
   autoSaveFile: "autosave.json", // Default autosave file name
   // Unlocks the Admin editors (Menu -> [V]). Off by default: they edit state
-  // directly and bypass every gate the game has. ALLOW_ADMIN=true in the
-  // environment overrides this, same convention as DEBUG_LEVEL/DB_PATH -
-  // see ui/screens/admin/shared.js's adminEnabled().
-  allow_admin: false,
+  // directly and bypass every gate the game has. ALLOW_ADMIN in the environment
+  // overrides this in both directions - "true" unlocks them, anything else
+  // locks them out, and only an unset/empty value falls through to this flag.
+  // Same convention as DEBUG_LEVEL/DB_PATH; see adminEnabled() in
+  // ui/screens/admin/shared.js for why the override has to close as well as open.
+  allow_admin: true,
 };
 
 export const server_config = {
   port: 4000, // Server port
   host: "localhost", // Server host
-  export: false, // Allow the "Export Playerpage" feature to export player data to a JSON file, which can be read at https://rvzm.me/#/projects/apocylta/playercard
+  // Gates both of the playercard page's export buttons; they stay hidden until
+  // this is true. [Export HTML] downloads a standalone apocylta_pc_<player>.html
+  // - the whole page with its data baked in, for hosting or sending in.
+  // [Export JSON] downloads apocylta_pc_<player>.json, the raw payload, which
+  // public/apocylta_player.html reads back into the same card.
+  export: true, // Allow the "Export Playerpage" feature to export player data as a standalone page or as a JSON file, readable at https://rvzm.me/#/projects/apocylta/playercard
 };
 
 export const player_config = {
@@ -40,11 +47,12 @@ export const player_config = {
 };
 
 export const combat_config = {
-    // Probability of an ambush per loot-roll interval (every 3rd game-loop
-    // tick, i.e. ~3s) while gathering in an unsafe zone - see shouldAmbush()
-    // in state/gameLoop.js. Scaled per difficulty by DIFFICULTY_LEVELS'
-    // logic.enemySpawn. At 0.03 that's roughly one ambush per 100s of
-    // gathering on normal.
+    // Probability of an ambush per `logic.actionTic` seconds of gathering in an
+    // unsafe zone - see shouldAmbush() in state/gameLoop.js. That cadence is
+    // deliberately NOT the gather cadence: when the two were shared, slowing
+    // gathering down made the game safer, and made the hardest difficulties the
+    // safest of all. Scaled per difficulty by DIFFICULTY_LEVELS' logic.enemySpawn.
+    // At 0.03 with normal's 3s tic, that's roughly one ambush per 100s.
     enemySpawnRate: 0.03,
     enemySpawnLimit: 5, // Maximum number of enemies that can spawn at once
     enemyRespawnTime: 30, // Time in seconds for enemies to respawn after being defeated

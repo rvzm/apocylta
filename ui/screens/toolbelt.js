@@ -1,5 +1,7 @@
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { formatCommandRow } from "../format.js";
+import { timeLine, weatherLine } from "../../data/flavor.js";
+import { applySubHeader } from "../subHeader.js";
 import { switchScreen } from "../router.js";
 import {
   waterBottleCap,
@@ -11,10 +13,15 @@ import {
   potionSlotsUsed,
 } from "../../data/toolbelt.js";
 
+
 export const toolbeltScreen = {
+
+  subHeader: ["Your Toolbelt"],
+  
   keymap: {
     S: (state, ui) => switchScreen(state, ui, "toolSwap"),
     C: (state, ui) => switchScreen(state, ui, "slingshotSwap"),
+    X: (state, ui) => switchScreen(state, ui, "spellbook"),
     B: (state, ui) => {
       state.returnScreen = "toolbelt";
       switchScreen(state, ui, "backpack");
@@ -22,7 +29,7 @@ export const toolbeltScreen = {
     J: (state, ui) => switchScreen(state, ui, "journal"),
     // Hub features (unlike Menu) are only ever reached from the location
     // screen, so ESC can go straight there without an origin-tracking field.
-    ESCAPE: (state, ui) => switchScreen(state, ui, "location"),
+    ESCAPE: (state, ui) => switchScreen(state, ui, state.menuOrigin || "location"),
   },
 
   onEnter(state) {
@@ -36,7 +43,7 @@ export const toolbeltScreen = {
       : "none";
     const beltName = state.equipment.belt ? ALL_ITEMS[state.equipment.belt]?.name ?? state.equipment.belt : "none";
     const quiverMax = quiverCap(state);
-
+  
     const bodyLines = [
       `Equipped Belt:      ${beltName}`,
       `Equipped Tool:      ${toolName}`,
@@ -56,8 +63,10 @@ export const toolbeltScreen = {
         [
           { label: "Swap Tool", hotkey: "S" },
           { label: "Change Slingshot", hotkey: "C" },
+          { label: "Spellbook", hotkey: "X" },
           { label: "Backpack", hotkey: "B" },
           { label: "Journal", hotkey: "J" },
+          { label: "Back", hotkey: "ESC" },
         ],
         { columns: 2 }
       )

@@ -14,6 +14,8 @@ import {
   recordSpellCast,
 } from "../../data/quests.js";
 import { learnSpell } from "../../data/magic.js";
+import { QUESTS } from "../../quest_backbone.js";
+import { SPELLS } from "../../magic_backbone.js";
 
 test("visibleQuests() excludes locked quests unconditionally", () => {
   const state = createInitialState();
@@ -66,6 +68,28 @@ test("objectiveStatus(): acquireItem, bare string form (qty 1)", () => {
   state.inventory.wood = 1;
   status = objectiveStatus(state, "getting_started", "Chop some wood");
   assert.equal(status.complete, true);
+});
+
+// Every quest screen renders EVERY objective of every quest, so an objective
+// written in a shape the evaluator doesn't implement used to throw and take the
+// whole screen down - `learnSpell: { rarity: "legendary" }` where a spell-id
+// array is expected killed the game outright on the admin Quests editor.
+// It has to read as stuck-at-zero instead, which is the signal to fix the data.
+test("objectiveStatus(): an unsupported objective shape reports incomplete instead of throwing", () => {
+  const state = createInitialState();
+  const unsupported = { current: 0, target: 1, complete: false };
+
+  for (const [questId, quest] of Object.entries(QUESTS)) {
+    for (const label of Object.keys(quest.objectives ?? {})) {
+      // The real guarantee: no quest in the catalog can throw here.
+      const status = objectiveStatus(state, questId, label);
+      assert.ok(status && typeof status.complete === "boolean", `${questId} / ${label} returned no status`);
+    }
+  }
+
+  // And the specific shapes that used to throw or compare against a string.
+  assert.deepEqual(objectiveStatus(state, "youve_done_it", "Acquire a Legendary Spell"), unsupported);
+  assert.deepEqual(objectiveStatus(state, "youve_done_it", "Acquire a Mythic Weapon"), unsupported);
 });
 
 test("objectiveStatus(): acquireItem, {id: qty} map form", () => {
@@ -443,4 +467,246 @@ test("a failed cast records nothing", async () => {
 
   assert.equal(castSpell(state, "magic_missle", { name: "X", hp: 10 }), null);
   assert.deepEqual(state.lifetime.cast, {});
+});
+
+// --------------------------------------------------- the descriptor shapes
+
+test("objectiveStatus(): acquireItem by rarity counts anything of that rarity", async () => {
+  const state = createInitialState();
+  state.quests.fake_rarity = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_rarity",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: { "Two mythics": { acquireItem: { rarity: "mythic", quantity: 2 } } },
+    },
+    () => {
+      assert.deepEqual(objectiveStatus(state, "fake_rarity", "Two mythics"), { current: 0, target: 2, complete: false });
+      state.inventory.syllic_sword = 1; // mythic
+      assert.equal(objectiveStatus(state, "fake_rarity", "Two mythics").current, 1);
+      state.inventory.syllic_dagger = 1; // also mythic
+      assert.equal(objectiveStatus(state, "fake_rarity", "Two mythics").complete, true);
+    }
+  );
+});
+
+// The reason `type` exists: without it, any mythic item at all satisfies an
+// objective whose label promises a weapon - and the fishing catalog alone adds
+// dozens of mythic fish.
+test("objectiveStatus(): acquireItem by rarity + type ignores the right rarity in the wrong category", async () => {
+  const state = createInitialState();
+  state.quests.fake_typed = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_typed",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: { "A mythic weapon": { acquireItem: { rarity: "mythic", type: "weapon" } } },
+    },
+    () => {
+      state.inventory.smoked_giant_carp = 5; // mythic rarity, but food
+      assert.equal(objectiveStatus(state, "fake_typed", "A mythic weapon").complete, false);
+      state.inventory.syllic_sword = 1;
+      assert.equal(objectiveStatus(state, "fake_typed", "A mythic weapon").complete, true);
+    }
+  );
+});
+
+test("objectiveStatus(): a multi-item acquireItem needs every entry, not just the first", async () => {
+  const state = createInitialState();
+  state.quests.fake_many = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_many",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: { "A pile": { acquireItem: { stone: 3, wood: 2 } } },
+    },
+    () => {
+      state.inventory.stone = 3;
+      // Used to read Object.entries(spec)[0] and call it done here.
+      assert.deepEqual(objectiveStatus(state, "fake_many", "A pile"), { current: 1, target: 2, complete: false });
+      state.inventory.wood = 2;
+      assert.equal(objectiveStatus(state, "fake_many", "A pile").complete, true);
+    }
+  );
+});
+
+test("objectiveStatus(): acquireItem 'gold' reads the purse, not an inventory slot", async () => {
+  const state = createInitialState();
+  state.quests.fake_gold = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_gold",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: { "Get rich": { acquireItem: { gold: 500 } } },
+    },
+    () => {
+      state.gold = 100;
+      assert.deepEqual(objectiveStatus(state, "fake_gold", "Get rich"), { current: 100, target: 500, complete: false });
+      state.gold = 500;
+      assert.equal(objectiveStatus(state, "fake_gold", "Get rich").complete, true);
+    }
+  );
+});
+
+test("objectiveStatus(): learnSpell by rarity counts known spells of that rarity", async () => {
+  const state = createInitialState();
+  state.quests.fake_spell_rarity = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  const legendary = Object.keys(SPELLS).filter((id) => SPELLS[id].rarity === "legendary");
+  assert.ok(legendary.length >= 2, "fixture assumes at least two legendary spells");
+
+  await withFakeQuest(
+    "fake_spell_rarity",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: { "Two legendaries": { learnSpell: { rarity: "legendary", quantity: 2 } } },
+    },
+    () => {
+      assert.equal(objectiveStatus(state, "fake_spell_rarity", "Two legendaries").current, 0);
+      state.spells.add(legendary[0]);
+      assert.equal(objectiveStatus(state, "fake_spell_rarity", "Two legendaries").current, 1);
+      state.spells.add(legendary[1]);
+      assert.equal(objectiveStatus(state, "fake_spell_rarity", "Two legendaries").complete, true);
+    }
+  );
+});
+
+// ------------------------------------------------------------ sub-objectives
+
+const GROUP_QUEST = {
+  name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+  objectives: {
+    "Defeat the brothers": {
+      subObjectives: {
+        "Defeat Hubert": { defeatEnemy: ["hubert"] },
+        "Defeat Gilbert": { defeatEnemy: ["gilbert"] },
+        "Defeat Hilbert": { defeatEnemy: ["hilbert"] },
+      },
+    },
+  },
+};
+
+test("objectiveStatus(): a subObjectives group aggregates its children and completes with them", async () => {
+  const state = createInitialState();
+  state.quests.fake_group = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest("fake_group", GROUP_QUEST, () => {
+    assert.deepEqual(objectiveStatus(state, "fake_group", "Defeat the brothers"), { current: 0, target: 3, complete: false });
+
+    // Children are addressed by their full path.
+    state.enemiesDefeated = { hubert: 1 };
+    assert.equal(objectiveStatus(state, "fake_group", "Defeat the brothers::Defeat Hubert").complete, true);
+    assert.deepEqual(objectiveStatus(state, "fake_group", "Defeat the brothers"), { current: 1, target: 3, complete: false });
+    assert.equal(isQuestComplete(state, "fake_group"), false);
+
+    state.enemiesDefeated = { hubert: 1, gilbert: 1, hilbert: 1 };
+    assert.equal(objectiveStatus(state, "fake_group", "Defeat the brothers").complete, true);
+    assert.equal(isQuestComplete(state, "fake_group"), true);
+  });
+});
+
+test("objectiveStatus(): an optional child neither gates its group nor counts toward it", async () => {
+  const state = createInitialState();
+  state.quests.fake_optional = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_optional",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: {
+        "Defeat the brothers": {
+          subObjectives: {
+            "Defeat Hubert": { defeatEnemy: ["hubert"] },
+            "Defeat Hilbert": { defeatEnemy: ["hilbert"], optional: true },
+          },
+        },
+      },
+    },
+    () => {
+      // One required child, so the group is 0/1 rather than 0/2.
+      assert.deepEqual(objectiveStatus(state, "fake_optional", "Defeat the brothers"), { current: 0, target: 1, complete: false });
+      state.enemiesDefeated = { hubert: 1 };
+      assert.equal(objectiveStatus(state, "fake_optional", "Defeat the brothers").complete, true, "the optional child doesn't hold it open");
+      // ...and it still evaluates and renders on its own.
+      assert.equal(objectiveStatus(state, "fake_optional", "Defeat the brothers::Defeat Hilbert").complete, false);
+    }
+  );
+});
+
+test("isQuestComplete(): an optional top-level objective doesn't gate the quest", async () => {
+  const state = createInitialState();
+  state.quests.fake_opt_top = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_opt_top",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: {
+        "Required": { acquireItem: { stone: 1 } },
+        "Bonus": { acquireItem: { wood: 99 }, optional: true },
+      },
+    },
+    () => {
+      assert.equal(isQuestComplete(state, "fake_opt_top"), false);
+      state.inventory.stone = 1;
+      assert.equal(isQuestComplete(state, "fake_opt_top"), true);
+      assert.equal(objectiveStatus(state, "fake_opt_top", "Bonus").complete, false, "still tracked, just not gating");
+    }
+  );
+});
+
+// The failure this would otherwise hide: the record hooks used to iterate only
+// the top-level objectives, so a counter-backed objective nested in a group
+// never received progress and sat at zero with nothing to explain it.
+test("recordItemCrafted(): progress reaches an objective nested inside a group", async () => {
+  const state = createInitialState();
+  state.quests.fake_nested_craft = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_nested_craft",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: {
+        "Smith a set": {
+          subObjectives: { "Craft a sword": { craftItem: { type: "iron_sword", quantity: 2 } } },
+        },
+      },
+    },
+    () => {
+      recordItemCrafted(state, "iron_sword", 1);
+      assert.deepEqual(objectiveStatus(state, "fake_nested_craft", "Smith a set::Craft a sword"), { current: 1, target: 2, complete: false });
+      recordItemCrafted(state, "iron_sword", 1);
+      assert.equal(objectiveStatus(state, "fake_nested_craft", "Smith a set").complete, true, "the group follows its child");
+    }
+  );
+});
+
+test("objectiveStatus(): acquireStation counts the home stations you've bought", async () => {
+  const state = createInitialState();
+  state.quests.fake_stations = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_stations",
+    {
+      name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 },
+      objectives: { "Kit out the house": { acquireStation: ["forge", "anvil"] } },
+    },
+    () => {
+      assert.deepEqual(objectiveStatus(state, "fake_stations", "Kit out the house"), { current: 0, target: 2, complete: false });
+      state.ownedStations.add("forge");
+      assert.equal(objectiveStatus(state, "fake_stations", "Kit out the house").current, 1);
+      state.ownedStations.add("anvil");
+      assert.equal(objectiveStatus(state, "fake_stations", "Kit out the house").complete, true);
+    }
+  );
+});
+
+// An objectives map written one level too flat - { acquireHouse: true } rather
+// than { "Buy a House": { acquireHouse: true } } - hands the evaluator a raw
+// boolean. The `in` checks throw on a primitive, which crashed every quest
+// screen rather than showing one bad row.
+test("objectiveStatus(): a non-object objective definition is unsupported, not a crash", async () => {
+  const state = createInitialState();
+  state.quests.fake_flat = { status: "in_progress", objectiveProgress: {}, completedAt: null };
+  await withFakeQuest(
+    "fake_flat",
+    { name: "Fake", locked: false, level: 1, reward: { gold: 0, xp: 0 }, objectives: { acquireHouse: true } },
+    () => {
+      assert.deepEqual(objectiveStatus(state, "fake_flat", "acquireHouse"), { current: 0, target: 1, complete: false });
+    }
+  );
 });

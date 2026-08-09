@@ -29,6 +29,78 @@ export function listSkills() { return Object.keys(SKILLS).map(key => ({ key, ...
 // (immediate level 5 + faster leveling thereafter).
 export const PROFICIENCY_XP_MULTIPLIER = 1.5;
 
+export const MAX_SKILL_LEVEL = 500;
+
+// ----- Player levelling -----
+// The player used to level on skillLevelCost() too, which is why the level ran
+// away from the skills feeding it: seventeen skills each paying a tenth of
+// every new level's threshold, into a bar shaped exactly like ONE skill's.
+// Seventeen skills at 75 came out as player level 1295.
+//
+// The player curve is steeper on purpose - L^2.6 against a skill's L^1.4 - and
+// that gap is the whole mechanism. It makes the level trail the skills feeding
+// it and behave like an average of the lot without being computed from any of
+// them: 17 skills at 75 lands on ~100, and so does driving four or five past
+// 100 while the rest sit idle.
+const PLAYER_LEVEL_BASE = 7.2;
+const PLAYER_LEVEL_EXP = 2.6;
+
+// Total xp needed to BE this level (a threshold, not an increment - same
+// convention as skillLevelCost).
+export function playerLevelCost(level) {
+  return Math.round(PLAYER_LEVEL_BASE * Math.pow(level, PLAYER_LEVEL_EXP));
+}
+
+// The inverse, for reading a level back off a banked xp total - which is how
+// saves written against the old curve are migrated (state/persistence.js).
+//
+// The algebraic inverse alone lands a level low at exact thresholds, because
+// playerLevelCost() rounds. It's corrected against the real cost function
+// rather than left approximate: this and grantPlayerXp()'s level-up loop have
+// to agree on what a given xp total is worth, or loading a save would nudge
+// the level by one every time.
+export function playerLevelFromXp(xp) {
+  if (!(xp > 0)) return 1;
+  let level = Math.max(1, Math.floor(Math.pow(xp / PLAYER_LEVEL_BASE, 1 / PLAYER_LEVEL_EXP)));
+  while (level > 1 && playerLevelCost(level) > xp) level -= 1;
+  while (level < MAX_PLAYER_LEVEL && playerLevelCost(level + 1) <= xp) level += 1;
+  return level;
+}
+
+// What one skill taken from 1 to `level` is worth in player xp. Mirrors the
+// grant in gameState.js's grantSkillXp(), and exists so the cap below is
+// derived from the real economy rather than from a number someone typed.
+export function playerXpFromSkillLevels(level) {
+  let total = 0;
+  for (let n = 2; n <= level; n++) total += skillLevelCost(n) * PLAYER_XP_SHARE_PER_SKILL_LEVEL;
+  return total;
+}
+
+// The share of each new skill level's threshold that goes to the player.
+export const PLAYER_XP_SHARE_PER_SKILL_LEVEL = 1 / 10;
+
+// "Whatever skill level 500 across all skills would equate to" - computed, not
+// written down, so it re-derives itself if the curve, the share, the skill
+// count or MAX_SKILL_LEVEL ever move. 572 as it stands.
+export const MAX_PLAYER_LEVEL = Math.max(
+  1,
+  Math.floor(
+    Math.pow(
+      (playerXpFromSkillLevels(MAX_SKILL_LEVEL) * Object.keys(SKILLS).length) / PLAYER_LEVEL_BASE,
+      1 / PLAYER_LEVEL_EXP
+    )
+  )
+);
+
+// A reward is worth what it was worth. Combat, quests and achievements grant
+// flat player xp, which against an L^2.6 curve would fade to nothing (a
+// 1000-xp quest is ~0.09% of a level at 100). The gap between consecutive
+// player levels grows as L^1.6, so rewards grow the same way. Level 1 scales
+// by 1, leaving the early game exactly as it was.
+export function playerXpScale(level) {
+  return Math.max(1, Math.pow(level, 1.6));
+}
+
 // Skill blocks
 // These are designators for what skill-related items require what level to use. For example, a 
 // "copper" ore requires mining level 1 to mine, and a "steel" ore requires mining level 10 to mine.
@@ -55,8 +127,21 @@ export const SKILL_BLOCKS = {
   woodcutting: {
     tools: { "copper_axe": 1, "iron_axe": 5, "steel_axe": 10, "mithril_axe": 25, "adamantite_axe": 45 }
   },
+  // Same two-gate shape as `mining` below: `catches` maps a species'
+  // FISH.difficulty (1-10, item_backbone.js) to the fishing level it needs, and
+  // `tools` gives each rod a tier that has to reach that same level. Every level
+  // in `catches` needs a rod that can reach it or the species is listed and
+  // permanently uncatchable - godlike_fishing_rod is what makes difficulty 10
+  // reachable at all, exactly as syllic_pickaxe is for runic ore.
   fishing: {
-    tools: { "copper_fishing_rod": 1, "tin_fishing_rod": 2, "bronze_fishing_rod": 3, "iron_fishing_rod": 5, "steel_fishing_rod": 10, "mithril_fishing_rod": 25, "adamantite_fishing_rod": 45 }
+    catches: { 1: 1, 2: 5, 3: 10, 4: 15, 5: 20, 6: 30, 7: 40, 8: 50, 9: 60, 10: 75 },
+    tools: {
+      "copper_fishing_rod": 1, "tin_fishing_rod": 2, "bronze_fishing_rod": 3, "iron_fishing_rod": 5,
+      "steel_fishing_rod": 10, "mithril_fishing_rod": 25, "adamantite_fishing_rod": 45, "syllic_fishing_rod": 60,
+      // The FISHING_ITEMS rod ladder (basic -> godlike), alongside the metal rods.
+      "fishing_rod": 1, "crafted_fishing_rod": 5, "forged_fishing_rod": 10,
+      "enchanted_fishing_rod": 20, "mythic_fishing_rod": 40, "godlike_fishing_rod": 75,
+    }
   },
   smithing: {
     tools: { "copper_hammer": 1, "iron_hammer": 5, "steel_hammer": 10, "mithril_hammer": 25, "adamantite_hammer": 45 }

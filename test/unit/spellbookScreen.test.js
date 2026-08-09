@@ -3,6 +3,25 @@ import assert from "node:assert/strict";
 import { createInitialState } from "../../state/gameState.js";
 import { SPELLS } from "../../magic_backbone.js";
 import { buildSpellRows } from "../../ui/screens/spellbook.js";
+import { ALL_ITEMS } from "../../item_backbone.js";
+
+// Chosen from the catalog rather than named. Which spells cost reagents is
+// tuning data - cure used to cost two and now costs nothing, haste was free and
+// now isn't - and these tests are about how a cost RENDERS, not about any one
+// spell. COSTED_LOCKED additionally sits above magic level 1, which is what the
+// level-gate rows need.
+const COSTED_LOCKED = Object.keys(SPELLS).find((id) => SPELLS[id].learn && (SPELLS[id].level ?? 1) > 1);
+
+// "learn: Ley Crystals (0/2), Arcane Shard (0/2)" for a spell's own cost map.
+function learnText(spellId, owned = {}) {
+  return Object.entries(SPELLS[spellId].learn)
+    .map(([id, qty]) => `${ALL_ITEMS[id]?.name ?? id} (${owned[id] ?? 0}/${qty})`)
+    .join(", ");
+}
+
+function stockedFor(spellId) {
+  return Object.fromEntries(Object.entries(SPELLS[spellId].learn));
+}
 
 // Finds the rendered row for a spell id via the parallel spellIds array, so
 // the assertions don't depend on how deeply the row happens to be indented.
@@ -49,17 +68,19 @@ test("Learned tab: rows are green and a spell moves tabs once learned", () => {
 
 test("Unlearned tab: reagent counts show owned over required, and drive the Learnable split", () => {
   const state = createInitialState();
+  state.skills.magic.level = SPELLS[COSTED_LOCKED].level; // past the level gate, so cost is what's left
 
   const broke = buildSpellRows(state, "Unlearned");
-  assert.match(rowFor(broke, "cure"), /learn: Ley Crystals \(0\/1\), Arcane Shard \(0\/1\)/);
-  assert.equal(groupOf(broke, "cure"), "Unlearnable");
-  assert.ok(rowFor(broke, "cure").includes("{red-fg}"));
+  assert.ok(rowFor(broke, COSTED_LOCKED).includes(`learn: ${learnText(COSTED_LOCKED)}`));
+  assert.equal(groupOf(broke, COSTED_LOCKED), "Unlearnable");
+  assert.ok(rowFor(broke, COSTED_LOCKED).includes("{red-fg}"));
 
-  state.inventory = { ley_crystals: 1, arcane_shard: 1 };
+  const stock = stockedFor(COSTED_LOCKED);
+  state.inventory = stock;
   const stocked = buildSpellRows(state, "Unlearned");
-  assert.match(rowFor(stocked, "cure"), /learn: Ley Crystals \(1\/1\), Arcane Shard \(1\/1\)/);
-  assert.equal(groupOf(stocked, "cure"), "Learnable");
-  assert.ok(rowFor(stocked, "cure").includes("{green-fg}"));
+  assert.ok(rowFor(stocked, COSTED_LOCKED).includes(`learn: ${learnText(COSTED_LOCKED, stock)}`));
+  assert.equal(groupOf(stocked, COSTED_LOCKED), "Learnable");
+  assert.ok(rowFor(stocked, COSTED_LOCKED).includes("{green-fg}"));
 });
 
 test("Unlearned tab: partial stock still counts up toward the requirement", () => {
@@ -78,16 +99,18 @@ test("Unlearned tab: partial stock still counts up toward the requirement", () =
 test("Unlearned tab: level-locked spells are listed with their requirement, not hidden", () => {
   const state = createInitialState();
   assert.equal(state.skills.magic.level, 1);
+  const required = SPELLS[COSTED_LOCKED].level;
 
   const rows = buildSpellRows(state, "Unlearned");
-  assert.match(rowFor(rows, "haste"), /req: magic lv 3 \| no cost \| cast: 14 mp/);
-  assert.equal(groupOf(rows, "haste"), "Unlearnable");
+  assert.match(rowFor(rows, COSTED_LOCKED), new RegExp(`req: magic lv ${required}`));
+  assert.equal(groupOf(rows, COSTED_LOCKED), "Unlearnable");
 
-  // A free-to-learn spell becomes Learnable the moment the level gate opens.
-  state.skills.magic.level = 3;
+  // The gate opening (with the reagents in hand) is what flips it to Learnable.
+  state.skills.magic.level = required;
+  state.inventory = stockedFor(COSTED_LOCKED);
   const leveled = buildSpellRows(state, "Unlearned");
-  assert.equal(groupOf(leveled, "haste"), "Learnable");
-  assert.doesNotMatch(rowFor(leveled, "haste"), /req: magic lv/);
+  assert.equal(groupOf(leveled, COSTED_LOCKED), "Learnable");
+  assert.doesNotMatch(rowFor(leveled, COSTED_LOCKED), /req: magic lv/);
 });
 
 test("both tabs together cover every spell exactly once, with null ids on headers", () => {

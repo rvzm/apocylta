@@ -2,6 +2,7 @@ import { SPELLS, SPELL_TYPES } from "../../magic_backbone.js";
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { isSpellKnown, isSpellUnlocked, canLearnSpell, learnSpell, castSpell } from "../../data/magic.js";
 import { ingredientCount } from "../../data/stations.js";
+import { healthLine } from "../../data/flavor.js";
 import { colorTag, formatCommandRow } from "../format.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 import { switchScreen } from "../router.js";
@@ -113,6 +114,13 @@ function switchTab(state, ui, direction) {
 }
 
 export const spellbookScreen = {
+  subHeader: [
+    "The pages are somebody else's handwriting, and it gets worse toward the back.",
+    "Half the diagrams have been corrected, then corrected again.",
+    "Ley crystals warm slightly when you turn to a page you can't yet read.",
+    healthLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "backpack"),
     LEFT: (state, ui) => switchTab(state, ui, -1),

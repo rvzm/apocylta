@@ -1,4 +1,5 @@
 import { visibleQuests, acceptQuest } from "../../data/quests.js";
+import { timeLine, weatherLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
@@ -20,6 +21,16 @@ function selectedQuestId(ui) {
 }
 
 export const questBoardScreen = {
+  // Atmosphere, not instruction - promptRow already says "accept a quest".
+  // One of these shows at a time, picked by the hour. See ui/subHeader.js.
+  subHeader: [
+    "The board is thick with paper, most of it months out of date.",
+    "Someone has crossed out half the rewards and written smaller numbers beside them.",
+    "Three notices for the same job, all in different hands.",
+    timeLine,
+    weatherLine,
+  ],
+
   keymap: {
     B: (state, ui) => switchScreen(state, ui, "location"),
     A: (state, ui) => {

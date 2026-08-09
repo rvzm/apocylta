@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { skillLevelCost } from "../../skill_backbone.js";
+import { skillLevelCost, playerLevelCost } from "../../skill_backbone.js";
 import { createInitialState, grantSkillXp, grantPlayerXp } from "../../state/gameState.js";
 
 test("skillLevelCost() follows the 50 * level^1.4 formula", () => {
@@ -84,17 +84,20 @@ test("grantSkillXp()'s player-xp grant sums per-level amounts on a multi-level j
   assert.equal(state.experience, expected);
 });
 
+// playerLevelCost, not skillLevelCost: the player has its own, much steeper
+// curve now (see skill_backbone.js) precisely so its level trails the skills
+// feeding it rather than outrunning them.
 test("grantPlayerXp() accumulates player xp and levels up once the cost threshold is crossed", () => {
   const state = createInitialState();
   assert.equal(state.level, 1);
-  grantPlayerXp(state, skillLevelCost(2));
+  grantPlayerXp(state, playerLevelCost(2));
   assert.equal(state.level, 2);
-  assert.equal(state.experience, skillLevelCost(2));
+  assert.equal(state.experience, playerLevelCost(2));
 });
 
 test("grantPlayerXp() handles a multi-level jump in one call", () => {
   const state = createInitialState();
-  grantPlayerXp(state, skillLevelCost(3));
+  grantPlayerXp(state, playerLevelCost(3));
   assert.equal(state.level, 3);
 });
 

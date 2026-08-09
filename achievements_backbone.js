@@ -16,6 +16,7 @@
 //      --- `combatEnd: { manaMax: <x> }` max mana remaining
 //      --- `combatEnd: { enemies: <x> }` enemies defeated during encounter - multi-path
 //      --- `combatEnd: { boss: true }` boss subtype enemy defeated during encounter
+//      --- `combatEnd: { revived: true }` player revived from death during encounter
 //      --- `totalEnemies: <x>` - Multi-path, these are the total enemies defeated overall, not just in a single encounter. This is tracked in the 
 //                       |        player state and can be used for achievements that require defeating a certain number of enemies over time.
 //      --- `totalEnemies: { type: "<enemy_type>", quantity: <x> }` - specific type of enemy defeated overall
@@ -55,12 +56,100 @@ export const ACHIEVEMENTS = {
             combatEnd: { healthMaxP: 50 },
         },
     },
+    "no_pain_no_gain": {
+        name: "No Pain, No Gain!",
+        desc: "Win a combat encounter with less than 25% health remaining",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { healthMaxP: 25 },
+        },
+    },
+    "by_the_skin_of_your_teeth": {
+        name: "By the Skin of Your Teeth!",
+        desc: "Win a combat encounter with less than 10% health remaining",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { healthMaxP: 10 },
+        },
+    },
+    "phoenix_rising": {
+        name: "Phoenix Rising!",
+        desc: "Win a combat encounter with less than 5% health remaining",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { healthMaxP: 5 },
+        },
+    },
+    "phoenix_risen": {
+        name: "Phoenix Risen!",
+        desc: "Win a combat encounter after reviving from death",
+        reward: { gold: 200, xp: { player: 200, skill: { "fighting": 100, "defense": 100} } },
+        req: {
+            combatEnd: { revived: true },
+        },
+    },
     "slayerrr": {
         name: "Slayerrr!",
         desc: "Slayed 5 enemies!",
         reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
         req: {
             combatEnd: { enemies: 5 },
+        },
+    },
+    "keep_it_up": {
+        name: "Keep it up!",
+        desc: "Slayed 20 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 20 },
+        },
+    },
+    "unstoppable": {
+        name: "Unstoppable!",
+        desc: "Slayed 50 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 50 },
+        },
+    },
+    "serial_killer": {
+        name: "Serial Killer!",
+        desc: "Slayed 100 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 100 },
+        },
+    },
+    "slayer_of_legends": {
+        name: "Slayer of Legends!",
+        desc: "Slayed 500 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 500 },
+        },
+    },
+    "killer_of_kings": {
+        name: "Killer of Kings!",
+        desc: "Slayed 1000 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 1000 },
+        },
+    },
+    "blood": {
+        name: "Blood!",
+        desc: "Slayed 5000 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 5000 },
+        },
+    },
+    "seas_of_blood": {
+        name: "Seas of Blood!",
+        desc: "Slayed 10000 enemies!",
+        reward: { gold: 100, xp: { player: 100, skill: { "fighting": 50, "defense": 50} } },
+        req: {
+            combatEnd: { enemies: 10000 },
         },
     },
     "boss_down": {
@@ -71,20 +160,52 @@ export const ACHIEVEMENTS = {
             combatEnd: { enemies: 1, boss: true },
         },
     },
-    "master_crafter": {
-        name: "Master Crafter",
+    "beginner_crafter": {
+        name: "Beginner Crafter",
         desc: "Crafted 10 items!",
         reward: { gold: 100, xp: { player: 100, skill: { "crafting": 50, "smithing": 50} } },
         req: {
             craftItem: { quantity: 10 },
         },
     },
-    "master_merchant": {
-        name: "Master Merchant",
+    "intermediate_crafter": {
+        name: "Intermediate Crafter",
+        desc: "Crafted 50 items!",
+        reward: { gold: 100, xp: { player: 100, skill: { "crafting": 50, "smithing": 50} } },
+        req: {
+            craftItem: { quantity: 50 },
+        },
+    },
+    "master_crafter": {
+        name: "Master Crafter",
+        desc: "Crafted 100 items!",
+        reward: { gold: 100, xp: { player: 100, skill: { "crafting": 50, "smithing": 50} } },
+        req: {
+            craftItem: { quantity: 100 },
+        },
+    },
+    "beginner_merchant": {
+        name: "Beginner Merchant",
         desc: "Sold 10 items!",
         reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
         req: {
             sellItem: { quantity: 10 },
+        },
+    },
+    "intermediate_merchant": {
+        name: "Intermediate Merchant",
+        desc: "Sold 50 items!",
+        reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
+        req: {
+            sellItem: { quantity: 50 },
+        },
+    },
+    "master_merchant": {
+        name: "Master Merchant",
+        desc: "Sold 100 items!",
+        reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
+        req: {
+            sellItem: { quantity: 100 },
         },
     },
     "beginner_mage": {
@@ -93,6 +214,22 @@ export const ACHIEVEMENTS = {
         reward: { gold: 100, xp: { player: 100, skill: { "magic": 50} } },
         req: {
             learnSpell: { quantity: 5 },
+        },
+    },
+    "intermediate_mage": {
+        name: "Intermediate Mage",
+        desc: "Learned 10 spells!",
+        reward: { gold: 100, xp: { player: 100, skill: { "magic": 50} } },
+        req: {
+            learnSpell: { quantity: 10 },
+        },
+    },
+    "master_mage": {
+        name: "Master Mage",
+        desc: "Learned 20 spells!",
+        reward: { gold: 100, xp: { player: 100, skill: { "magic": 50} } },
+        req: {
+            learnSpell: { quantity: 20 },
         },
     },
 

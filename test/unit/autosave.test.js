@@ -7,6 +7,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+// Safe to import statically: skill_backbone.js is a leaf with no imports of its
+// own, so it can't drag in one of the env-var-at-import-time modules above.
+import { playerLevelCost } from "../../skill_backbone.js";
 
 const scratchDir = fs.mkdtempSync(path.join(os.tmpdir(), "apocylta-autosave-test-"));
 process.env.AUTOSAVE_PATH = path.join(scratchDir, "autosave.json");
@@ -28,7 +31,11 @@ test("writeAutosave()/readAutosave() round-trips state, including ownedStations 
   state.race = "human";
   state.class = "warrior";
   state.difficulty = "normal";
+  // Level and xp have to agree: readAutosave() derives the level from the
+  // banked xp rather than trusting the stored number, which is what migrates
+  // saves written against the old (far shallower) player curve.
   state.level = 5;
+  state.experience = playerLevelCost(5);
   state.gold = 777;
   state.currentLocationId = "wilderness";
   state.hp = 30;
@@ -68,6 +75,7 @@ test("autosaveSummary() reflects the most recently written autosave", async () =
   state.class = "ranger";
   state.difficulty = "hard";
   state.level = 9;
+  state.experience = playerLevelCost(9);
   state.currentLocationId = "wilderness";
 
   const before = Date.now();

@@ -9,6 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { game_config } from "../config.js";
 import { createInitialState } from "./gameState.js";
+import { playerLevelFromXp } from "../skill_backbone.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -57,6 +58,10 @@ export function readAutosave() {
     // Falls back to the fresh state's seed for autosaves written before
     // achievements existed, so a tick can't hit an undefined Set.
     locationsVisited: new Set(snapshot.locationsVisited ?? [...state.locationsVisited]),
+    // Same migration persistence.js does: the level is read back off the banked
+    // xp, so an autosave written against the old (much shallower) player curve
+    // lands on the level that xp is actually worth now.
+    level: playerLevelFromXp(snapshot.experience ?? 0),
   });
   return state;
 }

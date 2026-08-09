@@ -11,6 +11,7 @@ import {
   CRAFTING_RECIPES,
   COOKING_RECIPES,
   POTION_RECIPES,
+  FISHING_RECIPES,
   METALURGY,
   WEAPON_TYPES,
   ARMOR_TYPES,
@@ -21,7 +22,7 @@ import {
 import { removeItem } from "../state/gameState.js";
 import { hasBeltEquipped } from "./toolbelt.js";
 
-const COLLECTIONS = [SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES];
+const COLLECTIONS = [SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, FISHING_RECIPES];
 
 // Every other location's available stations come straight from its static
 // hubFeatures list. playerhome is the one exception: stations there are
@@ -40,13 +41,25 @@ export function stationIdsAtLocation(state, location) {
 // object under every id in either case rather than keying by the array
 // itself (which previously coerced to one bogus combined-string key that
 // never matched any real station id).
+// Two collections can name the same station - COOKING_RECIPES and
+// FISHING_RECIPES both cook at cooking_station/campfire - so a station's
+// recipes are MERGED rather than overwritten, which is what plain assignment
+// used to do (the second collection silently replaced the first). The merge
+// mutates the existing recipes object in place so every station id sharing a
+// pool keeps sharing the same one.
 export const STATION_RECIPES = {};
 for (const collection of COLLECTIONS) {
   const { station, skill } = collection.global;
   const recipes = { ...collection };
   delete recipes.global;
-  for (const id of Array.isArray(station) ? station : [station]) {
-    STATION_RECIPES[id] = { skill, recipes };
+  const ids = Array.isArray(station) ? station : [station];
+  const existing = ids.map((id) => STATION_RECIPES[id]).find(Boolean);
+  if (existing) {
+    Object.assign(existing.recipes, recipes);
+    for (const id of ids) STATION_RECIPES[id] ??= existing;
+  } else {
+    const entry = { skill, recipes };
+    for (const id of ids) STATION_RECIPES[id] = entry;
   }
 }
 

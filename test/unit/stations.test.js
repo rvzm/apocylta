@@ -52,6 +52,21 @@ test("getStationRecipes() resolves multi-station collections (crafting_table/anv
   assert.ok("bread" in cookingStation.recipes);
 });
 
+// COOKING_RECIPES and FISHING_RECIPES both declare cooking_station/campfire, and
+// the derivation used to assign rather than merge - so whichever collection came
+// second silently replaced the first, taking every one of its recipes with it.
+test("two collections naming the same station are merged, not overwritten", () => {
+  const cookingStation = getStationRecipes("cooking_station");
+  assert.ok("bread" in cookingStation.recipes, "COOKING_RECIPES survives the merge");
+  assert.ok("pickled_tuna" in cookingStation.recipes, "FISHING_RECIPES joins it");
+  assert.ok("smoked_kraken" in cookingStation.recipes);
+
+  // ...and both station ids still share one pool, rather than each getting a
+  // private merged copy.
+  assert.equal(cookingStation.recipes, getStationRecipes("campfire").recipes);
+  assert.equal(cookingStation.skill, "cooking");
+});
+
 test("recipeTypeOf() reads the item type off a recipe's primary result", () => {
   const { recipes } = getStationRecipes("forge");
   assert.equal(recipeTypeOf(recipes.iron_bar), "smithing");

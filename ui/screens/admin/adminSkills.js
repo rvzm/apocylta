@@ -1,4 +1,4 @@
-import { SKILLS, skillLevelCost } from "../../../skill_backbone.js";
+import { SKILLS, skillLevelCost, MAX_SKILL_LEVEL } from "../../../skill_backbone.js";
 import { formatCommandRow } from "../../format.js";
 import { switchScreen } from "../../router.js";
 import {
@@ -16,7 +16,9 @@ import {
   stepKeys,
 } from "./shared.js";
 
-const MAX_LEVEL = 99;
+// The real ceiling, not this screen's own: a skill that stops at 500 in play
+// shouldn't be editable past it here either.
+const MAX_LEVEL = MAX_SKILL_LEVEL;
 
 // Rows alternate level and xp for the same skill, so the id carries both.
 function parse(id) {

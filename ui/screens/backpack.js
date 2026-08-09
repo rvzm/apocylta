@@ -47,6 +47,7 @@ function switchTab(state, ui, direction) {
 }
 
 export const backpackScreen = {
+  subHeader: ["Your Backpack"],
   keymap: {
     B: (state, ui) => switchScreen(state, ui, state.returnScreen || "location"),
     LEFT: (state, ui) => switchTab(state, ui, -1),

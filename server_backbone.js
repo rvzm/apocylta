@@ -10,6 +10,7 @@ import { getCurrentLocation, isSafeZone, formatClock } from "./state/gameState.j
 import { getAction } from "./data/actions.js";
 import { ALL_ITEMS, SHOP_RARITY_DISPLAY } from "./item_backbone.js";
 import { SKILLS, skillLevelCost } from "./skill_backbone.js";
+import { gatherTimeFor } from "./player_backbone.js";
 import {
   waterBottleCap,
   slingshotAmmoCap,
@@ -101,14 +102,20 @@ export function buildInventoryList(inventoryMap) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function buildCurrentActionPayload(currentAction) {
+function buildCurrentActionPayload(currentAction, difficulty) {
   if (!currentAction) return null;
   const action = getAction(currentAction.id);
+  const attempts = currentAction.attempts ?? [];
+  const interval = gatherTimeFor(difficulty);
   return {
     id: currentAction.id,
     label: action?.label ?? currentAction.id,
     elapsedSeconds: currentAction.elapsedSeconds,
     gathered: buildInventoryList(currentAction.gatheredThisSession),
+    // Attempts are up to 30s apart now, so without these the page looks frozen
+    // between them - same reason the action screen shows them.
+    lastAttempt: attempts[attempts.length - 1] ?? null,
+    nextAttemptIn: interval - (currentAction.elapsedSeconds % interval),
   };
 }
 
@@ -226,7 +233,8 @@ export function buildKillsPayload(state) {
     .sort((a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name));
 }
 
-function buildPlayercardPayload(state) {
+// Exported for tests - the page itself only ever sees it as JSON over /api.
+export function buildPlayercardPayload(state) {
   const location = getCurrentLocation(state);
   return {
     name: state.name ?? "Unnamed Traveler",
@@ -243,7 +251,7 @@ function buildPlayercardPayload(state) {
       name: location?.name ?? state.currentLocationId,
       safe: isSafeZone(state),
     },
-    currentAction: buildCurrentActionPayload(state.currentAction),
+    currentAction: buildCurrentActionPayload(state.currentAction, state.difficulty),
     combat: buildCombatPayload(state),
     kills: buildKillsPayload(state),
     inventory: buildInventoryList(state.inventory),
@@ -252,6 +260,10 @@ function buildPlayercardPayload(state) {
     toolbelt: buildToolbeltPayload(state),
     quests: buildQuestsPayload(state),
     achievements: buildAchievementsPayload(state),
+    // Gates the page's [Export HTML] and [Export JSON] buttons. Read per
+    // request rather than captured at startup, so flipping the flag doesn't
+    // need a restart.
+    exportEnabled: server_config.export === true,
     generatedAt: new Date().toISOString(),
   };
 }

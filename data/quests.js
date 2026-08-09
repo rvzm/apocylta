@@ -1,7 +1,8 @@
 import { QUESTS } from "../quest_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
 import { ALL_ENEMIES } from "../enemy_backbone.js";
-import { grantPlayerXp } from "../state/gameState.js";
+import { grantRewardXp } from "../state/gameState.js";
+import { SPELLS } from "../magic_backbone.js";
 import { isSpellKnown } from "./magic.js";
 
 // Level+locked gated, excluding anything already accepted (in-progress or
@@ -26,28 +27,141 @@ export function startedQuests(state) {
 // recordItemSold()/recordItemCrafted()/recordSpellCast() below. defeatEnemy
 // reads the lifetime state.enemiesDefeated tally, so like acquireItem it's a
 // live check - kills made before accepting the quest do count toward it.
-export function objectiveStatus(state, questId, label) {
-  const def = QUESTS[questId]?.objectives?.[label];
+// An objective this evaluator can't read - an unknown type, or a known type
+// written in a shape it doesn't implement (`learnSpell: { rarity: "legendary" }`
+// where a spell-id array is expected). Reported as incomplete rather than
+// thrown: every quest screen renders EVERY objective of every quest, so one
+// malformed entry used to take the whole Journal/Quest Board/admin editor down
+// with it. It stays visibly stuck at 0/1, which is the signal to go fix the data.
+const UNSUPPORTED = { current: 0, target: 1, complete: false };
+
+// An objective is addressed by a `::`-joined path, so a child of a
+// subObjectives group is "Defeat The Mad Bert Brothers::Defeat Hubert". The
+// separator is the one ui/screens/admin/adminQuests.js already uses between
+// questId and label, and its parse() splits once and rejoins the rest - so a
+// multi-segment path travels through that screen's row ids unchanged.
+// objectiveProgress and adminForced key off the same path string; both persist
+// as arbitrary-keyed JSON in quest_objectives_json, so nesting needed no save
+// migration.
+export const OBJECTIVE_PATH_SEP = "::";
+
+// "gold" is currency, not an item: it lives on state.gold and there is no
+// ALL_ITEMS entry for it, so an objective asking for 10000 of it read an
+// inventory slot nothing ever writes. STARTER_PACKS already treats the id this
+// way (test/unit/itemBackboneConsistency.test.js skips it for the same reason).
+function ownedCount(state, itemId) {
+  return itemId === "gold" ? state.gold ?? 0 : state.inventory[itemId] || 0;
+}
+
+export function resolveObjective(quest, path) {
+  let objectives = quest?.objectives;
+  let def = null;
+  for (const segment of String(path).split(OBJECTIVE_PATH_SEP)) {
+    def = objectives?.[segment];
+    if (!def) return null;
+    objectives = def.subObjectives;
+  }
+  return def;
+}
+
+// Every objective in a quest, parents included, depth-first and in declaration
+// order. The record hooks and the quest screens iterate this rather than
+// Object.keys(quest.objectives) - a craftItem/sellItem/useSpell objective
+// nested inside a subObjectives group is invisible to anything that doesn't.
+export function* walkObjectives(quest, objectives = quest?.objectives, prefix = "", depth = 0) {
+  for (const [label, def] of Object.entries(objectives ?? {})) {
+    const path = prefix ? `${prefix}${OBJECTIVE_PATH_SEP}${label}` : label;
+    yield { path, label, def, depth, optional: !!def.optional, group: !!def.subObjectives };
+    if (def.subObjectives) yield* walkObjectives(quest, def.subObjectives, path, depth + 1);
+  }
+}
+
+export function objectiveStatus(state, questId, path) {
+  const def = resolveObjective(QUESTS[questId], path);
   if (!def) return { current: 0, target: 1, complete: false };
+  // Anything that isn't an object can't carry a `<type>: <spec>` pair, and the
+  // `in` checks below throw outright on a primitive. An objectives map written
+  // one level too flat ({ acquireHouse: true } instead of
+  // { "Buy a House": { acquireHouse: true } }) lands here, and every quest
+  // screen renders every objective - so it has to be a stuck row, not a crash.
+  if (typeof def !== "object") return UNSUPPORTED;
 
   // Admin override (ui/screens/admin/adminQuests.js), ahead of the type switch:
   // only 3 of the 10 objective types keep a counter anyone could write to, so
   // forcing the other 7 has to happen here rather than by faking their source.
-  if (state.quests[questId]?.adminForced?.[label]) return { current: 1, target: 1, complete: true };
+  if (state.quests[questId]?.adminForced?.[path]) return { current: 1, target: 1, complete: true };
+
+  // A group completes when its required children do. `optional: true` children
+  // still evaluate and still render - they just don't hold the parent open. A
+  // group of nothing but optional children has nothing left to require, so it
+  // reads as complete rather than as permanently 0/0.
+  if (def.subObjectives) {
+    const required = Object.keys(def.subObjectives).filter((child) => !def.subObjectives[child].optional);
+    const done = required.filter(
+      (child) => objectiveStatus(state, questId, `${path}${OBJECTIVE_PATH_SEP}${child}`).complete
+    ).length;
+    return {
+      current: required.length ? done : 1,
+      target: required.length || 1,
+      complete: done >= required.length,
+    };
+  }
 
   if ("acquireItem" in def) {
-    const [itemId, qty] =
-      typeof def.acquireItem === "string" ? [def.acquireItem, 1] : Object.entries(def.acquireItem)[0];
-    const current = Math.min(state.inventory[itemId] || 0, qty);
-    return { current, target: qty, complete: current >= qty };
+    const spec = def.acquireItem;
+    if (typeof spec === "string") {
+      const current = Math.min(ownedCount(state, spec), 1);
+      return { current, target: 1, complete: current >= 1 };
+    }
+
+    // "Any item of this rarity" - and of this `type` when given, so a mythic
+    // raw fish doesn't finish "Acquire a Mythic Weapon". Told apart from an
+    // {id: qty} map by carrying a rarity/type key, since no item id is either.
+    if ("rarity" in spec || "type" in spec) {
+      const wanted = spec.quantity ?? 1;
+      const owned = Object.entries(state.inventory).reduce((sum, [id, qty]) => {
+        const item = ALL_ITEMS[id];
+        if (!item || qty <= 0) return sum;
+        if (spec.rarity && item.rarity !== spec.rarity) return sum;
+        if (spec.type && item.type !== spec.type) return sum;
+        return sum + qty;
+      }, 0);
+      const current = Math.min(owned, wanted);
+      return { current, target: wanted, complete: current >= wanted };
+    }
+
+    const entries = Object.entries(spec);
+    // A single-item objective reports its own count ("3/5 Tin Ore"), which is
+    // the granularity worth showing. A multi-item one can't - the entries have
+    // different targets - so it counts entries satisfied instead. That form
+    // used to read Object.entries(spec)[0] and quietly ignore every stack after
+    // the first, making "Acquire a bunch of stuff" a single gold bar.
+    if (entries.length === 1) {
+      const [itemId, qty] = entries[0];
+      if (typeof qty !== "number") return UNSUPPORTED;
+      const current = Math.min(ownedCount(state, itemId), qty);
+      return { current, target: qty, complete: current >= qty };
+    }
+    if (entries.some(([, qty]) => typeof qty !== "number")) return UNSUPPORTED;
+    const satisfied = entries.filter(([itemId, qty]) => ownedCount(state, itemId) >= qty).length;
+    return { current: satisfied, target: entries.length, complete: satisfied >= entries.length };
   }
   if ("sellItem" in def || "craftItem" in def) {
     const qty = (def.sellItem ?? def.craftItem).quantity ?? 1;
-    const current = Math.min(state.quests[questId]?.objectiveProgress?.[label] ?? 0, qty);
+    const current = Math.min(state.quests[questId]?.objectiveProgress?.[path] ?? 0, qty);
     return { current, target: qty, complete: current >= qty };
   }
   if ("acquireHouse" in def) {
     return { current: state.house ? 1 : 0, target: 1, complete: !!state.house };
+  }
+  // Stations you've bought for your own house (ui/screens/shopHousing.js writes
+  // state.ownedStations); the ones standing in a safehouse or a town don't
+  // count, since the objective is about kitting out a home. Same
+  // count-the-list shape as the defeatEnemy id-array form.
+  if ("acquireStation" in def) {
+    const listed = Array.isArray(def.acquireStation) ? def.acquireStation : [def.acquireStation];
+    const owned = listed.filter((id) => state.ownedStations?.has(id)).length;
+    return { current: owned, target: listed.length || 1, complete: listed.length > 0 && owned >= listed.length };
   }
   if ("reachLocation" in def) {
     const complete = state.currentLocationId === def.reachLocation;
@@ -59,13 +173,25 @@ export function objectiveStatus(state, questId, label) {
     return { current, target: level, complete: current >= level };
   }
   if ("learnSpell" in def) {
+    // Two forms: a list of specific spells, or "any N spells of this rarity"
+    // (magic_backbone.js gives every spell a rarity, starter -> godlike).
+    if (!Array.isArray(def.learnSpell)) {
+      if (!def.learnSpell?.rarity) return UNSUPPORTED;
+      const wanted = def.learnSpell.quantity ?? 1;
+      const known = Object.keys(SPELLS).filter(
+        (id) => SPELLS[id].rarity === def.learnSpell.rarity && isSpellKnown(state, id)
+      ).length;
+      const current = Math.min(known, wanted);
+      return { current, target: wanted, complete: current >= wanted };
+    }
     const listed = def.learnSpell;
     const current = listed.filter((id) => isSpellKnown(state, id)).length;
     return { current, target: listed.length || 1, complete: listed.length > 0 && current >= listed.length };
   }
   if ("useSpell" in def) {
+    if (!Array.isArray(def.useSpell)) return UNSUPPORTED;
     const listed = def.useSpell;
-    const cast = state.quests[questId]?.objectiveProgress?.[label] ?? {};
+    const cast = state.quests[questId]?.objectiveProgress?.[path] ?? {};
     const current = listed.filter((id) => cast[id]).length;
     return { current, target: listed.length || 1, complete: listed.length > 0 && current >= listed.length };
   }
@@ -91,9 +217,15 @@ export function objectiveStatus(state, questId, label) {
   return { current: 0, target: 1, complete: false };
 }
 
+// Only the top-level objectives, and only the ones that gate: an
+// `optional: true` objective tracks and renders like any other but never holds
+// a quest open. Children are covered by their parent's own aggregate status.
 export function isQuestComplete(state, questId) {
   const quest = QUESTS[questId];
-  return !!quest && Object.keys(quest.objectives).every((label) => objectiveStatus(state, questId, label).complete);
+  if (!quest) return false;
+  return Object.entries(quest.objectives)
+    .filter(([, def]) => !def.optional)
+    .every(([label]) => objectiveStatus(state, questId, label).complete);
 }
 
 export function acceptQuest(state, questId) {
@@ -108,7 +240,7 @@ export function completeQuest(state, questId) {
   const quest = QUESTS[questId];
   if (!record || record.status !== "in_progress" || !quest || !isQuestComplete(state, questId)) return false;
   state.gold += quest.reward.gold ?? 0;
-  grantPlayerXp(state, quest.reward.xp ?? 0);
+  grantRewardXp(state, quest.reward.xp ?? 0);
   record.status = "completed";
   record.completedAt = Date.now();
   return true;
@@ -142,14 +274,22 @@ function bumpLifetime(state, kind, key, qty = 1) {
 // reusing the key name "type", quest_backbone.js's own example ("iron_sword")
 // isn't a member of ITEM_TYPES, so it means something different than
 // sellItem's "type" does.
+// Every hook below iterates walkObjectives() rather than the top-level
+// objectives map: an objective nested inside a subObjectives group would
+// otherwise never be handed its progress, and would sit at 0 forever with no
+// sign of why. Progress is keyed by the objective's full path.
+function* inProgressObjectives(state) {
+  for (const [questId, record] of Object.entries(state.quests)) {
+    if (record.status !== "in_progress") continue;
+    for (const node of walkObjectives(QUESTS[questId])) yield { record, ...node };
+  }
+}
+
 export function recordItemSold(state, itemId, qty) {
   const itemType = ALL_ITEMS[itemId]?.type;
   bumpLifetime(state, "sold", itemId, qty);
-  for (const [questId, record] of Object.entries(state.quests)) {
-    if (record.status !== "in_progress") continue;
-    for (const [label, def] of Object.entries(QUESTS[questId]?.objectives ?? {})) {
-      if (def.sellItem?.type === itemType) record.objectiveProgress[label] = (record.objectiveProgress[label] || 0) + qty;
-    }
+  for (const { record, path, def } of inProgressObjectives(state)) {
+    if (def.sellItem?.type === itemType) record.objectiveProgress[path] = (record.objectiveProgress[path] || 0) + qty;
   }
 }
 
@@ -164,11 +304,8 @@ export function recordItemUsed(state, itemId, qty) {
 
 export function recordItemCrafted(state, itemId, qty) {
   bumpLifetime(state, "crafted", itemId, qty);
-  for (const [questId, record] of Object.entries(state.quests)) {
-    if (record.status !== "in_progress") continue;
-    for (const [label, def] of Object.entries(QUESTS[questId]?.objectives ?? {})) {
-      if (def.craftItem?.type === itemId) record.objectiveProgress[label] = (record.objectiveProgress[label] || 0) + qty;
-    }
+  for (const { record, path, def } of inProgressObjectives(state)) {
+    if (def.craftItem?.type === itemId) record.objectiveProgress[path] = (record.objectiveProgress[path] || 0) + qty;
   }
 }
 
@@ -182,27 +319,21 @@ export function recordItemCrafted(state, itemId, qty) {
 // kill against in-progress quests anyway, so a future per-quest rule ("kills
 // since you accepted this") has the data it needs without a save migration.
 export function recordEnemyDefeated(state, enemyId) {
-  for (const [questId, record] of Object.entries(state.quests)) {
-    if (record.status !== "in_progress") continue;
-    for (const [label, def] of Object.entries(QUESTS[questId]?.objectives ?? {})) {
-      const target = def.defeatEnemy;
-      if (!target) continue;
-      const matches = Array.isArray(target)
-        ? target.includes(enemyId)
-        : !target.type || ALL_ENEMIES[enemyId]?.type === target.type;
-      if (matches) record.objectiveProgress[label] = (record.objectiveProgress[label] || 0) + 1;
-    }
+  for (const { record, path, def } of inProgressObjectives(state)) {
+    const target = def.defeatEnemy;
+    if (!target) continue;
+    const matches = Array.isArray(target)
+      ? target.includes(enemyId)
+      : !target.type || ALL_ENEMIES[enemyId]?.type === target.type;
+    if (matches) record.objectiveProgress[path] = (record.objectiveProgress[path] || 0) + 1;
   }
 }
 
 export function recordSpellCast(state, spellId) {
   bumpLifetime(state, "cast", spellId, 1);
-  for (const [questId, record] of Object.entries(state.quests)) {
-    if (record.status !== "in_progress") continue;
-    for (const [label, def] of Object.entries(QUESTS[questId]?.objectives ?? {})) {
-      if (def.useSpell?.includes(spellId)) {
-        record.objectiveProgress[label] = { ...(record.objectiveProgress[label] || {}), [spellId]: true };
-      }
+  for (const { record, path, def } of inProgressObjectives(state)) {
+    if (def.useSpell?.includes(spellId)) {
+      record.objectiveProgress[path] = { ...(record.objectiveProgress[path] || {}), [spellId]: true };
     }
   }
 }
