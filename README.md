@@ -38,11 +38,11 @@ In this world, you can level up your skills, yourself, and live whatever life yo
 - **A hand-built world** — 66 connected locations across town, wilderness, mountains, caves, coastal
   cities and the deep chambers beyond, each with its own shops, resources, opening hours and dangers.
 - **Timed travel** — longer trips run a countdown with a category-appropriate ASCII animation (a walker on
-  a road, a glider over the sky, a cart in a tunnel) and pay Speed xp on arrival. Stepping into a shop
-  stays instant.
-- **Gathering that makes you wait** — scavenging, foraging, chopping, trapping, mining and fishing all run
-  as attempts spaced by your difficulty, and an attempt can come up empty. Your skill against what you're
-  after sets the odds.
+  a road, a glider over the sky, a cart in a tunnel, a shimmer for a teleport) and pay Speed xp on arrival.
+  Stepping into a shop stays instant.
+- **Gathering that makes you wait** — scavenging, looking for food, foraging, chopping, trapping, mining and
+  fishing all run as attempts spaced by your difficulty, and an attempt can come up empty. Your skill against
+  what you're after sets the odds. Resting, waiting and meditating are instant by contrast.
 - **Mining and fishing, each with a picker** — mining lists the ores the local seam holds, gated by your
   level and your pickaxe's tier. Fishing lists what's swimming in the local water, gated by your level,
   your rod, and whether you're carrying the bait, net or hook that species takes.
@@ -58,7 +58,10 @@ In this world, you can level up your skills, yourself, and live whatever life yo
 - **A Toolbelt with real capacity** — your belt sets backpack slots, potion pouch and ammo, and some
   resources aren't usable without one at all.
 - **Save/load** — multiple SQLite save slots plus a timed autosave that shows up as an extra loadable
-  entry. On Survival and Nightmare, dying deletes both.
+  entry. On Survival, Nightmare and Demon Lord, dying deletes both.
+- **Settings that stick to the install** — Menu → `[T]` turns colour off for a monochrome terminal (bold and
+  the highlighted-row marker stay, since those aren't colour) and picks how every hotkey renders: `[T]ravel`,
+  `[T] Travel`, **T**ravel or `T: [Travel]`. Stored against the install rather than the character.
 - **A companion web view** — a live read-only playercard at `localhost:4000` with tabs for stats,
   toolbelt, backpack, quests and achievements. Export it as a standalone HTML file that keeps working
   offline, or as raw JSON that the reader page at `/apocylta_player.html` draws back into the same card.
@@ -92,23 +95,25 @@ All optional — mostly for running a second copy without disturbing your real s
 | `AUTOSAVE_PATH` | where the autosave JSON lives |
 | `LOG_PATH` | where the log file is written |
 | `DEBUG_LEVEL` | overrides `game_config.debugLevel` |
-| `ALLOW_ADMIN` | overrides `game_config.allow_admin` both ways — `true` unlocks the in-game state editors (see below), anything else locks them out |
+| `ALLOW_ADMIN` | overrides `game_config.allow_admin` both ways — `true` unlocks the state editors, anything else locks them |
 
 ## Documentation
 
 - **[apocylta-guide.md](./apocylta-guide.md)** — the player's manual: how every system actually works.
 - **[apocylta-gui.md](./apocylta-gui.md)** — every screen, drawn, with what its keys do.
 - **[CLAUDE.md](./CLAUDE.md)** — the architecture, for anyone working on the code.
+- **[FUTURE.md](./FUTURE.md)** — what's planned, what's built, and what's declared but not wired up yet.
 
 Everything is hotkey-driven, and each screen prints its own legend along the bottom
-(`[T]ravel | [1] Gather scraps | [M]enu`), so you can find your way without either document.
+(`[T]ravel | [1] Gather scraps | [M]enu`), so you can find your way without opening any of them.
 
 ## Admin tools
 
-With `ALLOW_ADMIN=true`, the Menu grows a `[V] Admin` entry: eight editors for stats, skills, inventory,
-equipment, toolbelt, quests and achievements, plus a godmode toggle. They write state directly, skipping
-every gate the game has — useful for testing a screen you'd otherwise need forty levels to reach. Off by
-default, and the gate is enforced both on the menu entry and on every editor.
+With `ALLOW_ADMIN=true`, the Menu grows a `[V] Admin` entry: a hub plus seven editors — stats, skills,
+inventory, equipment, toolbelt, quests and achievements — and a godmode toggle. They write state directly,
+skipping every gate the game has — useful for testing a screen you'd otherwise need forty levels to reach.
+Off by default, and the gate is enforced both on the menu entry and on every editor. `ALLOW_ADMIN=false`
+locks them again for one run, whatever `config.js` says.
 
 ## Testing
 
@@ -119,4 +124,4 @@ npm run test:integration  # drives the actual terminal UI via tmux
 ```
 The integration suite launches the real game inside a `tmux` session and drives it with real keystrokes,
 so `tmux` needs to be installed to run it (not required for `test:unit`). Several tests exercise real
-timed travel and take tens of real seconds; the full suite is roughly a minute and a half.
+timed travel and take tens of real seconds; the full suite runs in under a minute.

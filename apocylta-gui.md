@@ -39,6 +39,73 @@ Below the one-line description, a location's flavour text fills out the pane. So
 
 Every location builds its own command legend dynamically - actions available there (numbered), hub features present there (lettered), plus the fixed `[T]ravel`/`[K]Stations`/`[M]enu`. `[C] Quest Board` above happens to land on the same letter as this doc's older `[C]heck the quest board` mockup, but it's a coincidence of which letters were free, not a naming convention - see [Quests](#quests) below for what's actually behind it now.
 
+**`q`, `Q` and `Ctrl-C` quit from anywhere**, immediately and without a confirmation. They're bound on the blessed screen itself rather than in any screen's keymap, so they fire even where the legend offers nothing of the kind - which is also why no screen may use `Q` for anything else.
+
+
+## The Title Screen
+
+Where every run starts. It carries the app version (the header gave up that space to the player's name), a short pitch, and a line that knows whether you've played before - a first launch reads "Welcome to the wasteland. This is your first run.", a return reads "Welcome back. You last played 3 hours ago.", counted from the stamp the settings row keeps.
+```
+_________________________________________________________________________
+| apocylta |                                        [idle]      7:38pm  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| APOCYLTA                                                              |
+|                                                                       |
+|     post-apocalypse rpg, for your terminal.  v0.0.1                   |
+|                                                                       |
+| The land is harsh, but you can make your way well enough. Travel       |
+| around, and gather, forage, mine, and fight for the materials you      |
+| need to survive.                                                      |
+|                                                                       |
+| Press N to start a new game                                           |
+| Press C to continue an existing one.                                  |
+|                                                                       |
+| Press E to exit.                                                      |
+|                                                                       |
+| Welcome back. You last played 3 hours ago.                            |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 |                                                   |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| What would you like to do? |__________________________________________|
+|                                                                       |
+| [N]ew Game           | [C]ontinue           | [E]xit                  |
+|_______________________________________________________________________|
+```
+Note the header with no identity segment at all - there's no character yet. `[C]ontinue` opens the same save-slot picker the Menu's `[L]oad` uses (see [Save & Load](#save--load)).
+
+
+## The Menu
+
+`[M]enu` from anywhere, and it doubles as your character sheet: who you are, what you're wearing across all ten visible slots, and every skill with its level and banked xp in two columns. This is where a long name shows in full.
+```
+_________________________________________________________________________
+| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| Name:       Rae                                                       |
+| Race/Class: Human Warrior                                             |
+| Difficulty: Normal                                                    |
+| Level:      4                                                         |
+| Experience: 1240 XP                                                   |
+|                                                                       |
+| Equipment:                                                            |
+|   Weapon : Wooden Dagger        Belt   : Leather Belt                 |
+|   Tool   : empty                Head   : empty                        |
+|   ...                                                                 |
+|                                                                       |
+| Skills:                                                               |
+|   Magic Lv.1 (0xp)        | Defense Lv.5 (312xp)                      |
+|   Fighting Lv.5 (400xp)   | Speed Lv.2 (95xp)                         |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| What would you like to do? |__________________________________________|
+|                                                                       |
+| [B]ackpack       | [A]chievements   | [S]ave                          |
+| [L]oad           | [T] Settings     | [E]xit                          |
+|_______________________________________________________________________|
+```
+Seventeen skills over two columns is more than the pane holds, so the list scrolls. `[V] Admin` appears as a seventh entry only when the editors are unlocked (see [Admin](#admin)). `[E]xit` quits the same way `q` does. `[ESC]` returns you to whichever screen opened the Menu - the location screen, an action, a fight, or the backpack - rather than always to the location.
+
 
 ## Character Creation
 
@@ -69,7 +136,7 @@ The header is already drawing during creation, which is why it shows a location 
 have a character - it just leaves the name and level segment out until there's one to show.
 
 The last step is different: skills are a multi-select. `[T]oggle` marks one, and the prompt counts you in
-(`Pick 2 skills to be Proficient in (0/2 selected)`) - `[C]onfirm` refuses until the count is exact,
+(`Pick 2 skills to be Proficient in (0/2 selected):`) - `[C]onfirm` refuses until the count is exact,
 because how many you get is set by the difficulty you picked two screens earlier. Confirming there is what
 actually creates the character and drops you into the world.
 
@@ -82,13 +149,14 @@ _________________________________________________________________________
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Travel from town square                                              |
 |                                                                       |
-|                                                                       |
-|                                                                       |
-|                                                                       |
-|                                                                       |
-|                                                                       |
-|                                                                       |
-|                                                                       |
+|   weapons            armor              out of town                   |
+|     town square        town square        wilderness                  |
+|                                           mountain path               |
+|   potions            general store        river crossing              |
+|     town square        town square                                    |
+|                                         park                          |
+|   black market         housing district   town square                 |
+|     town square          town square                                  |
 |_______________________________________________________________________|
 | hp: 100 | mp: 100 | [ SAFE ZONE ]                                    |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -99,6 +167,8 @@ _________________________________________________________________________
 | [7] housing district | [8] park             | [B]ack                   |
 |_______________________________________________________________________|
 ```
+The pane isn't just a heading: each exit gets a column showing where *it* leads next, so you can see one hop past the choice you're making - useful for deciding whether "out of town" is the direction you actually want. Columns stack into groups when the terminal is too narrow to sit them side by side.
+
 Shops always come first, followed by every other exit (paths, and airboat routes where available) in whatever order the location defines them. Shop hops are always instant; anything past a shop counter can take real time to get there - see below.
 
 
@@ -159,7 +229,7 @@ _________________________________________________________________________
 | You are doing things. |_______________________________________________|
 |                                                                       |
 | [S]top action | [B]ackpack                                            |
-| [M]enu                                                                |
+| [J] Toolbelt  | [M]enu                                                |
 |_______________________________________________________________________|
 ```
 While an action is running, the header center shows its name (`Gather scraps` above) instead of `[idle]`, and the status bar grows a live skill/xp readout: the acting skill's level, a color-banded progress bar toward its next level (white → blue → yellow → green → gold as it fills, bold from yellow on), and how much xp and how many levels you've picked up this session.
@@ -264,7 +334,7 @@ before any of this - you never see this screen while one is in your pack.
 
 ## Mining
 
-Locations with an ore vein (like the cave mines) offer a dedicated `[Mine]` action that opens an ore selector instead of the usual timed-action flow. Each mine has a tier, and only lists the ores that tier reaches - a basic mine like the cave mines offers the shallow metals, and the deeper caves add to them. Picking one and choosing it starts the same kind of timed action shown above, gated by both your mining skill level and the tier of pickaxe you have equipped:
+Locations with an ore vein (like the cave mines) carry `[N] Mine` among their hub features - unlike fishing, which is a numbered action - and it opens an ore selector rather than starting anything directly. Each mine has one of five tiers and only lists the ores that tier reaches, cumulatively: `basic` (tin, copper, iron), `mid_tier` (cobalt, mithril), `advanced` (syllic), `high_tier` (adamantite), `legendary` (runic), with gold turning up in all of them. Picking one starts the same kind of timed action shown above, gated by both your mining skill level and the tier of pickaxe you have equipped:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [cave mines] | gp: 1000       [idle]     7:38pm  |
@@ -350,10 +420,10 @@ _________________________________________________________________________
 |                                                                       |
 | [B]ack                | [<>] Switch tab                               |
 | [D]rop                | [E]quip                                       |
-| [C]ast magic on       | [U]se                                         |
+| [C] Spellbook         | [U]se                                         |
 |_______________________________________________________________________|
 ```
-[U]se consumes whatever's selected: food restores health, potions heal or restore mana, aid patches you up. Cooking pays off here - a raw rabbit is worth 5 health, a cooked one 15, and a good stew far more. Drinking a potion leaves you the empty bottle back (worth keeping - alchemy needs them), and both eating and drinking train a skill: survival for food, alchemy for potions.
+`[M]` reaches the Menu from here as well, though the legend doesn't advertise it. [U]se consumes whatever's selected: food restores health, potions heal or restore mana, aid patches you up. Cooking pays off here - a raw rabbit is worth 5 health, a cooked one 15, and a good stew far more. Drinking a potion leaves you the empty bottle back (worth keeping - alchemy needs them), and both eating and drinking train a skill: survival for food, alchemy for potions.
 
 Nothing is ever wasted on a no-op. Using something you can't benefit from tells you why and leaves the item alone - "You're already at full health.", "Your mana is already full.", "You're not poisoned." for an antidote when nothing ails you, and "Iron Sword can't be used." for anything that isn't a consumable at all. Ingredients like flour and yeast count as "not a consumable" despite being food; they're for cooking with, not eating.
 
@@ -362,7 +432,7 @@ A Revive is the one thing you never use on purpose - try it from the backpack an
 | The raider hits you for 34.                                           |
 | The Revive burns out and pulls you back from the brink. 100 HP.       |
 ```
-That check happens before anything treats the blow as a death, so on Survival and Nightmare a Revive is the difference between a close call and the end of the run. Carry more than one and the weakest goes first. They're apothecary stock, sold alongside potions.
+That check happens before anything treats the blow as a death, so on Survival, Nightmare and Demon Lord a Revive is the difference between a close call and the end of the run. Carry more than one and the weakest goes first. They're apothecary stock, sold alongside potions.
 
 Potions work the same way mid-fight (the [P]otion pick on the combat screen), down to the empty bottle and the alchemy xp - it's the same code either way.
 
@@ -385,7 +455,7 @@ _________________________________________________________________________
 |_______________________________________________________________________|
 | hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
-| What would you like to buy? |_________________________________________|
+| What would you like to buy? (gp: 5500) |______________________________|
 |                                                                       |
 | [B]ack | [P]urchase                                                   |
 |_______________________________________________________________________|
@@ -476,7 +546,7 @@ Crafting pays xp scaled by the rarity of what you made, and counts toward `craft
 
 ## Spellbook
 
-The Spellbook is reached from the backpack ("Cast magic on"), and splits into two arrow-key tabs: what you already know, and what you don't. Learned spells are listed green, grouped by spell type:
+The Spellbook is reached from the backpack with `[C]`, and splits into two arrow-key tabs: what you already know, and what you don't. Learned spells are listed green, grouped by spell type:
 ```
 ________________________________________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 1000    [idle]     7:38pm                                  |
@@ -552,16 +622,16 @@ _________________________________________________________________________
 |                                                                       |
 | [S]wap Tool            | [C]hange Slingshot                           |
 | [X] Spellbook          | [B]ackpack                                   |
-| [J]ournal              | [ESC] Back to Location                       |
+| [J]ournal              | [ESC] Back                                   |
 |_______________________________________________________________________|
 ```
-With no belt equipped, the water bottle, slingshot ammo, and quiver caps all drop to 0 (unusable until you put one on), while the backpack and potion pouch fall back to a small baseline instead of going away entirely - any belt is a strict upgrade. `[S]wap Tool` opens a picker just like the mining one above, grouped into tabs by tool category (pickaxe, axe, hammer, etc.); `[C]hange Slingshot` opens the same kind of picker without tabs, since there's only one slingshot category.
+`[ESC]` goes back to wherever you came from rather than always to the location screen. Most screens that offer `[B]ack` accept `[ESC]` for it too, even where the legend only prints the letter - Settings, Achievements, the Admin hub and the combat Cast/Potion picker all do. You start out wearing the leather belt; take it off and the water bottle, slingshot ammo and quiver caps all drop to 0 (unusable until you put one back on), while the backpack and potion pouch fall back to a small baseline instead of going away entirely - any belt is a strict upgrade. `[S]wap Tool` opens a picker just like the mining one above, grouped into tabs by tool category (pickaxe, axe, hammer, etc.); `[C]hange Slingshot` opens the same kind of picker without tabs, since there's only one slingshot category.
 
 ## Quests
 
 Quest boards show up as a hub feature at some locations (town square has one). Only quests you're high enough level for, and that aren't locked, show up - pick one and accept it.
 
-Note the second bar under the header: some screens carry a line of atmosphere there, and the line changes as the hours pass rather than being the same text every time. The Mine, the shops and the crafting benches have one too. It's separate from the prompt at the bottom, which tells you what the screen is for - this one is just scene-setting:
+Note the second bar under the header. Eleven screens carry one: this board, the mine and fishing pickers, all three shops, both workbench screens, the backpack, the toolbelt and the spellbook. It's separate from the prompt at the bottom, which tells you what the screen is for - this one is just scene-setting. Most of these rotate their line by the hour, so the same screen reads differently at dusk; the backpack and toolbelt keep one fixed label instead:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
@@ -612,7 +682,7 @@ _________________________________________________________________________
 | [C]laim Rewards                                                       |
 |_______________________________________________________________________|
 ```
-Objective checkboxes update live as you make progress - no need to reopen the Journal. `[C]laim Rewards` grants gold and xp for every fully-checked-off quest in one go and moves it down to "Completed"; it's a no-op ("Nothing ready to claim yet.") if nothing's done yet. Enemy-defeating objectives count kills from your lifetime tally, so kills you made before accepting the quest still count - the same way item-acquiring objectives already work.
+`[ESC]` is the way out, back to the Toolbelt you came in through - the legend lists only the claim key. Objective checkboxes update live as you make progress - no need to reopen the Journal. `[C]laim Rewards` grants gold and xp for every fully-checked-off quest in one go and moves it down to "Completed"; it's a no-op ("Nothing ready to claim yet.") if nothing's done yet. Enemy-defeating objectives count kills from your lifetime tally, so kills you made before accepting the quest still count. Item-acquiring objectives are *not* the same: they read what's in your bags right now, so one can tick and then un-tick if you sell or smelt the materials. Selling, crafting and casting objectives only count from the moment you accept.
 
 Bigger quests group related work together. A line ending in a colon is a heading rather than a task: its own checkbox ticks when everything indented beneath it is done, and the count beside it is how many of those you've finished. Anything marked `(optional)` is exactly that - it tracks and ticks like the rest, but the quest will hand over its reward whether or not you bother with it.
 
@@ -647,7 +717,7 @@ _________________________________________________________________________
 
 Each locked entry shows its description and how far along you are. Some rewards grant skill xp on top of gold and player xp, which quest rewards never do.
 
-When one unlocks, a gold banner appears in the status bar for a few seconds, wherever you happen to be:
+When one unlocks, a gold banner takes the tail of the status bar for a few seconds, wherever you happen to be. It occupies the same slot as the action xp readout rather than sitting beside it, so an unlock during a gather hides the progress bar until it clears:
 
 ```
 | hp: 84 | mp: 46 | [ DANGER ] | Achievement unlocked: Boss Down!       |
@@ -726,9 +796,10 @@ _________________________________________________________________________
 |                                                                       |
 | [B]ack              | [+-] Adjust                                     |
 | [123] Step 1/10/100 | [F]ill hp/mp                                    |
+| [G]odmode           |                                                 |
 |_______________________________________________________________________|
 ```
-The Inventory editor lists **every** item in the game with how many you hold (0 if none), tabbed by type - `[G]ive` and `[T]ake` move by the current step, and `[I]nfinite` marks an item to never run down, shown as `∞`. Equipment tabs by slot and marks what's worn with `[EQUIPPED]`; `[U]nequip` is the only place in the game that takes something off without swapping it for something else. Toolbelt edits the three stored counts and lets you put on any belt, since every cap comes from the belt rather than being stored.
+The Skills editor adds `[P] Proficient`, which flips a skill's proficiency on or off. The Achievements editor adds `[E] Evaluate now`, forcing the check that normally runs on its own each second. The Toolbelt editor adds `[F] Fill`. The Inventory editor lists **every** item in the game with how many you hold (0 if none), tabbed by type - `[G]ive` and `[T]ake` move by the current step, and `[I]nfinite` marks an item to never run down, shown as `∞`. Equipment tabs by slot and marks what's worn with `[EQUIPPED]`; `[U]nequip` is the only place in the game that takes something off without swapping it for something else. Toolbelt edits the three stored counts and lets you put on any belt, since every cap comes from the belt rather than being stored.
 
 Quests and Achievements are checkbox screens. A quest objective can be forced complete even when nothing in the game could satisfy it - most objectives are read live from your inventory, location, skills or kills rather than from a counter, so forcing is the only way to tick them. Achievements toggle the same way, but note they're re-checked every second: re-locking one you've genuinely earned will simply unlock again (and pay out again) unless you switch `auto-evaluate` off first.
 
@@ -753,7 +824,7 @@ It lasts for the session. For a character that's born invincible, set `godmode: 
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [town square] | gp: 1000       [idle]    7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
-|   Colorize        [ON ]   colour on/off                               |
+|   Colorize        [ON ]   colour on/off; bold and highlighting stay   |
 |   Action style    [B] Boxed Key     e.g. [T]ravel                     |
 |                                                                       |
 |   Playing since   Aug 7, 2026                                         |

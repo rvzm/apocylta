@@ -13,9 +13,15 @@ bottom — `[T]ravel | [1] Gather scraps | [M]enu` — so the letter in brackets
 doesn't matter. `q` quits from anywhere, immediately and without asking, so be a little careful with it.
 
 The screen is always laid out the same way. The top bar carries your name and level, where you are, your
-gold, whatever you're currently doing, and the time of day. Under that is the main pane, which is the
-screen you're actually on. Below that, a status bar with your health, mana, and whether you're somewhere
-safe. At the bottom, the prompt and the command legend.
+gold, whatever you're currently doing, and the time of day. Some screens — the shops, the workbenches, the
+mine and fishing pickers, your backpack — add a second bar beneath it with a line of colour about where you're
+standing; it changes with the hour and tells you nothing you need, so read it or don't. Under that is the main
+pane, which is the screen you're actually on. Below that, a status bar with your health, mana, and whether
+you're somewhere safe — and, while you're working, a progress bar for the skill you're using. Achievement
+unlocks arrive there too, as a gold banner. At the bottom, the prompt and the command legend.
+
+Health, mana and that progress bar are all colour-banded, so you can read how you're doing without reading
+the numbers.
 
 The clock runs while you play — one in-game minute per real second — and it matters. Shops keep hours.
 Locations read differently at dusk than at noon. Weather turns over on its own every few hours.
@@ -34,14 +40,22 @@ Five choices, and all of them stick.
 | --- | --- | --- | --- | --- |
 | seconds between gathering attempts | 1 | 10 | 30 | 60 |
 | skills you may pick as proficient | 5 | 2 | 0 | 0 |
-| player xp | ×1.5 | ×1 | ×0.25 | ×0.1 |
+| all xp earned | ×1.5 | ×1 | ×0.25 | ×0.1 |
+| bonus for a proficient skill | ×1.5 | ×1.5 | **×0** | **×0** |
 | enemy hp and damage | ×0.5 | ×1 | ×2 | ×5 |
 | how often you're ambushed | rarely | steady | constantly | constantly |
 | chance a fight is a whole pack | low | even | high | very high |
 | death | recoverable | recoverable | **deletes your save** | **deletes your save** |
 
-Easy, Hard and Survival fill the gaps between. Survival, Nightmare and Demon Lord are the ones that play for keeps —
-dying on either deletes the run.
+Easy, Hard and Survival fill the gaps between. Survival, Nightmare and Demon Lord are the three that play for
+keeps — dying on any of them deletes the run.
+
+Two rows there deserve spelling out. **All xp earned** is not just your player level: it multiplies every
+skill xp payment in the game, so on Demon Lord a swing of the pickaxe teaches you a tenth of what it would on
+Normal. (Quest and achievement rewards are the exception — those are paid in full.) And the **proficiency
+bonus** goes the wrong way at the top end: it's ×1.5 up to Hard, halves to ×0.5 on Survival, and reaches
+**zero** on Nightmare and Demon Lord, where a proficient skill earns nothing at all. Your race and class still
+hand you four of them, so on those difficulties four skills start at level 5 and stay there.
 
 **Your race** sets two proficient skills and what you start with: Human (mining, barter — 500 gold and a
 hammer), Dwarf (smithing, mining — 300 gold and an iron pickaxe), Elf (fishing, foraging — 400 gold and a
@@ -55,7 +69,11 @@ foraging), Attacker (fighting, trapping), Tank (defense, smithing).
 or a weapon and armor set of varying quality.
 
 Then you pick however many extra proficient skills your difficulty allows. A proficient skill starts at
-level 5 instead of 1 and earns xp 50% faster forever, so these choices compound over a whole run.
+level 5 instead of 1, and up to Hard it earns xp 50% faster for the whole run — so on those difficulties the
+choice compounds. See the proficiency row above before spending picks on Survival or harder.
+
+Two of the seventeen skills — **strength** and **luck** — can be picked as proficiencies but have no way to
+earn xp yet, so a pick spent there buys you the starting level 5 and nothing after it.
 
 ---
 
@@ -65,11 +83,16 @@ level 5 instead of 1 and earns xp 50% faster forever, so these choices compound 
 you in a town square — and some aren't, which the status bar tells you at a glance.
 
 Most journeys take real time. Press `[T]ravel`, pick a numbered destination, and a longer trip hands you a
-countdown screen with a small animation appropriate to the route: someone walking a road, a glider over
-open sky, a cart rattling through a tunnel. Arriving pays Speed xp in proportion to the trip. Short hops —
-stepping into a shop and back out — stay instant. Travel can't be interrupted by an ambush; that's
-deliberate. You can leave the traveling screen and do something else while the clock runs, and you'll
-arrive regardless.
+countdown screen with a small animation appropriate to the route: someone walking a road, a glider over open
+sky, a cart rattling through a tunnel, a shimmer for a teleport. Arriving pays Speed xp in proportion to the
+trip — a thirty-second haul is worth thirty. Short hops stay instant, and there are plenty of them: every
+shop door and most footpaths between neighbours cost nothing.
+
+The travel screen also previews where each exit leads *next*, a column per destination, so you can see one
+hop past the one you're choosing.
+
+Travel can't be interrupted by an ambush; that's deliberate. It does keep running if you open the `[M]enu`,
+but **`[B]ack` abandons the trip** — you return to where you set out from and the elapsed time is gone.
 
 Shops keep **opening hours**. A closed shop tells you when to come back rather than letting you in.
 
@@ -85,11 +108,18 @@ screen shows the last few attempts as they happen, with a countdown to the next 
 
 **How often** is your difficulty's gather clock: one second on Casual, ten on Normal, sixty on Demon Lord.
 
-**Whether it lands** depends on what you're doing and how good you are at it. Every action has its own
-base success rate — scavenging is more forgiving than mining — and your skill level moves it from there,
-measured against whatever you're going after. Chasing something well above your level is a long shot;
-coming back to it forty levels later is nearly a formality. It's clamped at both ends, so nothing is ever
-hopeless and nothing is ever free.
+**Whether it lands** depends on what you're doing and how good you are at it. Every action has its own base
+success rate — 60% for scavenging, looking for food and foraging, 55% for trapping and chopping, 50% for
+mining and fishing — and every level of the gap between your skill and what you're going after moves it by
+two points, up or down. It's clamped to **15% at worst and 95% at best**, so nothing is ever hopeless and
+nothing is ever free.
+
+Plain gathering measures against level 1, so it drifts up to the 95% ceiling by about skill 18 and stays
+there. Mining and fishing measure against the ore or the species instead, which is why a mithril seam misses
+at a level where tin never does.
+
+Mining pays two extras on top, rolled separately on any attempt that lands: a **25%** chance of fuel and an
+**8%** chance of a gemstone, both drawn from what the local seam's tier allows.
 
 **A miss costs you the attempt and pays no xp.** Only successes teach you anything.
 
@@ -103,11 +133,21 @@ faster on harder difficulties, and it interrupts whatever you were doing.
 **Scavenging, foraging, chopping, trapping** are the straightforward ones: pick the action from a
 location's numbered list and it runs until you stop it.
 
-**Mining** has a picker. A mine has a tier, and only lists the ores that tier reaches — a basic seam gives
-up tin, copper and iron; the deeper caves add cobalt, mithril, and eventually runite. Taking one needs
-your mining level *and* a pickaxe whose own tier reaches it: a copper pickaxe will not break mithril no
-matter how skilled you are. Coal and gemstones aren't on the list at all — they turn up on their own while
-you work, and which gems are possible depends on how deep the mine is.
+**Mining** has a picker, reached with `[N]` where a location has a seam. A mine has one of five tiers and
+only lists the ores that tier reaches, each tier keeping everything below it:
+
+| the mine | adds | needs mining |
+| --- | --- | --- |
+| basic | tin, copper, iron | 1, 1, 5 |
+| mid tier | cobalt, mithril | 10, 25 |
+| advanced | syllic | 40 |
+| high tier | adamantite | 45 |
+| legendary | runic | 60 |
+
+Gold sits outside that ladder and turns up in every mine, at mining 8. Taking any ore needs your mining
+level *and* a pickaxe whose own tier reaches it: a copper pickaxe will not break mithril no matter how
+skilled you are. Coal and gemstones aren't on the list at all — they turn up on their own while you work,
+and which gems are possible depends on how deep the mine is.
 
 **Fishing** has a picker too, and three gates instead of two. What's swimming depends on the water:
 freshwater locations hold pike, trout and carp; saltwater holds tuna, lobster and things further out. A
@@ -116,21 +156,26 @@ anything not caught on the rod alone — the right gear in your backpack. Each s
 net, or a hook, and **bait is spent per attempt** while nets and hooks are yours for good. Run out of bait
 mid-session and the trip simply ends.
 
-The far end of the fishing ladder isn't food. The ancients — leviathans, krakens, the things that live
-where the water stops being water — give up scales, teeth and bones instead of supper, and want a fishing
-level in the high double digits to hook at all.
+The far end of the ladder is where the water stops being water. Krakens and barboros are still food, and
+enormous. **Leviathans, poseidons and tarvuses are not** — they give up scales, teeth and bones instead of
+supper, and can't be cooked at all. The climb runs kraken at fishing 30, leviathan at 40, poseidon at 50 and
+tarvus at 60; the three kings behind them want **75**.
 
 ---
 
 ## 6. Skills and levelling
 
-17 skills, each levelling on its own as you use it: magic, defense, fighting, strength, speed, survival,
-woodcutting, fishing, mining, smithing, crafting, cooking, foraging, trapping, alchemy, barter and luck.
+17 skills. Fifteen of them level on their own as you use them: magic, defense, fighting, speed, survival,
+woodcutting, fishing, mining, smithing, crafting, cooking, foraging, trapping, alchemy and barter. (Strength
+and luck are the other two — see §2.)
 
-Skill xp is *spent* on levels rather than accumulated toward a rank — when you've banked enough, the next
-level is bought automatically. The cost curve climbs steeply, so early levels come quickly and later ones
-are a project. Proficient skills (from your race, class, and creation picks) earn 50% more xp per action,
-permanently. **Skills cap at 500.**
+Some of those you'll never train on purpose. **Defense levels by being hit**, speed by travelling and by
+fleeing, alchemy and survival by drinking what you brewed, barter by trading at either counter.
+
+Skill xp **accumulates** — it's a running total that never goes down, and each level names the total you need
+to have reached it. So your bar fills toward the next threshold rather than emptying when you arrive. The
+curve climbs steeply, so early levels come quickly and later ones are a project. Proficient skills earn a
+multiplier on every payment, which your difficulty sets (§2). **Skills cap at 500.**
 
 ### Your player level
 
@@ -144,10 +189,10 @@ average of everything you're good at. It will always trail the skills feeding it
 | what you have | roughly what you are |
 | --- | --- |
 | every skill around 25 | player 36 |
-| every skill around 75 | player 100 |
+| every skill around 75 | player 99 |
 | every skill around 100 | player 130 |
-| five skills at 100, the rest untouched | player 80 |
-| five skills at 120, the rest untouched | player 95 |
+| five skills at 100, the rest untouched | player 81 |
+| five skills at 120, the rest untouched | player 96 |
 | one skill at 100, the rest untouched | player 43 |
 
 So there are two honest routes to a high level: broad competence across the board, or four or five
@@ -165,20 +210,25 @@ your level, so a quest is worth about the same slice of a level at 100 as it was
 Combat is turn-based and deliberate: one keypress resolves one full exchange — your action, then theirs.
 Nothing happens while you're thinking.
 
-You can attack, defend, cast a spell, drink a potion, or run. Fleeing isn't guaranteed. An encounter can
-be a single enemy or a **pack** — groups queue up and you fight them one at a time, with a bonus for
-clearing the whole thing. Harder difficulties throw packs far more often.
+You can `[A]ttack`, cast a spell, drink a potion, or `[F]lee`. There's no defend command — defending isn't
+something you choose, it's what your armor and your defense level do for you on every hit you take. Fleeing
+isn't guaranteed: it starts at 40% and gains a point per level of speed, up to 90%.
 
-Your damage comes from your weapon plus your fighting level. Armor doesn't subtract from incoming hits —
-it mitigates a *percentage*, with diminishing returns and a hard cap, so stacking defense always helps but
-never makes you untouchable. Crits, dodges and blocks all get a small boost from the relevant skill.
+An encounter can be a single enemy or a **pack** — groups queue up and you fight them one at a time, with a
+bonus for clearing the whole thing. Harder difficulties throw packs far more often.
+
+Your damage comes from your weapon plus your fighting level. Armor doesn't subtract from incoming hits — it
+mitigates a *percentage*, with diminishing returns and a cap of **80%**, so stacking defense always helps but
+never makes you untouchable. The three lucky breaks each ride a different skill and each have a ceiling:
+crits on **luck** (up to 50%), dodges on **speed** (50%), blocks on **defense** (60%). Since luck can't
+currently be trained, crits stay near their base rate for the whole run.
 
 **Bosses** are a separate action at locations that have one, and they're gated behind fighting level 20.
 
-**Death**, on most difficulties, strips you of every item and every coin you were carrying and puts you
-back at the town square with your equipment, skills and levels intact, plus the basics to start again. On
-Survival and Nightmare it's the end: the save slot and the autosave are both deleted. If you're carrying a
-revive when you drop, it's spent automatically before any of that happens.
+**Death**, on most difficulties, strips you of every item and every coin you were carrying and puts you back
+at the town square with your equipment, skills and levels intact, plus the basics to start again. On
+Survival, Nightmare and Demon Lord it's the end: the save slot and the autosave are both deleted. If you're
+carrying a revive when you drop, it's spent automatically before any of that happens.
 
 ---
 
@@ -192,16 +242,31 @@ magic level printed on it. The Spellbook shows everything, including spells you 
 reason spelled out and your reagents counted as owned/required, so you know what you're working toward
 rather than guessing.
 
-Casting costs mana, pays magic xp, and works in or out of a fight; a healing spell is as useful sitting
-still as it is mid-encounter, while an attack spell needs something to point at.
+Casting costs mana and pays magic xp. Healing and teleport spells work anywhere; attack, debuff and poison
+spells need something to point at, and **buffs only hold inside a fight** — cast one standing in a town
+square and it fades with nothing to attach to, mana and all.
 
 ---
 
 ## 9. Carrying it home
 
-Your **belt** is the piece of equipment everything else depends on. It sets how many backpack slots you
-have, how many potions you can keep to hand, and how much ammo you can carry — and water, slingshot ammo
-and arrows aren't usable at all without one equipped.
+Your **belt** is the piece of equipment everything else depends on. You start wearing the leather one, and
+it sets how many backpack slots you have, how many potions you can keep to hand, and how much ammo you can
+carry. Water, slingshot ammo and arrows are the strict part: they live *on the belt*, so without one equipped
+you can't use them at all, whatever the number says.
+
+| belt | backpack slots | potions | sling ammo |
+| --- | --- | --- | --- |
+| none | 100 | 5 | — |
+| leather | 100 | 5 | 10 |
+| chainmail | 150 | 10 | 15 |
+| adventurer | 175 | 10 | 15 |
+| plate | 200 | 15 | 20 |
+| mythic | 300 | 20 | 30 |
+| Apocylta's Eye | 500 | 30 | 50 |
+
+So general storage barely moves until the plate belt; what the early upgrades really buy is the potion pouch
+and the ammo. Arrows are uncapped the moment any belt is on.
 
 The backpack is tabbed by item type. Tools don't live there; they go in the tool slot, one at a time,
 which is why a pickaxe and a fishing rod compete for the same space. Anything consumable is used from the
@@ -217,9 +282,10 @@ alchemy table for potions, a cooking station or campfire for food.
 The craft screen tabs by what a recipe produces and lists each recipe with its ingredients, so you can see
 at a glance what you're short of. Crafting pays xp scaled by the rarity of what you made.
 
-Fish are the deepest branch: every species can be cooked, grilled, baked, smoked, pickled or fried, and
-the preparation matters — raw is barely worth eating, and a smoked or baked rare catch rivals the best
-stew in the game.
+Fish are the deepest branch: every species you can eat can be cooked, grilled, baked, smoked, pickled or
+fried, and the preparation matters — raw is barely worth eating, and a smoked or baked rare catch rivals the
+best stew in the game. The ancients from §5 are the exception; their scales and bones are crafting materials,
+and no fire will make a meal of them.
 
 Buy a **house** and you can start buying stations for it, rather than borrowing whatever the safehouse
 happens to have.
@@ -235,18 +301,29 @@ Your **barter** skill gates what a shop will sell you at all: the better stock s
 until your barter level is high enough. Selling pays barter xp scaled by what you sold, so the skill
 grows through use like any other.
 
+What a shop will *sell* you is gated by your barter level against the item's rarity: common needs 1,
+uncommon 5, rare 15, epic 25, legendary 35, mythic 65 and godlike 100. Until you've traded enough, the good
+stock is visible and refused.
+
 The sell screen lets you tick several stacks and offload them in one go.
 
 ---
 
 ## 12. Quests
 
-Take work from a **Quest Board**. Quests are gated by your level, and some are locked until something else
-opens them. Once accepted, a quest lives in your **Journal**, reached from the Toolbelt.
+Take work from a **Quest Board**. Quests are gated by your level — walk past the board again as you climb
+and there'll be more on it. Once accepted, a quest lives in your **Journal**, reached from the Toolbelt.
 
-Objectives track themselves live — acquire this, sell that, craft a thing, reach a place, learn a skill or
-a spell, defeat something specific or enough of a type, buy a house or fit it out with stations. Most of
-them count what you've *ever* done, so kills and materials from before you took the quest still count.
+Objectives track themselves live — acquire this, sell that, craft a thing, reach a place, learn a skill or a
+spell, defeat something specific or enough of a type, buy a house or fit it out with stations. **How far back
+they look varies, and it matters:**
+
+- **Kills count for ever.** Anything you've already killed counts the moment you accept the quest.
+- **Items are counted in your bags right now.** An "acquire 20 iron" objective ticks when you're holding
+  twenty and *un*-ticks if you smelt or sell them, so hand the quest in before you spend the materials.
+- **Selling, crafting and casting only count from acceptance onward.** Work done before you took the quest is
+  invisible to it.
+- **Reaching a place** means standing there, not having been there.
 
 Two things worth knowing about how objectives read:
 
@@ -273,13 +350,15 @@ you can see what you're close to.
 
 ## 14. Saving
 
-Manual saves go to numbered slots in a local SQLite file, from the Menu. On top of that, an **autosave**
-runs on a timer and shows up as an extra entry in the load picker alongside your numbered slots.
+Manual saves go to one of **three** numbered slots in a local SQLite file, from the Menu. On top of that, an
+**autosave** runs every ten minutes into a separate JSON file, and shows up as an extra entry in the load
+picker alongside the numbered slots rather than occupying one of them.
 
 Loading always resumes idle and out of combat — an interrupted fight or a half-finished gather isn't
 preserved, by design.
 
-On Survival and Nightmare, death deletes both the slot and the autosave. There is no getting it back.
+On Survival, Nightmare and Demon Lord, death deletes both the slot and the autosave. There is no getting it
+back.
 
 ---
 
@@ -291,10 +370,17 @@ On Survival and Nightmare, death deletes both the slot and the autosave. There i
 - **Action key style** changes how every command legend is drawn — `[T]ravel`, `[T] Travel`, **T**ravel,
   or `T: [Travel]`. Purely cosmetic, and it applies everywhere at once.
 
+The screen also keeps a few dates for you — when you first played, when you last did, and when the autosave
+last ran. `[T]` toggles whatever the cursor is on, `[B]` or Esc goes back.
+
 While the game runs it also serves a small read-only web page at `localhost:4000` — a live playercard with
-tabs for your stats, toolbelt, backpack, quests and achievements, refreshing every few seconds. It's meant
-for a second monitor. If exporting is enabled, an **Export** button saves the whole thing as a single
-self-contained HTML file with your data baked in, which keeps working offline.
+tabs for your stats, toolbelt, backpack, quests and achievements, refreshing every five seconds. It's meant
+for a second monitor, and nothing you do there touches the run.
+
+If exporting is enabled, two buttons appear. **Export HTML** saves the whole page as one self-contained file
+with your data baked in, which keeps working offline and on any other machine. **Export JSON** saves just the
+data — a few kilobytes, small enough to paste into a message — and `localhost:4000/apocylta_player.html` is
+the reader for it: paste the JSON in (or pick the file), press Import, and it draws the same card back.
 
 ---
 
