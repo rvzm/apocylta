@@ -15,6 +15,7 @@ import { STARTER_PACKS, ALL_ITEMS, ENHANCEMENT_SLOTS } from "../item_backbone.js
 import { logger } from "../logger.js";
 import { backpackSlotCap, backpackSlotsUsed, potionSlotCap, potionSlotsUsed } from "../data/toolbelt.js";
 import { minutesIntoDay, isOpenAt } from "./clock.js";
+import { emptyPurse, purseTotal, addToPurse, spendFrom, purseFromBase } from "../currency_backbone.js";
 
 
 function createInitialSkills() {
@@ -74,7 +75,7 @@ export function createInitialState() {
     hpMax: 100,
     mp: 100,
     mpMax: 100,
-    gold: 0,
+    cur: emptyPurse(), // the purse: one coin count per metal - see currency_backbone.js
     level: 1,
     experience: 0,
     currentLocationId: player_config.startingLocation,
@@ -198,6 +199,52 @@ export function removeItem(state, itemId, qty, { force = false } = {}) {
   }
 }
 
+// --- The purse --------------------------------------------------------------
+//
+// Item ids that mean MONEY rather than a thing. There is no such item, and
+// there never was: STARTER_PACKS.deep_pockets grants `{ gold: 5000 }` and the
+// races grant `{ gold: 500 }`, both of which mean the purse. `"money"` is the
+// unambiguous spelling to use in new data - now that gold is one metal of four,
+// `{ gold: N }` reads like N gold coins when it has always meant N base units.
+// Both are accepted so the catalogs can be migrated at their own pace, and both
+// mean BASE UNITS.
+export const MONEY_IDS = new Set(["money", "gold"]);
+//
+// state.cur holds one coin count per metal and `amount` is always in base units
+// (copper coins) - currency_backbone.js does the denomination arithmetic. These
+// three are the only places the purse is written, for the same reason addItem/
+// removeItem are the only places the inventory is: the godmode carve-out has to
+// live somewhere both halves of a purchase can see it. Refusing to charge while
+// still refusing the sale would be worse than either.
+
+// What the purse is worth, which is what every price comparison is against.
+export function walletTotal(state) {
+  return purseTotal(state.cur);
+}
+
+// Earnings. `curType` is the metal it's paid in - the purse holds what it was
+// given, so being paid in syllic leaves syllic rather than a tidy breakdown.
+export function addCurrency(state, amount, curType = "copper") {
+  if (amount <= 0) return;
+  state.cur = addToPurse(state.cur, Math.round(amount), curType);
+}
+
+// The affordability half. Free under godmode, which has to agree with
+// spendCurrency below or the purchase is refused before the free spend runs.
+export function canAffordCurrency(state, amount) {
+  return state.godmode === true || walletTotal(state) >= amount;
+}
+
+// The paying half. Returns false without touching the purse when it's short, so
+// a caller that skipped the check can't quietly go negative.
+export function spendCurrency(state, amount) {
+  if (state.godmode) return true;
+  const next = spendFrom(state.cur, Math.round(amount));
+  if (!next) return false;
+  state.cur = next;
+  return true;
+}
+
 // Shared by backpack's generic Equip and the dedicated tool/slingshot swap
 // screens: swaps itemId into the given equipment slot, returning whatever
 // was previously equipped there (if any) to the inventory. Returns the
@@ -314,15 +361,16 @@ export function finalizeCharacter(state, draft) {
   state.class = draft.classId;
   state.difficulty = draft.difficultyId;
 
-  state.gold = 0;
+  let money = 0; // base units, settled into coins once the loop is done
   state.inventory = {};
   for (const [id, qty] of [
     ...Object.entries(race.starters ?? {}),
     ...Object.entries(pack.items ?? {}),
     ...starterItemIds.map((id) => [id, 1]),
   ]) {
-    if (id === "gold") {
-      state.gold += qty;
+    if (MONEY_IDS.has(id)) {
+      // A money grant, not an item - see MONEY_IDS.
+      money += qty;
       continue;
     }
     const item = ALL_ITEMS[id];
@@ -332,6 +380,10 @@ export function finalizeCharacter(state, draft) {
       addItem(state, id, qty);
     }
   }
+  // Settled once, canonically: a starting purse is money conjured from a
+  // number, not money earned, so it arrives as sensible coins rather than as
+  // five and a half thousand coppers.
+  state.cur = purseFromBase(money);
 
   const proficientIds = new Set([...(race.skillPro ?? []), ...(cls.skillPro ?? []), ...draft.proficientSkillIds]);
   for (const skillId of proficientIds) {

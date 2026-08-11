@@ -2,6 +2,7 @@ import { ALL_ITEMS } from "../../item_backbone.js";
 import { getBuyPrice, isPurchasable, getBarterXp, canAfford, chargeGold } from "../../data/shops.js";
 import { indoorTimeLine, openLine } from "../../data/flavor.js";
 import { addItem, grantSkillXp, effectiveSkillLevel } from "../../state/gameState.js";
+import { formatBase, formatCurrency } from "../../currency_backbone.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
@@ -34,7 +35,7 @@ export function buildBuyRows(state) {
     itemIds.push(null);
     const sorted = byType[type].sort((a, b) => a[1].name.localeCompare(b[1].name));
     for (const [id, item] of sorted) {
-      lines.push(`  - ${item.name} - ${getBuyPrice(item)}gp`);
+      lines.push(`  - ${item.name} - ${formatBase(getBuyPrice(item), { short: true })}`);
       itemIds.push(id);
     }
   }
@@ -72,13 +73,13 @@ export const shopBuyScreen = {
       const item = ALL_ITEMS[itemId];
       const price = getBuyPrice(item);
       if (!canAfford(state, price)) {
-        state.lastMessage = `You can't afford ${item.name} (${price}gp).`;
+        state.lastMessage = `You can't afford ${item.name} (${formatBase(price, { short: true })}).`;
         return;
       }
       chargeGold(state, price);
       addItem(state, itemId, 1);
       grantSkillXp(state, "barter", getBarterXp(item, 1));
-      state.lastMessage = `Bought ${item.name} for ${price}gp.`;
+      state.lastMessage = `Bought ${item.name} for ${formatBase(price, { short: true })}.`;
     },
   },
 
@@ -99,7 +100,9 @@ export const shopBuyScreen = {
     ui.inventoryList.setItems(lines);
     ui.inventoryList._itemIds = itemIds;
 
-    ui.promptRow.setContent(state.lastMessage || `What would you like to buy? (gp: ${state.gold})`);
+    ui.promptRow.setContent(
+      state.lastMessage || `What would you like to buy? (${formatCurrency(state.cur, { short: true })})`
+    );
     ui.commandList.setContent(
       formatCommandRow(
         [

@@ -1,3 +1,4 @@
+import { formatBase } from "../../currency_backbone.js";
 import { startedQuests, objectiveStatus, claimCompletedQuests, walkObjectives } from "../../data/quests.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
@@ -25,14 +26,14 @@ function buildBody(state) {
     for (const { id, quest } of inProgress) {
       lines.push(`  ${quest.name}`);
       for (const node of walkObjectives(quest)) lines.push(objectiveLine(state, id, node));
-      lines.push(`    Reward: ${quest.reward.gold}gp, ${quest.reward.xp}xp`, "");
+      lines.push(`    Reward: ${formatBase(quest.reward.gold, { short: true })}, ${quest.reward.xp}xp`, "");
     }
   }
 
   if (completed.length) {
     lines.push("Completed:");
     for (const { quest } of completed) {
-      lines.push(`  ${quest.name} - claimed ${quest.reward.gold}gp, ${quest.reward.xp}xp`);
+      lines.push(`  ${quest.name} - claimed ${formatBase(quest.reward.gold, { short: true })}, ${quest.reward.xp}xp`);
     }
   }
 

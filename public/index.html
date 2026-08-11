@@ -804,7 +804,9 @@
     document.getElementById("mp-text").textContent = `${data.mp}/${data.mpMax}`;
     document.getElementById("mp-fill").style.width = pct(data.mp, data.mpMax) + "%";
 
-    document.getElementById("gold").textContent = `${data.gold} gp`;
+    // money.short is the denominated purse; data.gold is the base-unit total an
+    // older payload (or an already-exported JSON snapshot) carries on its own.
+    document.getElementById("gold").textContent = data.money?.short ?? `${data.gold} gp`;
     document.getElementById("clock").textContent = data.clock;
     document.getElementById("location-name").textContent = data.location.name;
     const badge = document.getElementById("location-badge");

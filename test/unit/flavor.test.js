@@ -39,8 +39,8 @@ test("resolveFlavorText(): an array of strings passes straight through", () => {
 
 test("resolveFlavorText(): functions are called with (state, location)", () => {
   const state = createInitialState();
-  const location = { id: "somewhere", flavorText: [(s, l) => `${l.id} at ${s.gold}gp`] };
-  assert.deepEqual(resolveFlavorText(location, state), ["somewhere at 0gp"]);
+  const location = { id: "somewhere", flavorText: [(s, l) => `${l.id} at ${s.level}`] };
+  assert.deepEqual(resolveFlavorText(location, state), ["somewhere at 1"]);
 });
 
 // A conditional line that has nothing to say returns null - that's how

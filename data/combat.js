@@ -20,7 +20,9 @@ import { castSpell } from "./magic.js";
 import { useItem, attemptRevive } from "./items.js";
 import {
   addItem, removeItem, grantSkillXp, grantRewardXp, getCurrentLocation, moveTo, effectiveSkillLevel,
+  addCurrency, walletTotal,
 } from "../state/gameState.js";
+import { purseFromBase, formatBase } from "../currency_backbone.js";
 import { logger } from "../logger.js";
 
 const UNARMED_DAMAGE = 2;
@@ -323,9 +325,10 @@ function killEnemy(state, enemy, rng) {
   grantRewardXp(state, def.xp * (mods.playerXp ?? 1));
   grantSkillXp(state, "fighting", Math.round(def.xp / 2));
 
+  // Base units, paid as loose copper - what you loot off a body is small change.
   const gold = Math.max(1, Math.round(def.xp * GOLD_PER_XP));
-  state.gold += gold;
-  lines.push(`  +${def.xp} xp, +${gold} gold.`);
+  addCurrency(state, gold);
+  lines.push(`  +${def.xp} xp, +${formatBase(gold, { short: true })}.`);
 
   for (const drop of rollDrops(state, def, rng)) {
     lines.push(`  looted ${drop.qty}x ${ALL_ITEMS[drop.itemId]?.name ?? drop.itemId}.`);
@@ -349,7 +352,7 @@ export function resolveDefeat(state) {
   const combat = state.currentCombat;
   const permadeath = PERMADEATH_DIFFICULTIES.has(state.difficulty);
   const itemsLost = Object.values(state.inventory).reduce((sum, qty) => sum + qty, 0);
-  const goldLost = state.gold;
+  const goldLost = walletTotal(state); // base units, for the defeat screen's summary
 
   if (combat) {
     combat.outcome = "defeat";
@@ -364,7 +367,7 @@ export function resolveDefeat(state) {
   if (permadeath) return state.lastDefeat;
 
   state.inventory = {};
-  state.gold = player_config.startingGold ?? 0;
+  state.cur = purseFromBase(player_config.startingGold ?? 0);
   // Re-granted before anything else so the starter belt is back in hand -
   // addItem()'s backpack capacity is belt-gated (data/toolbelt.js).
   for (const itemId of Object.values(STARTER_ITEMS).flat()) addItem(state, itemId, 1);

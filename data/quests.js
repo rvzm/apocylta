@@ -1,7 +1,7 @@
 import { QUESTS } from "../quest_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
 import { ALL_ENEMIES } from "../enemy_backbone.js";
-import { grantRewardXp } from "../state/gameState.js";
+import { grantRewardXp, addCurrency, walletTotal, MONEY_IDS } from "../state/gameState.js";
 import { SPELLS } from "../magic_backbone.js";
 import { isSpellKnown } from "./magic.js";
 
@@ -45,12 +45,13 @@ const UNSUPPORTED = { current: 0, target: 1, complete: false };
 // migration.
 export const OBJECTIVE_PATH_SEP = "::";
 
-// "gold" is currency, not an item: it lives on state.gold and there is no
-// ALL_ITEMS entry for it, so an objective asking for 10000 of it read an
-// inventory slot nothing ever writes. STARTER_PACKS already treats the id this
-// way (test/unit/itemBackboneConsistency.test.js skips it for the same reason).
+// "money" (and its legacy spelling "gold") is currency, not an item: it lives in
+// state.cur and there is no ALL_ITEMS entry for it, so an objective asking for
+// 10000 of it read an inventory slot nothing ever writes. STARTER_PACKS treats
+// the id the same way (test/unit/itemBackboneConsistency.test.js skips it for
+// the same reason). The count is in base units - see MONEY_IDS.
 function ownedCount(state, itemId) {
-  return itemId === "gold" ? state.gold ?? 0 : state.inventory[itemId] || 0;
+  return MONEY_IDS.has(itemId) ? walletTotal(state) : state.inventory[itemId] || 0;
 }
 
 export function resolveObjective(quest, path) {
@@ -242,7 +243,9 @@ export function completeQuest(state, questId) {
   const record = state.quests[questId];
   const quest = QUESTS[questId];
   if (!record || record.status !== "in_progress" || !quest || !isQuestComplete(state, questId)) return false;
-  state.gold += quest.reward.gold ?? 0;
+  // reward.gold is in base units, and reward.curType names the metal it's paid
+  // in when a quest wants to hand over something other than loose copper.
+  addCurrency(state, quest.reward.gold ?? 0, quest.reward.curType);
   grantRewardXp(state, quest.reward.xp ?? 0);
   record.status = "completed";
   record.completedAt = Date.now();

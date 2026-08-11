@@ -5,6 +5,7 @@ import { SKILLS, playerLevelFromXp } from "../skill_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
 import { isGroup } from "../enemy_backbone.js";
 import { game_config } from "../config.js";
+import { CUR_TYPES } from "../currency_backbone.js";
 
 const SKILL_KEYS = Object.keys(SKILLS);
 // Every armor-ish equipment slot, matching item_backbone.js's ARMOR_SLOTS.
@@ -16,7 +17,10 @@ const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "belt", "shield"
 const SKILL_COLUMNS = SKILL_KEYS.flatMap((k) => [`s_${k}_lvl`, `s_${k}_xp`]);
 
 const UPSERT_COLUMNS = [
-  "id", "name", "race", "class", "difficulty", "level", "experience", "gold", "current_location_id",
+  // The legacy `gold` column is deliberately absent: the purse lives in the
+  // cur_* columns now, and db_backbone.js converted it once on migration.
+  "id", "name", "race", "class", "difficulty", "level", "experience", "current_location_id",
+  ...CUR_TYPES.map((metal) => `cur_${metal}`),
   "health", "health_max", "mana", "mana_max",
   "has_house",
   "saved_at",
@@ -107,7 +111,7 @@ export function saveGame(state, slotId) {
       difficulty: s.difficulty,
       level: s.level,
       experience: s.experience,
-      gold: s.gold,
+      ...Object.fromEntries(CUR_TYPES.map((metal) => [`cur_${metal}`, s.cur?.[metal] ?? 0])),
       current_location_id: s.currentLocationId,
       health: s.hp,
       health_max: s.hpMax,
@@ -228,7 +232,9 @@ export function loadGame(slotId) {
   // shallower one (a level-783 character with mid-double-digit skills). Nothing
   // is discarded - the same xp simply buys fewer levels now.
   state.level = playerLevelFromXp(state.experience);
-  state.gold = playerRow.gold;
+  // Read per metal. A row from before the purse existed was converted once by
+  // db_backbone.js's migration, so there is nothing to fall back to here.
+  state.cur = Object.fromEntries(CUR_TYPES.map((metal) => [metal, playerRow[`cur_${metal}`] ?? 0]));
   state.currentLocationId = LOCATIONS[playerRow.current_location_id]
     ? playerRow.current_location_id
     : state.currentLocationId;

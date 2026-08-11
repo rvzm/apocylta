@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import { game_config } from "../config.js";
 import { createInitialState } from "./gameState.js";
 import { playerLevelFromXp } from "../skill_backbone.js";
+import { purseFromBase } from "../currency_backbone.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -24,7 +25,7 @@ export function writeAutosave(state) {
     difficulty: state.difficulty,
     level: state.level,
     experience: state.experience,
-    gold: state.gold,
+    cur: state.cur,
     currentLocationId: state.currentLocationId,
     hp: state.hp,
     hpMax: state.hpMax,
@@ -63,6 +64,10 @@ export function readAutosave() {
     // key, and Object.assign would otherwise write undefined over the five slots
     // that effectiveSkillLevel() iterates every combat round.
     enhancements: snapshot.enhancements ?? state.enhancements,
+    // An autosave written before the purse existed carries a flat `gold` total
+    // instead. It was always in base units, so it decomposes straight down the
+    // coin ladder - the same conversion db_backbone.js does for the DB.
+    cur: snapshot.cur ?? purseFromBase(snapshot.gold ?? 0),
     // Same migration persistence.js does: the level is read back off the banked
     // xp, so an autosave written against the old (much shallower) player curve
     // lands on the level that xp is actually worth now.

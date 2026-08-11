@@ -2,6 +2,7 @@ import { STATIONS } from "../../item_backbone.js";
 import { getBuyPrice, canAfford, chargeGold } from "../../data/shops.js";
 import { indoorTimeLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
+import { formatBase, formatCurrency } from "../../currency_backbone.js";
 import { switchScreen } from "../router.js";
 
 const HOUSE_PRICE = 1000;
@@ -12,14 +13,14 @@ const HOUSE_PRICE = 1000;
 // rarity-based getBuyPrice formula applies unchanged.
 function buildRows(state) {
   if (!state.house) {
-    return { lines: [`  - House Deed - ${HOUSE_PRICE}gp`], rowIds: ["house"] };
+    return { lines: [`  - House Deed - ${formatBase(HOUSE_PRICE, { short: true })}`], rowIds: ["house"] };
   }
 
   const entries = Object.entries(STATIONS)
     .filter(([id]) => !state.ownedStations.has(id))
     .sort((a, b) => a[1].name.localeCompare(b[1].name));
 
-  const lines = entries.map(([, station]) => `  - ${station.name} - ${getBuyPrice(station)}gp`);
+  const lines = entries.map(([, station]) => `  - ${station.name} - ${formatBase(getBuyPrice(station), { short: true })}`);
   const rowIds = entries.map(([id]) => id);
 
   if (!lines.length) {
@@ -53,7 +54,7 @@ export const shopHousingScreen = {
 
       if (id === "house") {
         if (!canAfford(state, HOUSE_PRICE)) {
-          state.lastMessage = `You can't afford a house (${HOUSE_PRICE}gp).`;
+          state.lastMessage = `You can't afford a house (${formatBase(HOUSE_PRICE, { short: true })}).`;
           return;
         }
         chargeGold(state, HOUSE_PRICE);
@@ -65,7 +66,7 @@ export const shopHousingScreen = {
       const station = STATIONS[id];
       const price = getBuyPrice(station);
       if (!canAfford(state, price)) {
-        state.lastMessage = `You can't afford ${station.name} (${price}gp).`;
+        state.lastMessage = `You can't afford ${station.name} (${formatBase(price, { short: true })}).`;
         return;
       }
       chargeGold(state, price);
@@ -101,7 +102,9 @@ export const shopHousingScreen = {
 
     ui.promptRow.setContent(
       state.lastMessage ||
-        (state.house ? `Buy a station for your home (gp: ${state.gold})` : `Buy a house (gp: ${state.gold})`)
+        (state.house
+          ? `Buy a station for your home (${formatCurrency(state.cur, { short: true })})`
+          : `Buy a house (${formatCurrency(state.cur, { short: true })})`)
     );
     ui.commandList.setContent(
       formatCommandRow(

@@ -1,6 +1,7 @@
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { getSellPrice, getBarterXp } from "../../data/shops.js";
-import { removeItem, grantSkillXp } from "../../state/gameState.js";
+import { removeItem, grantSkillXp, addCurrency } from "../../state/gameState.js";
+import { formatBase } from "../../currency_backbone.js";
 import { recordItemSold } from "../../data/quests.js";
 import { openLine, packLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
@@ -32,7 +33,7 @@ export function buildSellRows(state, selectedIds) {
     for (const [id, qty, item] of sorted) {
       const mark = selectedIds.has(id) ? "[x]" : "[ ]";
       const price = item ? getSellPrice(item) : 0;
-      lines.push(`  ${mark} [${qty}] ${item?.name ?? id} - ${price}gp ea`);
+      lines.push(`  ${mark} [${qty}] ${item?.name ?? id} - ${formatBase(price, { short: true })} ea`);
       itemIds.push(id);
     }
   }
@@ -94,10 +95,13 @@ export const shopSellScreen = {
         recordItemSold(state, itemId, qty);
         count++;
       }
-      state.gold += totalGold;
+      // Paid in loose copper - a fence counts out small change, and the purse
+      // holds what it was given rather than tidying itself.
+      addCurrency(state, totalGold);
       grantSkillXp(state, "barter", totalXp);
       selected.clear();
-      state.lastMessage = `Sold ${count} item${count === 1 ? "" : "s"} for ${totalGold}gp (+${totalXp} barter xp).`;
+      const paid = formatBase(totalGold, { short: true });
+      state.lastMessage = `Sold ${count} item${count === 1 ? "" : "s"} for ${paid} (+${totalXp} barter xp).`;
     },
   },
 

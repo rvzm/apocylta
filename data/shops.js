@@ -1,6 +1,8 @@
 // apocylta world data - shops (buy/sell)
 
 import { SHOP_RARITY_DISPLAY } from "../item_backbone.js";
+import { canAffordCurrency, spendCurrency } from "../state/gameState.js";
+import { toBase } from "../currency_backbone.js";
 
 export const SHOPS = {
   shop_weapons: { id: "shop_weapons", mode: "buy", types: ["weapon"] },
@@ -39,8 +41,15 @@ function rarityLevel(item) {
 // TREASURE_ITEMS already has a hand-set `value` - use it when present,
 // otherwise derive from rarity so the many unpriced ITEMS entries get a
 // consistent price with zero per-item data entry.
+//
+// Prices are in BASE UNITS (copper coins). An item may quote its `value` in
+// another denomination with `curType` (and optionally `curSubtype`), which
+// toBase resolves - `{ value: 3, curType: "gold" }` is 60. Both default to
+// copper coins, so an entry carrying a bare `value` means exactly what it
+// always did and needs no edit.
 export function getBuyPrice(item) {
-  return item.value ?? BASE_BUY_PRICE * rarityLevel(item);
+  if (item.value === undefined) return BASE_BUY_PRICE * rarityLevel(item);
+  return toBase(item.value, item.curType, item.curSubtype);
 }
 
 export function getSellPrice(item) {
@@ -56,15 +65,17 @@ export function isPurchasable(item, barterLevel) {
   return rarityLevel(item) <= barterLevel;
 }
 
-// The two halves of paying, kept here with the rest of the pricing logic
-// rather than inline in the screens - both have to know about godmode, because
-// leaving the affordability guard behind would refuse the purchase before the
-// free spend ever ran. Also the only form of these that a unit test can reach
-// without driving a screen keymap through a fake ui.
+// The two halves of paying. Thin wrappers over the purse helpers in
+// state/gameState.js, kept here under the names the shop screens already call
+// so the pricing vocabulary stays in one module - and because both halves have
+// to agree about godmode, since leaving the affordability guard behind would
+// refuse the purchase before the free spend ever ran.
+//
+// `price` is in base units, which is what getBuyPrice returns.
 export function canAfford(state, price) {
-  return state.godmode === true || state.gold >= price;
+  return canAffordCurrency(state, price);
 }
 
 export function chargeGold(state, price) {
-  if (!state.godmode) state.gold -= price;
+  return spendCurrency(state, price);
 }

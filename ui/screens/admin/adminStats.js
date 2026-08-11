@@ -1,6 +1,8 @@
 import { formatCommandRow } from "../../format.js";
 import { switchScreen } from "../../router.js";
 import { MAX_PLAYER_LEVEL } from "../../../skill_backbone.js";
+import { walletTotal } from "../../../state/gameState.js";
+import { purseFromBase, formatCurrency } from "../../../currency_backbone.js";
 import {
   adjust,
   enterList,
@@ -25,7 +27,18 @@ const FIELDS = [
   { id: "hpMax", label: "Max Health", get: (s) => s.hpMax, min: 1 },
   { id: "mp", label: "Mana", get: (s) => s.mp, max: (s) => s.mpMax },
   { id: "mpMax", label: "Max Mana", get: (s) => s.mpMax, min: 1 },
-  { id: "gold", label: "Gold", get: (s) => s.gold },
+  // One base-unit field rather than four coin rows: the +/- step keys work on a
+  // single number, and editing "how much money" is what an admin actually wants.
+  // Writing it re-splits the purse canonically, which is a fair thing for an
+  // editor to do even though earning normally leaves the coins as they came in.
+  {
+    id: "money",
+    label: "Money",
+    get: (s) => walletTotal(s),
+    set: (s, value) => {
+      s.cur = purseFromBase(value);
+    },
+  },
   { id: "level", label: "Level", get: (s) => s.level, min: 1, max: () => MAX_PLAYER_LEVEL },
   { id: "experience", label: "Experience", get: (s) => s.experience },
 ];
@@ -41,10 +54,14 @@ function step(state, ui, direction) {
   const id = selectedId(ui);
   const field = FIELDS.find((f) => f.id === id);
   if (!field) return;
-  state[id] = adjust(field.get(state), direction * stepFor(ui), {
+  const next = adjust(field.get(state), direction * stepFor(ui), {
     min: field.min ?? 0,
     max: field.max ? field.max(state) : Infinity,
   });
+  // Most fields are a plain state key; the purse needs a setter because it is
+  // four slots behind one number.
+  if (field.set) field.set(state, next);
+  else state[id] = next;
   clampToMaxes(state);
 }
 
@@ -56,7 +73,12 @@ function buildRows(state) {
   rows.push(`  godmode: ${state.godmode ? "[ON]" : "[OFF]"}   (session-only)`);
   rows.push("");
   for (const field of FIELDS) {
-    const suffix = field.id === "hp" ? `/ ${state.hpMax}` : field.id === "mp" ? `/ ${state.mpMax}` : "";
+    const suffix =
+      field.id === "hp" ? `/ ${state.hpMax}`
+      : field.id === "mp" ? `/ ${state.mpMax}`
+      // The raw number is what the +/- keys move; the coins are what it means.
+      : field.id === "money" ? formatCurrency(state.cur, { short: true })
+      : "";
     rows.push(fieldRow(field.label, field.get(state), { suffix }), field.id);
   }
   return rows;

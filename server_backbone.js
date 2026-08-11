@@ -6,7 +6,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { server_config } from "./config.js";
 import { logger } from "./logger.js";
-import { getCurrentLocation, isSafeZone, formatClock } from "./state/gameState.js";
+import { getCurrentLocation, isSafeZone, formatClock, walletTotal } from "./state/gameState.js";
+import { formatCurrency } from "./currency_backbone.js";
 import { getAction } from "./data/actions.js";
 import { ALL_ITEMS, SHOP_RARITY_DISPLAY } from "./item_backbone.js";
 import { SKILLS, skillLevelCost } from "./skill_backbone.js";
@@ -244,7 +245,18 @@ export function buildPlayercardPayload(state) {
     hpMax: state.hpMax,
     mp: state.mp,
     mpMax: state.mpMax,
-    gold: state.gold,
+    // `gold` stays as the base-unit total so an older reader (and any exported
+    // JSON already sitting on someone's disk) keeps rendering a number. `money`
+    // carries the denominated form, pre-formatted here so the page needs no
+    // copy of the coin ladder - it is a dumb renderer and both pages share the
+    // code that would have to hold it.
+    gold: walletTotal(state),
+    money: {
+      total: walletTotal(state),
+      cur: state.cur,
+      short: formatCurrency(state.cur, { short: true }),
+      long: formatCurrency(state.cur),
+    },
     clock: formatClock(state),
     location: {
       id: state.currentLocationId,

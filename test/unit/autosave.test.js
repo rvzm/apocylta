@@ -4,6 +4,9 @@
 // dynamic import() inside the test body.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
+// Safe to import statically: currency_backbone.js imports nothing, so it can't
+// drag in the modules that resolve DB_PATH/LOG_PATH at import time.
+import { purseFromBase, purseTotal } from "../../currency_backbone.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -36,7 +39,7 @@ test("writeAutosave()/readAutosave() round-trips state, including ownedStations 
   // saves written against the old (far shallower) player curve.
   state.level = 5;
   state.experience = playerLevelCost(5);
-  state.gold = 777;
+  state.cur = purseFromBase(777);
   state.currentLocationId = "wilderness";
   state.hp = 30;
   state.mp = 4;
@@ -51,7 +54,7 @@ test("writeAutosave()/readAutosave() round-trips state, including ownedStations 
   assert.ok(loaded, "expected the autosave to load back");
   assert.equal(loaded.name, "Autosaved Tester");
   assert.equal(loaded.level, 5);
-  assert.equal(loaded.gold, 777);
+  assert.equal(purseTotal(loaded.cur), 777);
   assert.equal(loaded.currentLocationId, "wilderness");
   assert.equal(loaded.hp, 30);
   assert.equal(loaded.mp, 4);

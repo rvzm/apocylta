@@ -121,7 +121,7 @@ test("renderChrome(): the header carries the player's name and level", async () 
   // Alongside what was already there, not instead of it.
   assert.match(ui.headerLeft.content, /apocylta/);
   assert.match(ui.headerLeft.content, /town square/);
-  assert.match(ui.headerLeft.content, /gp: /);
+  assert.match(ui.headerLeft.content, /\dc\b/, "and the purse, denominated");
 });
 
 // The header draws on the title screen and through every wizard step, where
@@ -136,7 +136,7 @@ test("renderChrome(): no identity segment before a character exists", async () =
 
   assert.doesNotMatch(ui.headerLeft.content, /Lv\./);
   assert.match(ui.headerLeft.content, /apocylta/, "the rest of the header still renders");
-  assert.match(ui.headerLeft.content, /gp: /);
+  assert.match(ui.headerLeft.content, /\dc\b/, "the purse renders denominated");
 });
 
 test("renderChrome(): the level shown tracks state.level", async () => {
@@ -167,7 +167,7 @@ test("renderChrome(): a long name is truncated for display only", async () => {
   assert.doesNotMatch(ui.headerLeft.content, /Fitzgerald/);
   assert.match(ui.headerLeft.content, /Bartholomew/, "enough of it to still recognise");
   assert.match(ui.headerLeft.content, /…/);
-  assert.match(ui.headerLeft.content, /gp: /, "gold still fits after the name");
+  assert.match(ui.headerLeft.content, /\dc\b/, "the purse still fits after the name");
   assert.equal(state.name, "Bartholomew Fitzgerald The Third", "state is untouched");
 });
 

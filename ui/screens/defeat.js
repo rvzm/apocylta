@@ -7,6 +7,7 @@ import { player_config } from "../../config.js";
 import { LOCATIONS } from "../../data/locations.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
+import { formatBase } from "../../currency_backbone.js";
 import { logger } from "../../logger.js";
 
 // Permadeath is destructive and irreversible, so it happens here rather than
@@ -60,7 +61,7 @@ export const defeatScreen = {
           "",
           `    ${state.name ?? "You"} fell on ${state.difficulty} difficulty. There is no waking up from that.`,
           "",
-          `    Everything is gone: ${summary.itemsLost} items, ${summary.goldLost} gold, and the save itself.`,
+          `    Everything is gone: ${summary.itemsLost} items, ${formatBase(summary.goldLost, { short: true })}, and the save itself.`,
           "",
           "    Press X to return to the title screen.",
         ]
@@ -69,7 +70,7 @@ export const defeatScreen = {
           "",
           `    You come to back at the ${wakeAt}, stripped of everything you carried.`,
           "",
-          `    Lost: ${summary.itemsLost} items and ${summary.goldLost} gold.`,
+          `    Lost: ${summary.itemsLost} items and ${formatBase(summary.goldLost, { short: true })}.`,
           `    Kept: whatever you had equipped, your skills, and your levels.`,
           "",
           `    You've been handed the basics again: a belt and a wooden dagger.`,

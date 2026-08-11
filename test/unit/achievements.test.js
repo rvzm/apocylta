@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState, pushToast, activeToast, moveTo } from "../../state/gameState.js";
+import { createInitialState, pushToast, activeToast, moveTo, walletTotal } from "../../state/gameState.js";
 import {
   requirementStatus,
   isUnlocked,
@@ -283,14 +283,14 @@ test("evaluateAchievements(): unlocks, pays out, toasts, and never repeats", () 
 
   assert.deepEqual(unlocked.map((a) => a.id), ["welcome_to_apocylta"]);
   assert.equal(isUnlocked(state, "welcome_to_apocylta"), true);
-  assert.equal(state.gold, 50);
+  assert.equal(walletTotal(state), 50);
   assert.equal(state.experience, 50);
   assert.match(activeToast(state).text, /Welcome to apocylta/);
   assert.ok(state.achievements.welcome_to_apocylta.unlockedAt > 0);
 
   // Idempotence: the reward must not be paid twice on the next tick.
   assert.deepEqual(evaluateAchievements(state), []);
-  assert.equal(state.gold, 50);
+  assert.equal(walletTotal(state), 50);
   assert.equal(state.experience, 50);
 });
 
@@ -298,7 +298,7 @@ test("grantAchievementReward(): handles the {player, skill} xp shape quests neve
   const state = player();
   grantAchievementReward(state, ACHIEVEMENTS.this_is_combat);
 
-  assert.equal(state.gold, 100);
+  assert.equal(walletTotal(state), 100);
   assert.equal(state.experience > 0, true, "the player portion is granted");
   assert.equal(state.skills.fighting.xp, 50);
   assert.equal(state.skills.defense.xp, 50);
@@ -308,7 +308,7 @@ test("grantAchievementReward(): handles a plain numeric xp reward", async () => 
   const state = player();
   await withFakeAchievement("fake_flat", fake({ acquireHouse: true }, { gold: 7, xp: 11 }), () => {
     grantAchievementReward(state, ACHIEVEMENTS.fake_flat);
-    assert.equal(state.gold, 7);
+    assert.equal(walletTotal(state), 7);
     assert.equal(state.experience, 11);
   });
 });

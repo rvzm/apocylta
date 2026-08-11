@@ -17,7 +17,7 @@ import { ALL_ENEMIES } from "../enemy_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
 import { SPELLS } from "../magic_backbone.js";
 import { isSpellKnown } from "./magic.js";
-import { grantRewardXp, grantSkillXp, pushToast } from "../state/gameState.js";
+import { grantRewardXp, grantSkillXp, pushToast, addCurrency } from "../state/gameState.js";
 import { logger } from "../logger.js";
 
 const done = (complete, current = complete ? 1 : 0, target = 1) => ({ current, target, complete });
@@ -197,8 +197,8 @@ export function achievementRows(state, ctx = {}) {
 // applies proficiency/difficulty multipliers on the way in; the player-xp
 // portion is granted flat, matching how quest rewards behave.
 export function grantAchievementReward(state, achievement) {
-  const { gold = 0, xp } = achievement.reward ?? {};
-  state.gold += gold;
+  const { gold = 0, xp, curType } = achievement.reward ?? {};
+  addCurrency(state, gold, curType);
   if (typeof xp === "number") {
     grantRewardXp(state, xp);
   } else if (xp) {

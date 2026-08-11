@@ -14,7 +14,7 @@
 //     instant hub-feature hop from town square - see openTheBlackMarket below.
 //   - A BOOTSTRAPPED CHARACTER HAS 5500 GOLD. Human's 500 plus deep_pockets'
 //     5000 (bootstrapCharacter's default starterPack: 0), which is what makes
-//     the 1000-5000gp black-market stock affordable with no admin editor.
+//     the 1000-5000 base-unit black-market stock affordable with no admin editor.
 //
 // Every list position here is derived through test/helpers/rows.js rather than
 // hardcoded, for the reason hotkeys.js exists: these screens order themselves
@@ -31,12 +31,19 @@ import { bootstrapCharacter } from "../helpers/bootstrapCharacter.js";
 import { travelDigit, actionDigit } from "../helpers/hotkeys.js";
 import { bootstrappedState, blackMarketRow, shopBuyRow, shopSellRow, buyOnPaper } from "../helpers/rows.js";
 import { SHOPS } from "../../data/shops.js";
+import { formatBase, purseTotal } from "../../currency_backbone.js";
 
 const PROJECT_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 // A default character's purse, read rather than assumed so a change to the race
 // or pack tables fails the assertion instead of the test's arithmetic.
-const START_GOLD = bootstrappedState().gold;
+const START_PURSE = bootstrappedState().cur;
+const START_GOLD = purseTotal(START_PURSE);
+
+// Prices and purses are rendered denominated now ("55sy", "1s"), so every
+// expectation below is DERIVED through the same formatter the screens use
+// rather than spelled out - the same reason rows.js derives list positions.
+const money = (base) => formatBase(base, { short: true });
 const GENERAL_TYPES = SHOPS.shop_general.types;
 
 function scratch() {
@@ -82,15 +89,30 @@ async function travel(session, fromId, toId) {
   await session.waitFor("What would you like to do?", 10000);
 }
 
-// Read off the header, not the shop's prompt row. Both shop screens render the
-// purse as `state.lastMessage || "...(gp: N)"`, so the moment a purchase
-// succeeds the readout is replaced by the very message proving it did - the
-// header's `gp:` is drawn by renderChrome on every screen and survives. It sits
-// above the prompt in the capture, so the first match is the header's.
-function goldFrom(pane) {
-  const match = pane.match(/gp: (\d+)/);
-  assert.ok(match, `no "gp: N" in the header. Pane:\n${pane}`);
-  return Number(match[1]);
+// Asserts the header is showing exactly `expectedBase` base units, denominated.
+//
+// Read off the header rather than the shop's prompt row: both shop screens
+// render the purse as `state.lastMessage || "...(N)"`, so the moment a purchase
+// succeeds the readout is replaced by the very message proving it did. The
+// header is drawn by renderChrome on every screen and survives.
+//
+// Anchored on the "| " that precedes the purse in headerLeft and the padding
+// that follows it, rather than a bare substring match: "5sy" is a substring of
+// "55sy", so `includes` would happily pass a purse ten times too large.
+//
+// The expected string is built with formatBase (the canonical breakdown) while
+// the header renders formatCurrency (what the purse actually holds). Those
+// agree here because a purse that starts canonical stays canonical - spendFrom
+// gives its change back canonically - and every purse in this file starts from
+// purseFromBase. A test that earned coins in a named metal could not use this.
+function assertPurse(pane, expectedBase, message) {
+  const want = money(expectedBase);
+  const escaped = want.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(
+    pane,
+    new RegExp(`\\| ${escaped}\\s`),
+    `${message}: expected the header to show ${want} (${expectedBase} base). Pane:\n${pane}`
+  );
 }
 
 // town square -> safehouse -> meditate (clock +300 minutes) -> back -> the
@@ -126,8 +148,8 @@ test("shops: the general store buys, sells and pays barter xp", async (t) => {
   await session.waitFor("What would you like to buy?");
 
   const stock = session.capture();
-  assert.equal(goldFrom(stock), START_GOLD, "a fresh character's purse");
-  assert.match(stock, /Axe Starter - 10gp/, "common stock is on the shelf");
+  assertPurse(stock, START_GOLD, "a fresh character's purse");
+  assert.ok(stock.includes(`Axe Starter - ${money(10)}`), "common stock is on the shelf, priced in coins");
   // The barter gate is live: rare stock needs barter 15 and this character has
   // 5. Arcane Essence sorts to the top of the Crafting group, so it is inside
   // the visible pane rather than 300 rows down where a capture can't see it.
@@ -136,8 +158,8 @@ test("shops: the general store buys, sells and pays barter xp", async (t) => {
   await toTop(session);
   await press(session, "Down", shopBuyRow("shop_general", GENERAL_TYPES, "axe_starter"));
   session.sendKeys("p");
-  await session.waitFor("Bought Axe Starter for 10gp.");
-  assert.equal(goldFrom(session.capture()), START_GOLD - 10, "the purse paid for it");
+  await session.waitFor(`Bought Axe Starter for ${money(10)}.`);
+  assertPurse(session.capture(), START_GOLD - 10, "the purse paid for it");
 
   // --- Selling it straight back ---
   session.sendKeys("b"); // Back -> location
@@ -156,7 +178,7 @@ test("shops: the general store buys, sells and pays barter xp", async (t) => {
   // Sells back at 40% of the buy price, and pays barter xp on what changed
   // hands - recordItemSold rides this same path, and has no other end-to-end
   // coverage since it can't be reconstructed from state.
-  await session.waitFor(/Sold 1 item for 4gp \(\+1 barter xp\)\./);
+  await session.waitFor(`Sold 1 item for ${money(4)} (+1 barter xp).`);
 });
 
 test("black market: a purchase equips into its own slot and moves a real gate", async (t) => {
@@ -191,7 +213,7 @@ test("black market: a purchase equips into its own slot and moves a real gate", 
   session.sendKeys("e");
   await session.waitFor("What are you after?");
   const stall = session.capture();
-  assert.equal(goldFrom(stall), START_GOLD);
+  assertPurse(stall, START_GOLD, "nothing spent yet");
   assert.match(stall, /Charms/, "the tab strip names the enhancement sections");
   assert.match(stall, /Talismans/);
 
@@ -200,8 +222,8 @@ test("black market: a purchase equips into its own slot and moves a real gate", 
   await press(session, "Right"); // Charms -> Talismans
   await press(session, "Down", rowIndex);
   session.sendKeys("p");
-  await session.waitFor("Bought Barter Talisman for 5000gp.");
-  assert.equal(goldFrom(session.capture()), START_GOLD - 5000, "5000gp left the purse");
+  await session.waitFor(`Bought Barter Talisman for ${money(5000)}.`);
+  assertPurse(session.capture(), START_GOLD - 5000, "the talisman was paid for");
 
   // --- Equip it. The enhancement tab is last in ITEM_TYPES, so one Left wraps
   // straight onto it, and it holds exactly the one thing we just bought. ---
@@ -263,7 +285,7 @@ test("black market: both collections route to one screen, and a bundle grants it
   assert.match(session.capture(), /Box of Coal \(100x Coal\)/, "the row names its contents");
 
   session.sendKeys("p");
-  await session.waitFor("Bought Box of Coal for 1000gp.");
+  await session.waitFor(`Bought Box of Coal for ${money(1000)}.`);
 
   // blackMarketGrants hands over `outputs` rather than an item named by the
   // key: there is no "Box of Coal" item, only the 100 coal it stood for.

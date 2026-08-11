@@ -1,3 +1,4 @@
+import { formatBase } from "../../currency_backbone.js";
 import { visibleQuests, acceptQuest } from "../../data/quests.js";
 import { timeLine, weatherLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
@@ -5,7 +6,9 @@ import { switchScreen } from "../router.js";
 
 function buildRows(state) {
   const quests = visibleQuests(state);
-  const lines = quests.map((q) => `  - ${q.name} (Lv.${q.level}) - reward: ${q.reward.gold}gp, ${q.reward.xp}xp`);
+  const lines = quests.map(
+    (q) => `  - ${q.name} (Lv.${q.level}) - reward: ${formatBase(q.reward.gold, { short: true })}, ${q.reward.xp}xp`
+  );
   const questIds = quests.map((q) => q.id);
 
   if (!lines.length) {

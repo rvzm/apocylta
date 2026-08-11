@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState } from "../../state/gameState.js";
+import { createInitialState, walletTotal } from "../../state/gameState.js";
+import { purseFromBase } from "../../currency_backbone.js";
 import {
   visibleQuests,
   startedQuests,
@@ -387,17 +388,17 @@ test("isQuestComplete()/completeQuest(): grants reward exactly once, no-ops on i
   state.house = true;
   assert.equal(isQuestComplete(state, "getting_started"), true);
 
-  const goldBefore = state.gold;
+  const goldBefore = walletTotal(state);
   const xpBefore = state.experience;
   assert.equal(completeQuest(state, "getting_started"), true);
   assert.equal(state.quests.getting_started.status, "completed");
   assert.ok(state.quests.getting_started.completedAt > 0);
-  assert.equal(state.gold, goldBefore + 100);
+  assert.equal(walletTotal(state), goldBefore + 100);
   assert.equal(state.experience, xpBefore + 100);
 
   // Second call is a no-op (already completed).
   assert.equal(completeQuest(state, "getting_started"), false);
-  assert.equal(state.gold, goldBefore + 100);
+  assert.equal(walletTotal(state), goldBefore + 100);
 });
 
 test("claimCompletedQuests() claims only the satisfied subset, leaves others untouched", () => {
@@ -540,9 +541,9 @@ test("objectiveStatus(): acquireItem 'gold' reads the purse, not an inventory sl
       objectives: { "Get rich": { acquireItem: { gold: 500 } } },
     },
     () => {
-      state.gold = 100;
+      state.cur = purseFromBase(100);
       assert.deepEqual(objectiveStatus(state, "fake_gold", "Get rich"), { current: 100, target: 500, complete: false });
-      state.gold = 500;
+      state.cur = purseFromBase(500);
       assert.equal(objectiveStatus(state, "fake_gold", "Get rich").complete, true);
     }
   );

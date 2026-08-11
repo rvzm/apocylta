@@ -13,6 +13,7 @@ import {
 } from "../../item_backbone.js";
 import { SKILLS } from "../../skill_backbone.js";
 import { createInitialState, equipItem, addItem, effectiveSkillLevel } from "../../state/gameState.js";
+import { purseFromBase } from "../../currency_backbone.js";
 import { getShop } from "../../data/shops.js";
 import { buildBlackMarketRows, tabsFor } from "../../ui/screens/blackMarket.js";
 
@@ -128,7 +129,7 @@ test("blackMarketGrants() takes the id separately from the entry", () => {
 function shopping(shopId, gold) {
   const state = createInitialState();
   state.shopContext = getShop(shopId);
-  state.gold = gold;
+  state.cur = purseFromBase(gold);
   return state;
 }
 

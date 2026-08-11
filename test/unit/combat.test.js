@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState } from "../../state/gameState.js";
+import { createInitialState, walletTotal } from "../../state/gameState.js";
+import { purseFromBase } from "../../currency_backbone.js";
 import {
   buildEncounter,
   spawnEncounter,
@@ -300,7 +301,7 @@ test("resolveRound(): a downed enemy yields xp/gold, is tallied, and ends the en
   assert.equal(state.currentCombat.outcome, "victory");
   assert.equal(state.enemiesDefeated.weak_goblin, 1);
   assert.deepEqual(state.currentCombat.defeated, ["weak_goblin"]);
-  assert.ok(state.gold > 0, "kills pay out gold");
+  assert.ok(walletTotal(state) > 0, "kills pay out money");
   assert.ok(state.experience > 0, "kills grant player xp");
   assert.match(lines.join(" "), /Weak Goblin goes down/);
 });
@@ -369,7 +370,7 @@ test("resolveRound(): a successful flee ends the encounter with no rewards", () 
   resolveRound(state, { type: "flee" }, ALWAYS);
 
   assert.equal(state.currentCombat.outcome, "fled");
-  assert.equal(state.gold, 0, "fleeing pays nothing");
+  assert.equal(walletTotal(state), 0, "fleeing pays nothing");
   assert.deepEqual(state.enemiesDefeated, {});
 });
 
@@ -456,7 +457,7 @@ test("usePotion(): a buff potion raises the stat for the encounter only", () => 
 
 test("resolveDefeat(): standard difficulty drops the backpack and wakes you at the start", () => {
   const state = fighter({ difficulty: "normal" });
-  state.gold = 900;
+  state.cur = purseFromBase(900);
   state.inventory = { stone: 40, iron_sword: 2 };
   state.equipment.torso = "tin_chestplate";
   state.currentLocationId = "desert";
@@ -470,7 +471,7 @@ test("resolveDefeat(): standard difficulty drops the backpack and wakes you at t
   assert.equal(result.itemsLost, 42);
   assert.equal(result.goldLost, 900);
   assert.equal(state.currentLocationId, player_config.startingLocation);
-  assert.equal(state.gold, player_config.startingGold);
+  assert.equal(walletTotal(state), player_config.startingGold);
   assert.equal(state.hp, state.hpMax);
   assert.equal(state.equipment.torso, "tin_chestplate", "equipment is kept");
   assert.equal(state.skills.fighting.level, 12, "skills are kept");
@@ -483,7 +484,7 @@ test("resolveDefeat(): standard difficulty drops the backpack and wakes you at t
 test("resolveDefeat(): survival/nightmare flag permadeath and leave the character untouched", () => {
   for (const difficulty of ["survival", "nightmare"]) {
     const state = fighter({ difficulty });
-    state.gold = 900;
+    state.cur = purseFromBase(900);
     state.inventory = { stone: 40 };
     state.currentLocationId = "desert";
     beginCombat(state, buildEncounter(state, "angry_raider"));
@@ -494,7 +495,7 @@ test("resolveDefeat(): survival/nightmare flag permadeath and leave the characte
     assert.equal(state.currentCombat.permadeath, true, difficulty);
     // Nothing is reset here - ui/screens/defeat.js owns deleting the save.
     assert.deepEqual(state.inventory, { stone: 40 }, difficulty);
-    assert.equal(state.gold, 900, difficulty);
+    assert.equal(walletTotal(state), 900, difficulty);
     assert.equal(state.currentLocationId, "desert", difficulty);
   }
 });
@@ -519,7 +520,7 @@ test("resolveRound(): hp hitting zero resolves defeat and records it for the def
 test("resolveRound(): a revive item in the backpack is spent instead of dying", () => {
   const state = fighter({ difficulty: "normal" });
   state.hp = 1;
-  state.gold = 900;
+  state.cur = purseFromBase(900);
   state.inventory = { stone: 3, revive: 1 };
   beginCombat(state, buildEncounter(state, "deranged_raider")); // dps 50
 
@@ -533,7 +534,7 @@ test("resolveRound(): a revive item in the backpack is spent instead of dying", 
   assert.equal(state.hp, state.hpMax);
   assert.equal(state.inventory.revive, undefined, "the revive is spent");
   assert.equal(state.inventory.stone, 3, "the backpack survives intact");
-  assert.equal(state.gold, 900);
+  assert.equal(walletTotal(state), 900);
   assert.equal(state.currentLocationId, "wilderness", "you stay where you fell");
 });
 

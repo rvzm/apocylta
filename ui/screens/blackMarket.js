@@ -2,6 +2,7 @@ import { ALL_ITEMS, blackMarketSections, blackMarketGrants } from "../../item_ba
 import { getBuyPrice, getBarterXp, canAfford, chargeGold } from "../../data/shops.js";
 import { indoorTimeLine, packLine, openLine } from "../../data/flavor.js";
 import { addItem, grantSkillXp } from "../../state/gameState.js";
+import { formatBase, formatCurrency } from "../../currency_backbone.js";
 import { colorTag, formatCommandRow } from "../format.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 import { switchScreen } from "../router.js";
@@ -30,13 +31,14 @@ function priceOf(id, entry) {
 function rowText(id, entry) {
   const price = priceOf(id, entry);
   const name = entry.name ?? ALL_ITEMS[id]?.name ?? id;
+  const cost = formatBase(price, { short: true });
   if (entry.outputs) {
     const contents = Object.entries(entry.outputs)
       .map(([outId, qty]) => `${qty}x ${ALL_ITEMS[outId]?.name ?? outId}`)
       .join(", ");
-    return `- ${name} (${contents}) - ${price}gp`;
+    return `- ${name} (${contents}) - ${cost}`;
   }
-  return `- ${name} - ${price}gp`;
+  return `- ${name} - ${cost}`;
 }
 
 // Which sub-heading a row files under. Enhancements group by the skill they
@@ -141,7 +143,10 @@ export const blackMarketScreen = {
       const price = priceOf(id, entry);
       const name = entry.name ?? ALL_ITEMS[id]?.name ?? id;
       if (!canAfford(state, price)) {
-        state.lastMessage = `You can't afford ${name} (${price}gp). You have ${state.gold}gp.`;
+        const short = { short: true };
+        state.lastMessage =
+          `You can't afford ${name} (${formatBase(price, short)}). ` +
+          `You have ${formatCurrency(state.cur, short)}.`;
         return;
       }
 
@@ -155,8 +160,8 @@ export const blackMarketScreen = {
         if (ALL_ITEMS[grantId]) xp += getBarterXp(ALL_ITEMS[grantId], qty);
       }
       grantSkillXp(state, "barter", xp);
-      logger.info("blackMarket", `Bought ${id} for ${price}gp.`);
-      state.lastMessage = `Bought ${name} for ${price}gp.`;
+      logger.info("blackMarket", `Bought ${id} for ${price} base units.`);
+      state.lastMessage = `Bought ${name} for ${formatBase(price, { short: true })}.`;
     },
   },
 
@@ -189,7 +194,9 @@ export const blackMarketScreen = {
     }
     ui.inventoryList.setLabel(tabs.length ? ` ${formatTabStrip(tabs, tabIndex)} ` : "");
 
-    ui.promptRow.setContent(state.lastMessage || `What are you after? (gp: ${state.gold})`);
+    ui.promptRow.setContent(
+      state.lastMessage || `What are you after? (${formatCurrency(state.cur, { short: true })})`
+    );
     ui.commandList.setContent(
       formatCommandRow(
         [

@@ -12,6 +12,9 @@
 // already being occupied by the time they run.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
+// Safe to import statically: currency_backbone.js imports nothing, so it can't
+// drag in the modules that resolve DB_PATH/LOG_PATH at import time.
+import { purseFromBase, purseTotal } from "../../currency_backbone.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -39,7 +42,7 @@ test("saveGame()/loadGame() round-trips a fully-populated state (slot 1)", async
   state.race = "human";
   state.class = "warrior";
   state.difficulty = "normal";
-  state.gold = 1234;
+  state.cur = purseFromBase(1234);
   state.currentLocationId = "wilderness";
   state.hp = 42;
   state.hpMax = 250;
@@ -91,7 +94,7 @@ test("saveGame()/loadGame() round-trips a fully-populated state (slot 1)", async
 
   assert.ok(loaded, "expected a saved game to load back");
   assert.equal(loaded.name, "Persisted Tester");
-  assert.equal(loaded.gold, 1234);
+  assert.equal(purseTotal(loaded.cur), 1234);
   assert.equal(loaded.currentLocationId, "wilderness");
   assert.equal(loaded.hp, 42);
   assert.equal(loaded.hpMax, 250, "maxes had no columns at all until the admin editors needed them");

@@ -6,7 +6,7 @@ import { enterList, exitList, requireAdmin, resetStep, selectedId, rowBuilder, p
 // free letter - the same positional-digit idea location.js and travel.js use,
 // but fixed here rather than derived.
 const EDITORS = [
-  ["adminStats", "Player stats", "hp / mana and their maxes, gold, level, xp"],
+  ["adminStats", "Player stats", "hp / mana and their maxes, money, level, xp"],
   ["adminSkills", "Skills", "level and xp per skill"],
   ["adminInventory", "Inventory", "every item in the game - give, take, infinite"],
   ["adminEquipment", "Equipment", "armour by slot, equip and unequip"],

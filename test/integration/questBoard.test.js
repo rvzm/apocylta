@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { formatBase } from "../../currency_backbone.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -60,7 +61,8 @@ test("quest board: accept a quest, see it in the Journal, claim reports nothing 
   assert.match(journalPane, /\[ \] Chop some wood \(0\/1\)/);
   assert.match(journalPane, /\[ \] Sell Some scrap \(0\/1\)/);
   assert.match(journalPane, /\[ \] Buy a House \(0\/1\)/);
-  assert.match(journalPane, /Reward: 100gp, 100xp/);
+  // Rewards render denominated now - 100 base units is five silver.
+  assert.ok(journalPane.includes(`Reward: ${formatBase(100, { short: true })}, 100xp`));
 
   // --- Claim: nothing satisfied yet ---
   session.sendKeys("c");

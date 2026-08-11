@@ -7,6 +7,7 @@ import { colorTag } from "./format.js";
 // COLOR/pickBand/HP_BANDS live in markup.js so data/flavor.js can band its
 // health line with the same table this file's HP number uses.
 import { COLOR, pickBand, HP_BANDS } from "../markup.js";
+import { formatCurrency } from "../currency_backbone.js";
 
 const INFO_BAR_HEIGHT = 3;
 // The optional second header bar. Bordered, so it needs 3 rows to show one
@@ -297,7 +298,10 @@ export function renderChrome(state, ui) {
     ` ${colorTag("apocylta", "blue", true)} | ` +
       headerIdentity(state) +
       `${colorTag("[", zoneColor)}${colorTag(location.name, COLOR.yellowOrange, true)}${colorTag("]", zoneColor)} | ` +
-      `gp: ${colorTag(String(state.gold), COLOR.yellowOrange, false)}`
+      // Short form, and what the purse holds rather than the canonical
+      // breakdown of its total - this column is narrow enough that a long
+      // player name already crowds it (see headerIdentity's truncation).
+      `${colorTag(formatCurrency(state.cur, { short: true }), COLOR.yellowOrange, false)}`
   );
 
   // A fight outranks a gather in the header - beginCombat() clears

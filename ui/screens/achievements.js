@@ -1,3 +1,4 @@
+import { formatBase } from "../../currency_backbone.js";
 import { achievementRows } from "../../data/achievements.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
@@ -16,7 +17,7 @@ function formatXp(xp) {
 
 function formatReward(reward = {}) {
   const parts = [];
-  if (reward.gold) parts.push(`${reward.gold}gp`);
+  if (reward.gold) parts.push(formatBase(reward.gold, { short: true }));
   const xp = formatXp(reward.xp);
   if (xp) parts.push(xp);
   return parts.join(", ") || "none";

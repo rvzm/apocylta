@@ -4,7 +4,8 @@
 // suite's death tests rather than failing loudly.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState, removeItem, equipItem } from "../../state/gameState.js";
+import { createInitialState, removeItem, equipItem, walletTotal } from "../../state/gameState.js";
+import { purseFromBase } from "../../currency_backbone.js";
 import { buildEncounter, beginCombat, resolveRound } from "../../data/combat.js";
 import { canCastSpell, castSpell } from "../../data/magic.js";
 import { canAfford, chargeGold } from "../../data/shops.js";
@@ -90,16 +91,16 @@ test("godmode: mana is left alone even when there's plenty", () => {
 
 test("godmode: everything is affordable and nothing is charged", () => {
   const mortal = fighter();
-  mortal.gold = 10;
+  mortal.cur = purseFromBase(10);
   assert.equal(canAfford(mortal, 500), false, "control: broke means broke");
   chargeGold(mortal, 10);
-  assert.equal(mortal.gold, 0, "control: gold is spent normally");
+  assert.equal(walletTotal(mortal), 0, "control: money is spent normally");
 
   const god = fighter({ godmode: true });
-  god.gold = 0;
+  god.cur = purseFromBase(0);
   assert.equal(canAfford(god, 999999), true);
   chargeGold(god, 999999);
-  assert.equal(god.gold, 0, "gold never goes negative, or anywhere at all");
+  assert.equal(walletTotal(god), 0, "money never goes negative, or anywhere at all");
 });
 
 // ------------------------------------------------------------------ items

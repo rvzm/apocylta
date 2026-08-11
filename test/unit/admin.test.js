@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState, removeItem } from "../../state/gameState.js";
+import { createInitialState, removeItem, walletTotal } from "../../state/gameState.js";
 import { objectiveStatus } from "../../data/quests.js";
 import { evaluateAchievements } from "../../data/achievements.js";
 import { adjust, adminEnabled } from "../../ui/screens/admin/shared.js";
@@ -134,23 +134,23 @@ test("evaluateAchievements(): paused by adminAutoAchievements, so a re-lock stic
   const unlocked = evaluateAchievements(state);
   assert.ok(unlocked.length > 0, "the visited-locations achievement should fire");
   const earnedId = unlocked[0].id;
-  const goldAfterEarning = state.gold;
+  const goldAfterEarning = walletTotal(state);
 
   // With evaluation live, re-locking bounces straight back AND re-pays - the
   // duplication bug the switch exists to prevent.
   delete state.achievements[earnedId];
   evaluateAchievements(state);
   assert.ok(state.achievements[earnedId], "re-unlocks immediately while auto-evaluate is on");
-  assert.ok(state.gold > goldAfterEarning, "and pays the reward a second time");
+  assert.ok(walletTotal(state) > goldAfterEarning, "and pays the reward a second time");
 
   // With it paused, the re-lock holds and no gold moves.
   state.adminAutoAchievements = false;
   delete state.achievements[earnedId];
-  const goldWhilePaused = state.gold;
+  const goldWhilePaused = walletTotal(state);
   for (let i = 0; i < 5; i++) evaluateAchievements(state);
 
   assert.equal(state.achievements[earnedId], undefined, "stays locked across many ticks");
-  assert.equal(state.gold, goldWhilePaused, "and no reward is re-paid");
+  assert.equal(walletTotal(state), goldWhilePaused, "and no reward is re-paid");
 });
 
 test("evaluateAchievements(): unpausing resumes normally", () => {

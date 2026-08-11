@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState, formatClock, isLocationOpen, addItem, removeItem, finalizeCharacter } from "../../state/gameState.js";
+import { createInitialState, formatClock, isLocationOpen, addItem, removeItem, finalizeCharacter, walletTotal } from "../../state/gameState.js";
 import { backpackSlotsUsed } from "../../data/toolbelt.js";
 import { ALL_ITEMS } from "../../item_backbone.js";
 
@@ -109,7 +109,7 @@ test("finalizeCharacter() merges race + starter pack items/gold and sets profici
   finalizeCharacter(state, draft);
 
   assert.equal(state.name, "Tester");
-  assert.equal(state.gold, 5500); // 500 (human) + 5000 (deep_pockets)
+  assert.equal(walletTotal(state), 5500); // 500 (human) + 5000 (deep_pockets)
   assert.equal(state.inventory.hammer, 1);
   // STARTER_ITEMS (player_backbone.js) - granted to every character regardless
   // of race/class, and worn from the start: createInitialState() seeds the

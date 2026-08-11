@@ -54,7 +54,16 @@ CREATE TABLE IF NOT EXISTS player (
     -- - Playercard Stats
     level INTEGER DEFAULT 1,
     experience INTEGER DEFAULT 0,
-    gold INTEGER NOT NULL DEFAULT 0,
+    gold INTEGER NOT NULL DEFAULT 0, -- LEGACY: the pre-denomination purse. No longer written; see cur_* below and the migration at the bottom of this file.
+    -- The purse: one coin count per metal (currency_backbone.js). NOT the same
+    -- thing as the gold column above - cur_gold is a count of GOLD COINS, while
+    -- the old gold column was a single undenominated total. The migration at the
+    -- bottom of this file converts one into the other exactly once.
+    -- (No backticks in here: this whole schema is a JS template literal.)
+    cur_copper INTEGER NOT NULL DEFAULT 0,
+    cur_silver INTEGER NOT NULL DEFAULT 0,
+    cur_gold INTEGER NOT NULL DEFAULT 0,
+    cur_syllic INTEGER NOT NULL DEFAULT 0,
     current_location_id TEXT,
     health INTEGER DEFAULT 100,
     health_max INTEGER DEFAULT 100,
@@ -313,6 +322,46 @@ for (const column of ["health_max", "mana_max"]) {
   if (playerColumns.includes(column)) continue;
   db.exec(`ALTER TABLE player ADD COLUMN ${column} INTEGER DEFAULT 100`);
   logger.info("db_backbone", `Migrated player table: added ${column} column.`);
+}
+
+// The purse replaced the single `gold` total. Four new columns, plus a one-off
+// conversion of whatever the old column held so an existing save keeps its
+// money instead of waking up broke.
+//
+// Old `gold` was undenominated and is read as BASE UNITS, which are copper
+// coins - so the conversion is a straight decomposition down the coin ladder,
+// and a player's purchasing power is unchanged. It runs only when the columns
+// are absent, so it can never fire twice and re-convert an already-split purse.
+// The old column is deliberately left in place rather than dropped: SQLite
+// cannot drop one without rebuilding the table, and nothing reads it any more.
+if (!playerColumns.includes("cur_copper")) {
+  for (const metal of ["copper", "silver", "gold", "syllic"]) {
+    db.exec(`ALTER TABLE player ADD COLUMN cur_${metal} INTEGER NOT NULL DEFAULT 0`);
+  }
+  // Inlined rather than imported from currency_backbone.js: this file runs at
+  // import time before anything else is wired up, and a migration that silently
+  // changes meaning when the rate table is retuned is worse than a duplicated
+  // literal. If the rates move, this stays pinned to what they were here.
+  const LADDER = [["syllic", 100], ["gold", 20], ["silver", 10], ["copper", 1]];
+  // A database old enough to predate the `gold` column has nothing to convert -
+  // its rows simply start empty. Guarded rather than assumed, because SELECTing
+  // a missing column throws and would take the whole import down with it.
+  const rows = playerColumns.includes("gold")
+    ? db.prepare(`SELECT id, gold FROM player`).all()
+    : [];
+  const update = db.prepare(
+    `UPDATE player SET cur_copper = ?, cur_silver = ?, cur_gold = ?, cur_syllic = ? WHERE id = ?`
+  );
+  for (const row of rows) {
+    let remainder = row.gold ?? 0;
+    const purse = {};
+    for (const [metal, rate] of LADDER) {
+      purse[metal] = Math.floor(remainder / rate);
+      remainder -= purse[metal] * rate;
+    }
+    update.run(purse.copper, purse.silver, purse.gold, purse.syllic, row.id);
+  }
+  logger.info("db_backbone", `Migrated player table: added cur_* columns, converted ${rows.length} purse(s).`);
 }
 
 // Same CREATE-TABLE-IF-NOT-EXISTS caveat as above - the quests table already
