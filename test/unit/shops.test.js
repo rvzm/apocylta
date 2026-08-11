@@ -1,12 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { getBuyPrice, getSellPrice, getBarterXp, isPurchasable } from "../../data/shops.js";
-import { ALL_ITEMS, SHOP_RARITY_DISPLAY } from "../../item_backbone.js";
+import { SHOP_RARITY_DISPLAY } from "../../item_backbone.js";
 
+// A synthetic shape, not a catalog item. Every ALL_ITEMS entry carries a
+// literal `value` since the pricing pass, so the rarity fallback is only
+// reachable by a bare shape a caller passes in - reading it off a real item
+// (this used to assert tin_ore had no price) is what made the test rot.
 test("getBuyPrice() derives from rarity when no explicit value is set", () => {
-  const item = ALL_ITEMS["tin_ore"]; // common rarity, no explicit `value`
-  assert.equal(item.value, undefined);
-  assert.equal(getBuyPrice(item), 10); // BASE_BUY_PRICE(10) * common level(1)
+  assert.equal(getBuyPrice({ rarity: "common" }), 10); // BASE_BUY_PRICE(10) * common level(1)
+  assert.equal(
+    getBuyPrice({ rarity: "legendary" }),
+    10 * SHOP_RARITY_DISPLAY.legendary.level
+  );
 });
 
 test("getBuyPrice() prefers an explicit value when present", () => {

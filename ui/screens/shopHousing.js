@@ -1,19 +1,25 @@
-import { STATIONS } from "../../item_backbone.js";
+import { STATIONS, PROPERTY } from "../../item_backbone.js";
 import { getBuyPrice, canAfford, chargeGold } from "../../data/shops.js";
 import { indoorTimeLine } from "../../data/flavor.js";
 import { formatCommandRow } from "../format.js";
 import { formatBase, formatCurrency } from "../../currency_backbone.js";
 import { switchScreen } from "../router.js";
 
-const HOUSE_PRICE = 1000;
-
 // Before owning a house, the only thing for sale is the house itself.
-// Afterward, the list becomes every station the player hasn't bought yet -
-// STATIONS entries have a `rarity` field just like ITEMS, so the existing
-// rarity-based getBuyPrice formula applies unchanged.
+// Afterward, the list becomes every station the player hasn't bought yet.
+//
+// Both the deed and the stations are catalog entries carrying their own
+// `value`, so both price through getBuyPrice - the deed used to be a bare
+// `const HOUSE_PRICE = 1000` here, the one priced good defined outside
+// item_backbone.js.
+const HOUSE_DEED = PROPERTY.house_deed;
+
 function buildRows(state) {
   if (!state.house) {
-    return { lines: [`  - House Deed - ${formatBase(HOUSE_PRICE, { short: true })}`], rowIds: ["house"] };
+    return {
+      lines: [`  - ${HOUSE_DEED.name} - ${formatBase(getBuyPrice(HOUSE_DEED), { short: true })}`],
+      rowIds: ["house"],
+    };
   }
 
   const entries = Object.entries(STATIONS)
@@ -53,11 +59,12 @@ export const shopHousingScreen = {
       }
 
       if (id === "house") {
-        if (!canAfford(state, HOUSE_PRICE)) {
-          state.lastMessage = `You can't afford a house (${formatBase(HOUSE_PRICE, { short: true })}).`;
+        const housePrice = getBuyPrice(HOUSE_DEED);
+        if (!canAfford(state, housePrice)) {
+          state.lastMessage = `You can't afford a house (${formatBase(housePrice, { short: true })}).`;
           return;
         }
-        chargeGold(state, HOUSE_PRICE);
+        chargeGold(state, housePrice);
         state.house = true;
         state.lastMessage = "You bought a house! Head home to make use of your new stations.";
         return;

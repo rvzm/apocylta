@@ -7,6 +7,7 @@
 // stops that drift from silently recurring.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import * as IB from "../../item_backbone.js";
 import { SKILL_BLOCKS } from "../../skill_backbone.js";
 
@@ -17,7 +18,7 @@ const {
   ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, TREASURE_ITEMS, STARTER_PACKS, METALURGY,
   MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS, FISHING_CATALOG, BLACKMARKET_CATALOG,
   SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, FISHING_RECIPES, ALL_ITEMS,
-  FISH, catchItemsFor, equipSlotOf,
+  FISH, catchItemsFor, equipSlotOf, RARITY_BANDS, STATIONS, PROPERTY,
 } = IB;
 
 // "water" is the one recipe ingredient with no backing item id by design
@@ -272,6 +273,88 @@ test("every FISH species is catchable: a required level, a rod that reaches it, 
     if (catchItemsFor(id).length === 0) offenders.push(`FISH.${id}: no catch item`);
   }
   assert.deepEqual(offenders, []);
+});
+
+// --- Pricing -----------------------------------------------------------------
+// Every item used to fall through data/shops.js's rarity fallback, which made a
+// stone, a loaf of bread and a wooden sword all worth exactly 10. They carry a
+// literal `value` now, and these two tests are what stop a new item slipping in
+// unpriced or wildly mispriced.
+
+// Types whose price is structurally outside its rarity's band, each for a
+// reason that can't be designed away:
+//  - "set"/"kit" are COMPOSITES. A set is 0.9x the sum of its pieces (so
+//    selling the set can never beat selling the pieces), and five legendary
+//    pieces cannot fit inside one legendary band.
+//  - "enhancement" is the black market's hand-set 1k-500k ladder, which IS
+//    that shop's gate - it has no barter gate (see ui/screens/blackMarket.js).
+//  - "mining"/"smithing"/"metal" ride the material ladder instead: they're
+//    priced off the mining level that gates them, because adamantite_ore is
+//    legendary while the chestplate eating four bars' worth is ALSO legendary,
+//    and no in-band assignment makes that recipe non-destructive.
+const UNBANDED_TYPES = new Set(["set", "kit", "enhancement", "mining", "smithing", "metal"]);
+
+// Outputs whose craft-invariant ceiling (test/unit/economy.test.js) bites below
+// their rarity's floor - all of them cheap-input/higher-rarity-output cooking
+// recipes, which is an authoring oddity in the recipe rather than the price.
+const CRAFT_CAPPED = new Set([
+  "firewood", "herbal_tea", "green_tea", "black_tea", "white_tea",
+  "mixed_herb_brew", "vibrant_herb_brew", "poison_potion",
+]);
+
+// Bait is spent per catch attempt (data/fishing.js's spendBait, charged even on
+// a miss), so a band built for durable gear would put one forged bait at the
+// rare floor of 100 against a rare fish that sells for 60. It is ammunition.
+const UNBANDED_IDS = new Set([
+  "fishing_bait", "crafted_fishing_bait", "forged_fishing_bait",
+  "enchanted_fishing_bait", "mythic_fishing_bait", "godlike_fishing_bait",
+]);
+
+test("every item carries a positive integer `value` in base units", () => {
+  const offenders = Object.entries(ALL_ITEMS)
+    .filter(([, item]) => !Number.isInteger(item.value) || item.value < 1)
+    .map(([id, item]) => `${id}: ${JSON.stringify(item.value)}`);
+  assert.deepEqual(offenders, []);
+});
+
+test("every priced item sits inside its rarity's band", () => {
+  const offenders = [];
+  for (const [id, item] of Object.entries(ALL_ITEMS)) {
+    if (UNBANDED_TYPES.has(item.type) || CRAFT_CAPPED.has(id) || UNBANDED_IDS.has(id)) continue;
+    const band = RARITY_BANDS[item.rarity];
+    if (!band) {
+      offenders.push(`${id}: rarity "${item.rarity}" has no band`);
+      continue;
+    }
+    if (item.value < band[0] || item.value > band[1]) {
+      offenders.push(`${id} (${item.type}/${item.rarity}) = ${item.value}, band ${band[0]}-${band[1]}`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
+// STATIONS and PROPERTY are priced through getBuyPrice like anything else but
+// are deliberately NOT in ALL_ITEMS - neither ever enters the inventory - so
+// the two tests above can't reach them.
+test("stations and property are priced too", () => {
+  const offenders = [];
+  for (const [name, catalog] of Object.entries({ STATIONS, PROPERTY })) {
+    for (const [id, entry] of entries(catalog)) {
+      if (!Number.isInteger(entry.value) || entry.value < 1) offenders.push(`${name}.${id}: ${JSON.stringify(entry.value)}`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
+// The house deed used to be `const HOUSE_PRICE = 1000` inside
+// ui/screens/shopHousing.js - the one priced good defined outside this file.
+test("the house deed is a catalog entry, not a hardcoded price in a screen", () => {
+  assert.equal(PROPERTY.house_deed.value, 1000);
+  assert.doesNotMatch(
+    readFileSync(new URL("../../ui/screens/shopHousing.js", import.meta.url), "utf8"),
+    /^\s*const\s+HOUSE_PRICE\s*=/m,
+    "shopHousing.js should read the deed's price from PROPERTY, not redeclare it"
+  );
 });
 
 test("ALL_ITEMS actually resolves belts (TOOLBELTS' global-tag inheritance)", () => {

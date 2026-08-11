@@ -31,22 +31,29 @@ export function getShop(id) {
 }
 
 const BASE_BUY_PRICE = 10;
-const SELL_FRACTION = 0.4;
+// Exported so test/unit/economy.test.js derives its craft ceiling (1 /
+// SELL_FRACTION) from the real number rather than hardcoding 2.5 - re-pitching
+// the sell fraction should re-pitch the invariant, not silently void it.
+export const SELL_FRACTION = 0.4;
 const BASE_XP_PER_ITEM = 1;
 
 function rarityLevel(item) {
   return SHOP_RARITY_DISPLAY[item.rarity]?.level ?? 1;
 }
 
-// TREASURE_ITEMS already has a hand-set `value` - use it when present,
-// otherwise derive from rarity so the many unpriced ITEMS entries get a
-// consistent price with zero per-item data entry.
+// EVERY item in ALL_ITEMS now carries a literal `value`, so the rarity fallback
+// below is unreachable for a real catalog entry - it survives only for the bare
+// shapes callers construct by hand (and is still what STATIONS/PROPERTY would
+// fall back to if one were added unpriced). It is no longer the pricing model:
+// rarity sets the BAND (item_backbone.js's RARITY_BANDS) and the item's own
+// power sets where in that band it sits. test/unit/itemBackboneConsistency.js
+// enforces both halves.
 //
 // Prices are in BASE UNITS (copper coins). An item may quote its `value` in
 // another denomination with `curType` (and optionally `curSubtype`), which
 // toBase resolves - `{ value: 3, curType: "gold" }` is 60. Both default to
-// copper coins, so an entry carrying a bare `value` means exactly what it
-// always did and needs no edit.
+// copper coins, and no catalog entry uses them: the whole catalog is authored
+// in bare copper so two prices can be compared by eye.
 export function getBuyPrice(item) {
   if (item.value === undefined) return BASE_BUY_PRICE * rarityLevel(item);
   return toBase(item.value, item.curType, item.curSubtype);
