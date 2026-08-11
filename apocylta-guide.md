@@ -13,7 +13,7 @@ bottom — `[T]ravel | [1] Gather scraps | [M]enu` — so the letter in brackets
 doesn't matter. `q` quits from anywhere, immediately and without asking, so be a little careful with it.
 
 The screen is always laid out the same way. The top bar carries your name and level, where you are, your
-gold, whatever you're currently doing, and the time of day. Some screens — the shops, the workbenches, the
+money, whatever you're currently doing, and the time of day. Some screens — the shops, the workbenches, the
 mine and fishing pickers, your backpack — add a second bar beneath it with a line of colour about where you're
 standing; it changes with the hour and tells you nothing you need, so read it or don't. Under that is the main
 pane, which is the screen you're actually on. Below that, a status bar with your health, mana, and whether
@@ -57,15 +57,15 @@ bonus** goes the wrong way at the top end: it's ×1.5 up to Hard, halves to ×0.
 **zero** on Nightmare and Demon Lord, where a proficient skill earns nothing at all. Your race and class still
 hand you four of them, so on those difficulties four skills start at level 5 and stay there.
 
-**Your race** sets two proficient skills and what you start with: Human (mining, barter — 500 gold and a
-hammer), Dwarf (smithing, mining — 300 gold and an iron pickaxe), Elf (fishing, foraging — 400 gold and a
-fishing rod), Orc (fighting, survival — 200 gold and an axe), Goblin (trapping, woodcutting — 150 gold and
-an iron dagger).
+**Your race** sets two proficient skills and what you start with: Human (mining, barter — 500 copper and a
+hammer), Dwarf (smithing, mining — 300 copper and an iron pickaxe), Elf (fishing, foraging — 400 copper and
+a fishing rod), Orc (fighting, survival — 200 copper and an axe), Goblin (trapping, woodcutting — 150
+copper and an iron dagger). Coin values are given in copper throughout — see section 11.
 
 **Your class** sets two more: Warrior (fighting, defense), Mage (magic, alchemy), Ranger (fishing,
 foraging), Attacker (fighting, trapping), Tank (defense, smithing).
 
-**Your starter pack** is a one-off leg up — a purse of 5000 gold, a set of basic tools, potions and bread,
+**Your starter pack** is a one-off leg up — a purse worth 5000 copper, a set of basic tools, potions and bread,
 or a weapon and armor set of varying quality.
 
 Then you pick however many extra proficient skills your difficulty allows. A proficient skill starts at
@@ -294,8 +294,28 @@ happens to have.
 
 ## 11. Money
 
+Money comes in **four metals**, each worth a fixed multiple of the one below it:
+
+| coin | worth |
+| --- | --- |
+| copper | 1 (the base) |
+| silver | 10 copper |
+| gold | 2 silver |
+| syllic | 5 gold |
+
+Everything is priced in these, and the header shows what you're carrying in shorthand — `55sy` is
+fifty-five syllic, `54sy 4g 1s` is what's left after breaking one of them. **You keep the coins you
+were handed.** Selling a stack of scrap pays out in loose copper and it stays loose copper, so a
+hundred coppers reads as a hundred coppers even though it's worth a syllic. Paying spends your small
+change first and only breaks a bigger coin when the small stuff runs out — and it breaks the smallest
+one that covers the bill, so three loose coppers never cost you a syllic.
+
+You'll also see **ingots** and **slabs** on some price tags. They aren't a separate currency: an ingot
+is ten coins of its metal and a slab a hundred, so a gold ingot is just a tidy way of writing twenty
+silver.
+
 Prices come from rarity. A common item is worth a little, a legendary one a lot, and selling returns 40%
-of what buying would cost — so trading is a way to convert effort into gold, not a way to print it.
+of what buying would cost — so trading is a way to convert effort into money, not a way to print it.
 
 Your **barter** skill gates what a shop will sell you at all: the better stock stays behind the counter
 until your barter level is high enough. Selling pays barter xp scaled by what you sold, so the skill
@@ -312,7 +332,7 @@ The sell screen lets you tick several stacks and offload them in one go.
 Two shops trade outside all of that, and you'll find them in the black market off the town square (and
 again in Zenthal). Neither asks your barter level, because every single thing on the table is mythic or
 better — a barter gate would show you an empty room until you'd traded half the game away. **The price is
-the gate**, and nothing here is cheap: entries run from a thousand gold to five hundred thousand. Rows are
+the gate**, and nothing here is cheap: entries run from a thousand base units to five hundred thousand — ten syllic to five thousand. Rows are
 green when you can afford them and red when you can't.
 
 **Illicit Goods** `[I]` sells named one-off artifacts and focuses, plus bundles — a bundle is a name for a

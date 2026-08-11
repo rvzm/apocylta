@@ -8,7 +8,7 @@ This document shows the various GUI layouts.
 The game runs inside the terminal, and looks kinda like this:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  The Town square - a wonderful hub for various shops.                 |
 |                                                                       |
@@ -79,7 +79,7 @@ Note the header with no identity segment at all - there's no character yet. `[C]
 `[M]enu` from anywhere, and it doubles as your character sheet: who you are, what you're wearing across all ten visible slots, and every skill with its level and banked xp in two columns. This is where a long name shows in full.
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | Name:       Rae                                                       |
 | Race/Class: Human Warrior                                             |
@@ -114,7 +114,7 @@ skills. Every step after the name is a list you move through with the arrow keys
 and `[B]ack` steps to the previous one, so nothing is committed until the last screen:
 ```
 _________________________________________________________________________
-| apocylta | [town square] | gp: 0                   [idle]      7:40pm  |
+| apocylta | [town square] | 0c                      [idle]      7:40pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   - Casual: A Relaxed Difficulty. Enemies have less HP and deal less  |
 |     damage. Players gain more XP.                                     |
@@ -145,7 +145,7 @@ actually creates the character and drops you into the world.
 Players move around using the travel menu to visit places within the world. Picking a destination is a single numbered keypress - no typing, no confirm step:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Travel from town square                                              |
 |                                                                       |
@@ -177,7 +177,7 @@ Shops always come first, followed by every other exit (paths, and airboat routes
 Longer trips take real time now instead of landing you there instantly. Picking a destination like "out of town" above drops you on a dedicated traveling screen with a countdown and a little ASCII animation of your progress along the route - a traveler moving down a road for ordinary paths:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     out of town  7:41pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         out of town  7:41pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Leaving town square, heading to wilderness.                          |
 |                                                                       |
@@ -208,7 +208,7 @@ The marker moves left to right as the trip progresses and lands you at your dest
 Players complete actions, which looks like this:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500 Gather scraps    7:58pm |
+| apocylta | Rae Lv.4 | [town square] | 55sy     Gather scraps    7:58pm |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  The Town square - a wonderful hub for various shops. | elapsed: 46s  |
 |                                                                       |
@@ -247,7 +247,7 @@ Any location flagged as dangerous offers a `[Fight]` action alongside its gather
 
 ```
 ______________________________________________________________________________
-| apocylta | Rae Lv.4 | [wilderness] | gp: 5500 fighting Goblin Ranger 8:04pm|
+| apocylta | Rae Lv.4 | [wilderness] | 55sy     fighting Goblin Ranger 8:04pm|
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Goblin Ranger    hp: 12/20                                                |
 |  [################------------]                                            |
@@ -292,14 +292,14 @@ Gathering in a dangerous location can also get you jumped: an ambush cancels wha
 If your HP reaches zero you get a screen of your own, and it's the one screen with a single key on it:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 0        [idle]      7:58pm  |
+| apocylta | Rae Lv.4 | [town square] | 0c           [idle]      7:58pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | Everything goes dark.                                                 |
 |                                                                       |
 |     You come to back at the town square, stripped of everything you   |
 |     carried.                                                          |
 |                                                                       |
-|     Lost: 21 items and 340 gold.                                      |
+|     Lost: 21 items and 17sy.                                          |
 |     Kept: whatever you had equipped, your skills, and your levels.    |
 |                                                                       |
 |     You've been handed the basics again: a belt and a wooden dagger.  |
@@ -321,7 +321,7 @@ you to the title rather than to the world:
 |                                                                       |
 |     Rae fell on nightmare difficulty. There is no waking up from that.|
 |                                                                       |
-|     Everything is gone: 21 items, 340 gold, and the save itself.      |
+|     Everything is gone: 21 items, 17sy, and the save itself.          |
 |                                                                       |
 |     Press X to return to the title screen.                            |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -337,7 +337,7 @@ before any of this - you never see this screen while one is in your pack.
 Locations with an ore vein (like the cave mines) carry `[N] Mine` among their hub features - unlike fishing, which is a numbered action - and it opens an ore selector rather than starting anything directly. Each mine has one of five tiers and only lists the ores that tier reaches, cumulatively: `basic` (tin, copper, iron), `mid_tier` (cobalt, mithril), `advanced` (syllic), `high_tier` (adamantite), `legendary` (runite), with gold turning up in all of them. Picking one starts the same kind of timed action shown above, gated by both your mining skill level and the tier of pickaxe you have equipped:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [cave mines] | gp: 1000       [idle]     7:38pm  |
+| apocylta | Rae Lv.4 | [cave mines] | 10sy           [idle]     7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   - Tin Ore (requires mining lvl 1)                                   |
 |   - Copper Ore (requires mining lvl 1)                                |
@@ -368,7 +368,7 @@ Coal is common enough to be reliable; a gem is a genuine find, roughly once ever
 Fishing works the same way, and reads the same on screen - but you reach it through the numbered `Fish` action rather than a hub feature, since fishing is something you do at a place with water rather than somewhere you go. What's swimming depends on the water: a riverbank lists the freshwater species, the docks list the saltwater ones, and a few species live in both and show up wherever there's water at all. Each row says how it's caught, because that decides what you need on you:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [riverbank] | gp: 1000         [idle]     7:38pm |
+| apocylta | Rae Lv.4 | [riverbank] | 10sy             [idle]     7:38pm |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   Something breaks the surface further out, then doesn't again.       |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -399,7 +399,7 @@ The far end of the list is a different kind of fishing. The ancients - the levia
 Players can view their inventory (or backpack). Tools don't live here anymore - they've moved to the Toolbelt (below). The backpack sorts itself into tabs by item type automatically (only types you're actually carrying show up), and the left/right arrow keys switch between them - the active tab is shown in brackets in the border:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 1000      [idle]     7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 10sy          [idle]     7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Your Backpack                                                        |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -443,7 +443,7 @@ hub features are what's behind the counter. Buying lists the shop's stock groupe
 rarity:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [weapons shop] | gp: 5500    [idle]      9:12am  |
+| apocylta | Rae Lv.4 | [weapons shop] | 55sy        [idle]      9:12am  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   The racks are picked over, but there's steel here if you can pay.   |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -455,7 +455,7 @@ _________________________________________________________________________
 |_______________________________________________________________________|
 | hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
-| What would you like to buy? (gp: 5500) |______________________________|
+| What would you like to buy? (55sy)     |______________________________|
 |                                                                       |
 | [B]ack | [P]urchase                                                   |
 |_______________________________________________________________________|
@@ -489,7 +489,7 @@ The housing district sells one thing, and it's the one that unlocks a home of yo
 ```
 |   - House Deed - 1000gp                                               |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
-| Buy a house (gp: 5500) |______________________________________________|
+| Buy a house (55sy)     |______________________________________________|
 |                                                                       |
 | [B]ack | [P]urchase                                                   |
 |_______________________________________________________________________|
@@ -516,7 +516,7 @@ Choosing one opens its recipes, tabbed by what they produce and grouped inside e
 what it needs, so you can see what you're short of without leaving the bench:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [safehouse] | gp: 5500       [idle]      9:20am  |
+| apocylta | Rae Lv.4 | [safehouse] | 55sy           [idle]      9:20am  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   Someone has kept this fire going. The pot is still warm.            |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ [All]| Food ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -549,7 +549,7 @@ Crafting pays xp scaled by the rarity of what you made, and counts toward `craft
 The Spellbook is reached from the backpack with `[C]`, and splits into two arrow-key tabs: what you already know, and what you don't. Learned spells are listed green, grouped by spell type:
 ```
 ________________________________________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 1000    [idle]     7:38pm                                  |
+| apocylta | Rae Lv.4 | [town square] | 10sy        [idle]     7:38pm                                  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | | [Learned (3)]| Unlearned (13) |                                                                    |
 |   Heal:                                                                                              |
@@ -572,7 +572,7 @@ ________________________________________________________________________________
 The Unlearned tab splits again, into what you can learn right now (green) and what you can't yet (red) - then by spell type inside each. Nothing is hidden from you: a spell beyond your magic level is still listed, with the level it wants. Learn costs show what you're carrying against what the spell needs, so you can see how close you are rather than just what it'll take:
 ```
 ________________________________________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 1000    [idle]     7:38pm                                  |
+| apocylta | Rae Lv.4 | [town square] | 10sy        [idle]     7:38pm                                  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | |  Learned (3) |[Unlearned (13)]|                                                                    |
 |   [Learnable] (2):                                                                                   |
@@ -602,7 +602,7 @@ Trying to learn something you can't doesn't block the screen, it just tells you 
 The Toolbelt is where your equipped tool and slingshot live, alongside everything that only works with a belt equipped at all - water bottle, slingshot ammo, and quiver. Your equipped belt also sets how much your backpack and potion pouch can hold; a stronger belt means more of both. It's also the entry point to your [Journal](#quests):
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [cave mines] | gp: 1000       [idle]     7:38pm  |
+| apocylta | Rae Lv.4 | [cave mines] | 10sy           [idle]     7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |  Your Toolbelt                                                        |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
@@ -634,7 +634,7 @@ Quest boards show up as a hub feature at some locations (town square has one). O
 Note the second bar under the header. Eleven screens carry one: this board, the mine and fishing pickers, all three shops, both workbench screens, the backpack, the toolbelt and the spellbook. It's separate from the prompt at the bottom, which tells you what the screen is for - this one is just scene-setting. Most of these rotate their line by the hour, so the same screen reads differently at dusk; the backpack and toolbelt keep one fixed label instead:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | The board is thick with paper, most of it months out of date.         |
 |_______________________________________________________________________|
@@ -654,7 +654,7 @@ _________________________________________________________________________
 Once accepted, a quest drops off the board and shows up in your Journal (`[J]ournal` from the Toolbelt screen), where you can track its objectives and claim the reward once everything's checked off:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | In Progress:                                                          |
 |   Getting Started                                                     |
@@ -694,7 +694,7 @@ Unlike quests, achievements need no accepting and no claiming - they watch what 
 
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5550 [idle]            8:14pm|
+| apocylta | Rae Lv.4 | [town square] | 55sy 2g 1s [idl            8:14pm|
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | Unlocked (1/7):                                                       |
 |   [x] Welcome to apocylta - claimed 50gp, 50xp                        |
@@ -730,7 +730,7 @@ A few requirements are judged in the instant a fight ends rather than tracked ov
 Both the title screen's `[C]ontinue` and the in-game Menu's `[S]ave`/`[L]oad` open the same picker, just in different modes. There are a few numbered slots plus (load mode only) an extra entry for the autosave the game writes on a timer in the background:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]      7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]      7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | Slot 1: Wanderer - Lv.3 Elf/Ranger @ wilderness (saved 2m ago)        |
 | Slot 2: Empty                                                        |
@@ -756,7 +756,7 @@ In save mode, choosing an occupied slot asks you to confirm before overwriting i
 Off by default. Set `allow_admin: true` in `config.js`'s `game_config` (or run with `ALLOW_ADMIN=true`) and the Menu grows a `[V] Admin` entry; leave it off and the entry isn't listed and the key does nothing. `ALLOW_ADMIN` wins over the config flag whichever way it's set, so `ALLOW_ADMIN=false` locks the editors out of a build that ships with them on. Everything under it writes state directly - no level gates, no slot caps, no rewards paid:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]     7:38pm   |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]     7:38pm   |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | Admin                                                                 |
 | What would you like to edit?                                          |
@@ -779,7 +779,7 @@ _________________________________________________________________________
 Editors work the same way throughout: arrow keys move the cursor, `+` and `-` adjust the selected value, and `1`/`2`/`3` set how much a press is worth - 1, 10, or 100:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 5500     [idle]     7:38pm   |
+| apocylta | Rae Lv.4 | [town square] | 55sy         [idle]     7:38pm   |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | Player stats                                                          |
 |   Health              [      87 ]  / 200                              |
@@ -822,7 +822,7 @@ It lasts for the session. For a character that's born invincible, set `godmode: 
 `[T]` from the Menu. Changes save the moment you make them - there's no confirm step and nothing to apply:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [town square] | gp: 1000       [idle]    7:38pm  |
+| apocylta | Rae Lv.4 | [town square] | 10sy           [idle]    7:38pm  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   Colorize        [ON ]   colour on/off; bold and highlighting stay   |
 |   Action style    [B] Boxed Key     e.g. [T]ravel                     |
