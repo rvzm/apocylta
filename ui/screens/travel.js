@@ -28,6 +28,15 @@ function previewColumns(exits) {
   });
 }
 
+// The digit each exit sits on, in order. "0" is the TENTH exit, not a zeroth:
+// town_square crossed nine the moment it gained a magic shop, which silently
+// made its portal room - the teleport hub - unreachable, since renderBody only
+// ever numbered exits the keymap could also bind.
+//
+// Exported so a test can assert no location has more exits than there are keys
+// to reach them with.
+export const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
 function renderBody(state, ui) {
   const location = getCurrentLocation(state);
   const exits = orderedExits(location);
@@ -36,21 +45,24 @@ function renderBody(state, ui) {
   ui.mainContent.setContent(`Travel from ${location.name}\n\n${grid}`);
   ui.promptRow.setContent(state.lastMessage || "Where would you like to go?");
 
-  const commands = exits.map((exit, i) => ({ label: exit.label, hotkey: String(i + 1) }));
+  // Same DIGITS list the keymap binds, so a rendered number always presses.
+  const commands = exits
+    .filter((_, i) => i < DIGITS.length)
+    .map((exit, i) => ({ label: exit.label, hotkey: DIGITS[i] }));
   commands.push({ label: "Back", hotkey: "B" });
   ui.commandList.setContent(formatCommandRow(commands));
 }
 
 // Built once; each handler re-resolves the current location's exits at call
 // time (same pattern as location.js's numbered actions) rather than being
-// tied to a fixed destination - an unbound digit (fewer than 9 exits here)
-// is simply a no-op.
+// tied to a fixed destination - an unbound digit (fewer exits than digits
+// here) is simply a no-op.
 const keymap = {
   B: (state, ui) => switchScreen(state, ui, "location"),
 };
-for (let n = 1; n <= 9; n++) {
-  keymap[String(n)] = (state, ui) => {
-    const exit = orderedExits(getCurrentLocation(state))[n - 1];
+DIGITS.forEach((digit, index) => {
+  keymap[digit] = (state, ui) => {
+    const exit = orderedExits(getCurrentLocation(state))[index];
     if (!exit) return;
     // A handful of location exits point at ids that aren't defined in
     // LOCATIONS yet (unfinished world data) - guard here rather than let
@@ -67,7 +79,7 @@ for (let n = 1; n <= 9; n++) {
     beginTravel(state, exit);
     switchScreen(state, ui, "traveling");
   };
-}
+});
 
 export const travelScreen = {
   keymap,

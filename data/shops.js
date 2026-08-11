@@ -5,6 +5,7 @@ import { SHOP_RARITY_DISPLAY } from "../item_backbone.js";
 export const SHOPS = {
   shop_weapons: { id: "shop_weapons", mode: "buy", types: ["weapon"] },
   shop_armor: { id: "shop_armor", mode: "buy", types: ["armor"] },
+  shop_magic: { id: "shop_magic", mode: "buy", types: ["magic"] },
   // "aid" rides along with potions rather than getting its own shop: bandages,
   // antidotes and revives are apothecary stock, and no other shop's `types`
   // listed them - which left every aid item, and with it the pre-death revive

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createInitialState } from "../../state/gameState.js";
 import { beginTravel, tickTravel } from "../../data/travel.js";
 import { buildTravelTrack } from "../../ui/screens/traveling.js";
+import { DIGITS, orderedExits } from "../../ui/screens/travel.js";
 import { LOCATIONS } from "../../data/locations.js";
 
 test("beginTravel() sets up currentTravel from an exit", () => {
@@ -138,5 +139,25 @@ test("every location exit resolves to a real location id, except the known unfin
 
   for (const badId of KNOWN_DANGLING) {
     assert.ok(!ids.has(badId), `${badId} now exists in LOCATIONS - remove it from KNOWN_DANGLING`);
+  }
+});
+
+// The travel screen numbers exits and binds one key per number, so a location
+// with more exits than DIGITS has destinations that are listed-but-unreachable
+// - or, before renderBody was made to share this list, not even listed. That is
+// exactly what happened to town_square's portal room when a magic shop was
+// added and pushed it to a tenth slot nothing could press.
+test("no location has more exits than the travel screen has keys", () => {
+  const tooMany = Object.entries(LOCATIONS)
+    .filter(([, location]) => (location.exits ?? []).length > DIGITS.length)
+    .map(([id, location]) => `${id}: ${location.exits.length} exits, ${DIGITS.length} keys`);
+  assert.deepEqual(tooMany, []);
+});
+
+test("every exit the travel screen renders is a key it also binds", () => {
+  for (const location of Object.values(LOCATIONS)) {
+    for (const [index] of orderedExits(location).entries()) {
+      assert.ok(DIGITS[index], `${location.id} exit ${index + 1} has no key`);
+    }
   }
 });

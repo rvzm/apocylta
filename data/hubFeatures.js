@@ -49,6 +49,10 @@ export const HUB_FEATURES = {
     label: "Enhancements",
     message: "No upgrades available yet. Not implemented yet.",
   },
+  // "G" rather than "M": main.js has no claim on it, and unlike M (Menu) it is
+  // free at the location screen - it also appears in the label, which the "R"
+  // action_key style needs a letter to embolden.
+  shop_magic: { id: "shop_magic", hotkey: "G", label: "Magic" },
   shop_housing: { id: "shop_housing", hotkey: "D", label: "Deeds" },
   mine: { id: "mine", hotkey: "N", label: "Mine", screen: "mineSelect" },
   toolbelt: { id: "toolbelt", hotkey: "L", label: "Toolbelt", screen: "toolbelt" },
