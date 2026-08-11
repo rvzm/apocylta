@@ -314,16 +314,24 @@ You'll also see **ingots** and **slabs** on some price tags. They aren't a separ
 is ten coins of its metal and a slab a hundred, so a gold ingot is just a tidy way of writing twenty
 silver.
 
-Prices come from rarity. A common item is worth a little, a legendary one a lot, and selling returns 40%
-of what buying would cost — so trading is a way to convert effort into money, not a way to print it.
+Every item carries its own price. Rarity sets the *band* it falls in — a common item is worth a little, a
+legendary one a lot — but where inside that band it lands comes from the item itself: a sword's damage, a
+breastplate's defense, how deep a mine you needed to reach the ore. Two common swords are no longer worth
+the same, which they used to be.
+
+Selling returns 40% of what buying would cost, so trading is a way to convert effort into money, not a way
+to print it. That last part is now literally enforced: no recipe whose ingredients you can *buy* is allowed
+to produce something worth more than 2.5× what they cost, because 2.5 is the point where buying the
+ingredients and selling the result starts minting coins out of nothing. Brewing tea used to pay five times
+over.
 
 Your **barter** skill gates what a shop will sell you at all: the better stock stays behind the counter
 until your barter level is high enough. Selling pays barter xp scaled by what you sold, so the skill
 grows through use like any other.
 
 What a shop will *sell* you is gated by your barter level against the item's rarity: common needs 1,
-uncommon 5, rare 15, epic 25, legendary 35, mythic 65 and godlike 100. Until you've traded enough, the good
-stock is visible and refused.
+uncommon 5, rare 15, epic 25, legendary 35, mythic 65, unique 80 and godlike 100. Until you've traded
+enough, the good stock is visible and refused.
 
 The sell screen lets you tick several stacks and offload them in one go.
 
