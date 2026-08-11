@@ -142,7 +142,7 @@ only lists the ores that tier reaches, each tier keeping everything below it:
 | mid tier | cobalt, mithril | 10, 25 |
 | advanced | syllic | 40 |
 | high tier | adamantite | 45 |
-| legendary | runic | 60 |
+| legendary | runite | 60 |
 
 Gold sits outside that ladder and turns up in every mine, at mining 8. Taking any ore needs your mining
 level *and* a pickaxe whose own tier reaches it: a copper pickaxe will not break mithril no matter how

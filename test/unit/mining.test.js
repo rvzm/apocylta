@@ -18,7 +18,7 @@ test("mineableOres() lists every real ore, sorted by required level ascending", 
     mithril_ore: 25,
     syllic_ore: 40,
     adamantite_ore: 45,
-    runic_ore: 60,
+    runite_ore: 60,
   });
   const levels = ores.map((o) => o.requiredLevel);
   assert.deepEqual(levels, [...levels].sort((a, b) => a - b));
@@ -49,8 +49,8 @@ test("isMineableAtTier() is cumulative - a higher tier keeps everything below it
   assert.equal(isMineableAtTier(1, "cobalt_ore", "cobalt"), false, "cobalt is mid_tier");
   assert.equal(isMineableAtTier(2, "cobalt_ore", "cobalt"), true);
   assert.equal(isMineableAtTier(2, "tin_ore", "tin"), true, "and still yields basic's metals");
-  assert.equal(isMineableAtTier(5, "runic_ore", "runic"), true);
-  assert.equal(isMineableAtTier(4, "runic_ore", "runic"), false, "runic is legendary-only");
+  assert.equal(isMineableAtTier(5, "runite_ore", "runite"), true);
+  assert.equal(isMineableAtTier(4, "runite_ore", "runite"), false, "runite is legendary-only");
 });
 
 // `advanced` (tier 3) splits the old high_tier in two, on the mining level its
@@ -94,15 +94,15 @@ test("mineableOres(locationId) narrows the list to the local mine's tier", () =>
   const advanced = mineableOres("cordura_mines_deep").map((o) => o.id); // mine: "advanced"
   assert.ok(advanced.includes("syllic_ore"));
   assert.ok(!advanced.includes("adamantite_ore"), "advanced stops below adamantite");
-  assert.ok(!advanced.includes("runic_ore"), "and well below runic");
+  assert.ok(!advanced.includes("runite_ore"), "and well below runite");
 
   const legendary = mineableOres("south_deep_cave").map((o) => o.id);
-  assert.ok(legendary.includes("runic_ore"));
+  assert.ok(legendary.includes("runite_ore"));
 });
 
 test("mineableOres() with no location applies no gate at all", () => {
   const everywhere = mineableOres().map((o) => o.id);
-  assert.ok(everywhere.includes("runic_ore"));
+  assert.ok(everywhere.includes("runite_ore"));
   assert.ok(everywhere.includes("cobalt_ore"));
   // A location that isn't a mine has no tier, so it behaves the same way.
   assert.deepEqual(mineableOres("town_square").map((o) => o.id), everywhere);

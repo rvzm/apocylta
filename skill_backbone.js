@@ -132,7 +132,7 @@ export const SKILL_BLOCKS = {
   // `tools` gives each rod a tier that has to reach that same level. Every level
   // in `catches` needs a rod that can reach it or the species is listed and
   // permanently uncatchable - godlike_fishing_rod is what makes difficulty 10
-  // reachable at all, exactly as syllic_pickaxe is for runic ore.
+  // reachable at all, exactly as syllic_pickaxe is for runite ore.
   fishing: {
     catches: { 1: 1, 2: 5, 3: 10, 4: 15, 5: 20, 6: 30, 7: 40, 8: 50, 9: 60, 10: 75 },
     tools: {
@@ -149,10 +149,14 @@ export const SKILL_BLOCKS = {
   // An ore missing from `ores` can't be mined at all (data/mining.js's
   // canMineOre refuses it), and canMineOre also wants an equipped pickaxe
   // whose `tools` tier is >= the ore's level - so every ore level here needs
-  // a pickaxe that can reach it. gold/syllic/runic are placed to match their
-  // MINE_LOCK tier; syllic_pickaxe is what makes runic reachable at all.
+  // a pickaxe that can reach it. gold/syllic/runite are placed to match their
+  // MINE_LOCK tier; syllic_pickaxe is what makes runite reachable at all.
+  // These keys are matched against an ore item's SUBTYPE, so they have to track
+  // item_backbone.js's vocabulary exactly. The catalog carried both "runic" and
+  // "runite" in MINING_TYPES/SMITHING_TYPES while the ore itself was runic_ore,
+  // so the unused spelling was one edit away from silently ungating the ore.
   mining: {
-    ores: { "tin": 1, "copper": 1, "iron": 5, "gold": 8, "cobalt": 10, "mithril": 25, "syllic": 40, "adamantite": 45, "runic": 60 },
+    ores: { "tin": 1, "copper": 1, "iron": 5, "gold": 8, "cobalt": 10, "mithril": 25, "syllic": 40, "adamantite": 45, "runite": 60 },
     tools: { "copper_pickaxe": 1, "iron_pickaxe": 5, "steel_pickaxe": 10, "mithril_pickaxe": 25, "adamantite_pickaxe": 45, "syllic_pickaxe": 60 }
   },
   luck: {

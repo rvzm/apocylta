@@ -334,7 +334,7 @@ before any of this - you never see this screen while one is in your pack.
 
 ## Mining
 
-Locations with an ore vein (like the cave mines) carry `[N] Mine` among their hub features - unlike fishing, which is a numbered action - and it opens an ore selector rather than starting anything directly. Each mine has one of five tiers and only lists the ores that tier reaches, cumulatively: `basic` (tin, copper, iron), `mid_tier` (cobalt, mithril), `advanced` (syllic), `high_tier` (adamantite), `legendary` (runic), with gold turning up in all of them. Picking one starts the same kind of timed action shown above, gated by both your mining skill level and the tier of pickaxe you have equipped:
+Locations with an ore vein (like the cave mines) carry `[N] Mine` among their hub features - unlike fishing, which is a numbered action - and it opens an ore selector rather than starting anything directly. Each mine has one of five tiers and only lists the ores that tier reaches, cumulatively: `basic` (tin, copper, iron), `mid_tier` (cobalt, mithril), `advanced` (syllic), `high_tier` (adamantite), `legendary` (runite), with gold turning up in all of them. Picking one starts the same kind of timed action shown above, gated by both your mining skill level and the tier of pickaxe you have equipped:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [cave mines] | gp: 1000       [idle]     7:38pm  |

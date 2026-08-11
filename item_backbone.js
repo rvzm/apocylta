@@ -22,8 +22,8 @@ export const SCRAP_TYPES = ["metal", "plastic", "wood", "stone", "fabric", "glas
 // "fishing" covers bait/nets/hooks - carried gear that gates a catch by being
 // in the backpack rather than equipped (see the FISHING_ITEMS mapping below).
 export const CRAFTING_TYPES = ["woodworking", "metalworking", "tool", "alchemy", "cooking", "smithing", "magic", "fishing", ...SCRAP_TYPES];
-export const MINING_TYPES = ["tin", "copper", "iron", "cobalt", "mithril", "adamantite", "syllic", "silkre", "runite", "runic", "gold", "fuel", "gemstone"];
-export const SMITHING_TYPES = ["tin", "copper", "bronze", "iron", "cobalt", "black_cobalt", "steel", "black_steel", "mithril", "adamantite", "syllic", "runite", "runic", "gold", "silkre", "fuel", "alloy"];
+export const MINING_TYPES = ["tin", "copper", "iron", "cobalt", "mithril", "adamantite", "syllic", "silkre", "runite", "gold", "fuel", "gemstone"];
+export const SMITHING_TYPES = ["tin", "copper", "bronze", "iron", "cobalt", "black_cobalt", "steel", "black_steel", "mithril", "adamantite", "syllic", "runite", "gold", "silkre", "fuel", "alloy"];
 export const METAL_TYPES = ["base", "alloy", "precious", "rare", "exotic"];
 export const FOOD_CATAGORIES = ["raw_food", "raw_meat", "raw_fish", "raw_fungi", "raw_vegetables", "raw_herbs", "raw_fruits", "cooked_food"];
 // "grilled"/"smoked"/"pickled" are the fishing preparations (FISHING_RECIPES);
@@ -652,7 +652,7 @@ export const ITEMS = {
     "gold_ore": { name: "Gold Ore", type: "mining", subtype: "gold", rarity: "uncommon" },
     "cobalt_ore": { name: "Cobalt Ore", type: "mining", subtype: "cobalt", rarity: "uncommon" },
     "mithril_ore": { name: "Mithril Ore", type: "mining", subtype: "mithril", rarity: "rare" },
-    "runic_ore": { name: "Runic Ore", type: "mining", subtype: "runic", rarity: "epic" },
+    "runite_ore": { name: "Runite Ore", type: "mining", subtype: "runite", rarity: "epic" },
     "adamantite_ore": { name: "Adamantite Ore", type: "mining", subtype: "adamantite", rarity: "legendary" },
     "syllic_ore": { name: "Syllic Ore", type: "mining", subtype: "syllic", rarity: "legendary" },
     
@@ -667,7 +667,7 @@ export const ITEMS = {
     "steel_bar": { name: "Steel Bar", type: "smithing", subtype: "alloy", rarity: "uncommon" },
     "black_steel_bar": { name: "Black Steel Bar", type: "smithing", subtype: "alloy", rarity: "rare" },
     "mithril_bar": { name: "Mithril Bar", type: "smithing", subtype: "mithril", rarity: "rare" },
-    "runic_bar": { name: "Runic Bar", type: "smithing", subtype: "runic", rarity: "epic" },
+    "runite_bar": { name: "Runite Bar", type: "smithing", subtype: "runite", rarity: "epic" },
     "adamantite_bar": { name: "Adamantite Bar", type: "smithing", subtype: "adamantite", rarity: "legendary" },
     "syllic_bar": { name: "Syllic Bar", type: "smithing", subtype: "syllic", rarity: "legendary" },
 
@@ -818,7 +818,7 @@ export const MINING_RESOURCES = {
 // than forbidden - it shows in every mine. Add a name here to gate it.
 //
 // Five tiers, ordered by the mining level their metals need: tin/copper 1, iron
-// 5, cobalt 10, mithril 25, syllic 40, adamantite 45, runic 60. `advanced` sits
+// 5, cobalt 10, mithril 25, syllic 40, adamantite 45, runite 60. `advanced` sits
 // between mid_tier and high_tier and is what the Cordura deep mines resolve to -
 // they used to resolve to nothing at all (see the helpers below).
 // `tier` must stay contiguous from 1: mineLockNamesUpTo() counts up through it,
@@ -828,7 +828,7 @@ export const MINE_LOCK = {
     mid_tier: { metals: ["cobalt", "mithril"], gems: ["diamond", "amethyst", "topaz"], fuel: ["charcoal"], tier: 2 },
     advanced: { metals: ["syllic"], gems: [], fuel: [], tier: 3 },
     high_tier: { metals: ["adamantite"], gems: ["opal"], fuel: ["flux", "limestone"], tier: 4 },
-    legendary: { metals: ["runic"], gems: [], fuel: [], tier: 5 },
+    legendary: { metals: ["runite"], gems: [], fuel: [], tier: 5 },
 }
 // MINE LOCK helpers
 //
@@ -836,7 +836,7 @@ export const MINE_LOCK = {
 // duplication cost real behaviour: nine locations (the Cordura deep mines) name
 // a tier the switch had no case for, so getMineLockByName() returned null,
 // mineableOres() applied NO gate, and those mines quietly offered every ore in
-// the game - runic included. A lookup can't fall out of step with the table.
+// the game - runite included. A lookup can't fall out of step with the table.
 export function getMineLockByTier(tier) {
     return Object.values(MINE_LOCK).find((lock) => lock.tier === tier) ?? null;
 }

@@ -12,7 +12,7 @@ import { MINE_LOCK, FISH } from "../../item_backbone.js";
 // name nothing recognises resolves to null - which reads as "no gate" rather
 // than "no ores", so the mine silently offers everything instead of failing.
 // Nine locations shipped `mine: "advanced"` against a four-tier MINE_LOCK that
-// had no such key, and the Cordura deep mines handed out runic ore to anyone who
+// had no such key, and the Cordura deep mines handed out runite ore to anyone who
 // walked in. Cheap to assert, invisible otherwise.
 test("every location's mine tier is a real MINE_LOCK key", () => {
   const unknown = Object.entries(LOCATIONS)
