@@ -55,6 +55,10 @@ In this world, you can level up your skills, yourself, and live whatever life yo
 - **Quests and achievements** — take work from a Quest Board, track it in your Journal (objectives can
   nest into groups, and some are optional), and claim rewards when it's done. 24 achievements unlock and
   pay out on their own as you play.
+- **A black market, and enhancements you wear** — two shops that trade outside the ordinary economy: one
+  for illicit goods, one for 70 enhancements across five slots and every skill. No barter level will get
+  you in — the price is the whole gate. A worn enhancement raises your *effective* skill level wherever it
+  gates or scales play, but never the level you trained, so it can't finish a quest for you.
 - **A Toolbelt with real capacity** — your belt sets backpack slots, potion pouch and ammo, and some
   resources aren't usable without one at all.
 - **Save/load** — multiple SQLite save slots plus a timed autosave that shows up as an extra loadable

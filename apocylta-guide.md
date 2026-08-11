@@ -307,6 +307,31 @@ stock is visible and refused.
 
 The sell screen lets you tick several stacks and offload them in one go.
 
+### The black market
+
+Two shops trade outside all of that, and you'll find them in the black market off the town square (and
+again in Zenthal). Neither asks your barter level, because every single thing on the table is mythic or
+better — a barter gate would show you an empty room until you'd traded half the game away. **The price is
+the gate**, and nothing here is cheap: entries run from a thousand gold to five hundred thousand. Rows are
+green when you can afford them and red when you can't.
+
+**Illicit Goods** `[I]` sells named one-off artifacts and focuses, plus bundles — a bundle is a name for a
+pile of something else, so its row tells you what's actually inside before you pay for it.
+
+**Enhancements** `[E]` sells 70 items across five slots — charm, talisman, beads, ring and bangle — with
+one entry per slot for each of the 14 skills. You wear one per slot, so five at a time, and they stack.
+
+An enhancement raises your **effective** skill level, not your trained one, and the difference matters:
+
+- It counts wherever a level *gates or scales* what you can do — swinging harder in a fight, reaching an
+  ore or a fish species that was locked a moment ago, improving your odds on a gather attempt, unlocking
+  better shop stock.
+- It does **not** count where the level is the thing being measured. A quest objective to reach mining 10,
+  an achievement for the same, the xp you earn, and every number the game shows you all read the level you
+  actually trained. Buying a charm won't complete a quest for you.
+
+Your worn enhancements are listed in the Menu, and they ride your save.
+
 ---
 
 ## 12. Quests
