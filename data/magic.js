@@ -1,6 +1,6 @@
 import { SPELLS } from "../magic_backbone.js";
 import { LOCATIONS } from "./locations.js";
-import { grantSkillXp, moveTo } from "../state/gameState.js";
+import { grantSkillXp, moveTo, effectiveSkillLevel } from "../state/gameState.js";
 import { hasIngredients, spendIngredients } from "./stations.js";
 // Deliberate import cycle: quests.js imports isSpellKnown() from this file.
 // Safe because both modules only export hoisted function declarations and do
@@ -24,7 +24,7 @@ export function isSpellKnown(state, spellId) {
 // for yet should still show what it'll cost).
 export function isSpellUnlocked(state, spellId) {
   const spell = SPELLS[spellId];
-  return !!spell && state.skills.magic.level >= (spell.level ?? 1);
+  return !!spell && effectiveSkillLevel(state, "magic") >= (spell.level ?? 1);
 }
 
 export function canLearnSpell(state, spellId) {

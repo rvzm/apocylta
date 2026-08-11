@@ -12,7 +12,12 @@ export const SHOPS = {
   // in data/combat.js, unobtainable in a real run.
   shop_potions: { id: "shop_potions", mode: "buy", types: ["potion", "aid"] },
   shop_general: { id: "shop_general", mode: "buy", types: ["tool", "crafting", "food", "scrap", "kit"] },
-  shop_illegal: { id: "shop_illegal", mode: "buy", types: ["treasure"] },
+  // The two black-market shops sell out of BLACKMARKET rather than ALL_ITEMS,
+  // so they carry a `blackMarket` collection key instead of `types` and use the
+  // same `screen` override shop_housing already does - which is what lets
+  // ui/screens/location.js route them with no change of its own.
+  shop_illegal: { id: "shop_illegal", mode: "buy", screen: "blackMarket", blackMarket: "illicit_goods" },
+  shop_enhancements: { id: "shop_enhancements", mode: "buy", screen: "blackMarket", blackMarket: "enhancements" },
   shop_sell: { id: "shop_sell", mode: "sell" },
   // `screen` overrides the default buy/sell routing - housing sells a house
   // and stations, not ALL_ITEMS entries, so it needs its own screen.

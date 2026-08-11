@@ -1,7 +1,7 @@
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { getBuyPrice, isPurchasable, getBarterXp, canAfford, chargeGold } from "../../data/shops.js";
 import { indoorTimeLine, openLine } from "../../data/flavor.js";
-import { addItem, grantSkillXp } from "../../state/gameState.js";
+import { addItem, grantSkillXp, effectiveSkillLevel } from "../../state/gameState.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 
@@ -11,7 +11,7 @@ function capitalize(word) {
 
 function buildBuyRows(state) {
   const shop = state.shopContext;
-  const barterLevel = state.skills.barter.level;
+  const barterLevel = effectiveSkillLevel(state, "barter");
 
   const entries = Object.entries(ALL_ITEMS).filter(
     ([, item]) => shop.types.includes(item.type) && isPurchasable(item, barterLevel)

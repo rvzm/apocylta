@@ -11,7 +11,7 @@ import {
 } from "../skill_backbone.js";
 import { RACES, CLASSES, DIFFICULTY_LEVELS, STARTER_ITEMS } from "../player_backbone.js";
 import { player_config } from "../config.js";
-import { STARTER_PACKS, ALL_ITEMS } from "../item_backbone.js";
+import { STARTER_PACKS, ALL_ITEMS, ENHANCEMENT_SLOTS } from "../item_backbone.js";
 import { logger } from "../logger.js";
 import { backpackSlotCap, backpackSlotsUsed, potionSlotCap, potionSlotsUsed } from "../data/toolbelt.js";
 import { minutesIntoDay, isOpenAt } from "./clock.js";
@@ -45,6 +45,17 @@ function createInitialEquipment() {
   };
 }
 
+// The black market's charm/talisman/beads/ring/bangle ladder, one worn item per
+// tier. Deliberately NOT folded into createInitialEquipment(): the enhancement
+// "ring" tier and the armor "ring" slot are different things that would
+// otherwise overwrite each other. equipItem() routes between the two maps.
+function createInitialEnhancements() {
+  return ENHANCEMENT_SLOTS.reduce((acc, slot) => {
+    acc[slot] = null;
+    return acc;
+  }, {});
+}
+
 // Current held amounts only - max caps (water/slingshot ammo/quiver, all
 // gated on whether a belt is equipped at all) are derived, not stored; see
 // data/toolbelt.js. Water bottle starts full so water-ingredient recipes are
@@ -71,6 +82,7 @@ export function createInitialState() {
     inventory: {},
     skills: createInitialSkills(),
     equipment: createInitialEquipment(),
+    enhancements: createInitialEnhancements(),
     toolbelt: createInitialToolbelt(),
     currentAction: null, // | { id, elapsedSeconds, gatheredThisSession: {} }
     currentTravel: null, // | { fromLocationId, toLocationId, category, totalSeconds, elapsedSeconds }
@@ -191,11 +203,46 @@ export function removeItem(state, itemId, qty, { force = false } = {}) {
 // was previously equipped there (if any) to the inventory. Returns the
 // previously-equipped item id, or null.
 export function equipItem(state, itemId, slot) {
-  const previous = state.equipment[slot];
+  // Enhancements wear in their own five slots rather than on the armor
+  // paperdoll - one branch here is what keeps the backpack's E, the admin
+  // equipment editor and the swap screens working unchanged for both.
+  //
+  // Routed on the ITEM, not on the slot name: "ring" is both an ARMOR_SLOTS
+  // entry and an enhancement tier, so a name-based check filed ring_of_eternity
+  // as an enhancement and let a 100,000gp Luck Ring evict it.
+  const worn = ALL_ITEMS[itemId]?.type === "enhancement" ? state.enhancements : state.equipment;
+  const previous = worn[slot];
   if (previous) addItem(state, previous, 1);
-  state.equipment[slot] = itemId;
+  worn[slot] = itemId;
   removeItem(state, itemId, 1, { force: true }); // a move, not a cost
   return previous;
+}
+
+// The skill level the game should ACT on: the trained level plus whatever the
+// worn enhancements add. Every enhancement's effect is authored as
+// `{ <skillId>Up: n }`, so the skill id is all this needs to look one up.
+//
+// Deliberately not clamped to MAX_SKILL_LEVEL: the cap is on what training can
+// buy, and a 500,000gp bangle whose bonus silently evaporates at the ceiling is
+// a worse surprise than one that pushes past it.
+export function enhancementBonus(state, skillId) {
+  let bonus = 0;
+  for (const itemId of Object.values(state.enhancements ?? {})) {
+    bonus += ALL_ITEMS[itemId]?.effect?.[`${skillId}Up`] ?? 0;
+  }
+  return bonus;
+}
+
+// Use this wherever a skill level GATES or SCALES something in play - combat
+// maths, mining/fishing/magic requirements, gather odds, shop stock.
+//
+// Do NOT use it where the level is the thing being measured: quest and
+// achievement progress read the trained level directly, because a bought charm
+// must not complete "reach mining level 10", and the same goes for xp grants,
+// the action screen's session delta, and every display of the number.
+export function effectiveSkillLevel(state, skillId) {
+  const base = state.skills[skillId]?.level ?? 1;
+  return base + enhancementBonus(state, skillId);
 }
 
 export function grantSkillXp(state, skillId, amount) {

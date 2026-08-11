@@ -168,6 +168,9 @@ export function objectiveStatus(state, questId, path) {
     return { current: complete ? 1 : 0, target: 1, complete };
   }
   if ("learnSkill" in def) {
+    // The trained level, deliberately not gameState's effectiveSkillLevel: an
+    // objective to reach mining 10 measures training, and a 1000gp charm off
+    // the black market would otherwise complete it outright.
     const { type: skillId, level } = def.learnSkill;
     const current = Math.min(state.skills[skillId]?.level ?? 0, level);
     return { current, target: level, complete: current >= level };

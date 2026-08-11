@@ -6,11 +6,22 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmuxSession, uniqueSessionName } from "../helpers/tmux.js";
 import { bootstrapCharacter } from "../helpers/bootstrapCharacter.js";
+import { LOCATIONS } from "../../data/locations.js";
+import { orderedExits } from "../../ui/screens/travel.js";
 
 const PROJECT_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
-// town_square -[6]-> wilderness -[5]-> west_path -[3]-> cave_entrance -[2]-> cave_mines
-// (exit indices from data/locations.js's exits arrays, shops listed before paths).
+// Which digit an exit sits on, derived from the same function the travel screen
+// numbers with - orderedExits() is exported for exactly this. Hardcoding it has
+// broken these tests three times now, most recently when town_square gained a
+// magic shop and every path exit after it shifted down one.
+function exitDigit(fromId, toId) {
+  const index = orderedExits(LOCATIONS[fromId]).findIndex((exit) => exit.to === toId);
+  assert.ok(index >= 0, `${fromId} should have an exit to ${toId}`);
+  return String(index + 1);
+}
+
+// town_square -> wilderness -> west_path -> cave_entrance -> cave_mines.
 // Every hop on this route now has a `time` value, so the digit press lands
 // on the "traveling" screen first, not the destination - waiting for the
 // destination's own name would match instantly on that screen's "Leaving X,
@@ -46,10 +57,10 @@ test("mine hub feature: ore selector renders gated rows, blocks with no pickaxe"
 
   await bootstrapCharacter(session, { name: "Miner" });
 
-  await travelTo(session, "6", /wilderness/i);
-  await travelTo(session, "5", /west path/i);
-  await travelTo(session, "3", /cave entrance/i);
-  await travelTo(session, "2", /cave mines/i);
+  await travelTo(session, exitDigit("town_square", "wilderness"), /wilderness/i);
+  await travelTo(session, exitDigit("wilderness", "west_path"), /west path/i);
+  await travelTo(session, exitDigit("west_path", "cave_entrance"), /cave entrance/i);
+  await travelTo(session, exitDigit("cave_entrance", "cave_mines"), /cave mines/i);
 
   await session.waitFor("Mine"); // command legend picked up HUB_FEATURES.mine
 

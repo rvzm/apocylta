@@ -34,6 +34,7 @@ export function writeAutosave(state) {
     ownedStations: [...state.ownedStations],
     spells: [...state.spells],
     equipment: state.equipment,
+    enhancements: state.enhancements,
     toolbelt: state.toolbelt,
     skills: state.skills,
     inventory: state.inventory,
@@ -58,6 +59,10 @@ export function readAutosave() {
     // Falls back to the fresh state's seed for autosaves written before
     // achievements existed, so a tick can't hit an undefined Set.
     locationsVisited: new Set(snapshot.locationsVisited ?? [...state.locationsVisited]),
+    // Same reason: an autosave written before enhancements existed has no such
+    // key, and Object.assign would otherwise write undefined over the five slots
+    // that effectiveSkillLevel() iterates every combat round.
+    enhancements: snapshot.enhancements ?? state.enhancements,
     // Same migration persistence.js does: the level is read back off the banked
     // xp, so an autosave written against the old (much shallower) player curve
     // lands on the level that xp is actually worth now.

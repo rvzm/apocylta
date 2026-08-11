@@ -6,7 +6,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LOCATIONS, resolveFlavorText } from "../../data/locations.js";
 import { createInitialState } from "../../state/gameState.js";
-import { MINE_LOCK, FISH } from "../../item_backbone.js";
+import { MINE_LOCK, FISH, STATIONS } from "../../item_backbone.js";
+import { HUB_FEATURES } from "../../data/hubFeatures.js";
 import { wrapIndented } from "../../ui/format.js";
 import { BODY_INDENT, DEFAULT_SCREEN_WIDTH } from "../../ui/screens/location.js";
 
@@ -30,6 +31,25 @@ test("every location's water type is one some fish species lives in", () => {
     .filter(([, l]) => l.water !== undefined && !known.has(l.water))
     .map(([id, l]) => `${id}: water "${l.water}"`);
   assert.deepEqual(unknown, [], `known waters are ${[...known].join(", ")}`);
+});
+
+// ui/screens/location.js filters unknown hub feature ids out of the command row
+// (`.map(getHubFeature).filter(Boolean)`), so a typo'd or renamed id doesn't
+// crash - the amenity just silently isn't there, and its hotkey does nothing.
+// black_market listed "shop_enhancements" for a while with no such entry.
+//
+// Station ids ride the same list as a presence flag and have no HUB_FEATURES
+// entry by design (see data/stations.js), so they're excluded.
+test("every location's hubFeatures id is a real HUB_FEATURES entry", () => {
+  const unknown = [];
+  for (const [id, location] of Object.entries(LOCATIONS)) {
+    for (const featureId of location.hubFeatures ?? []) {
+      if (featureId in HUB_FEATURES) continue;
+      if (featureId in STATIONS) continue;
+      unknown.push(`${id}: "${featureId}"`);
+    }
+  }
+  assert.deepEqual(unknown, []);
 });
 
 // MINE_LOCK's tier numbers are walked as a range by mineLockNamesUpTo(), whose

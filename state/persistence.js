@@ -2,6 +2,7 @@ import { db } from "../db_backbone.js";
 import { createInitialState } from "./gameState.js";
 import { LOCATIONS } from "../data/locations.js";
 import { SKILLS, playerLevelFromXp } from "../skill_backbone.js";
+import { ALL_ITEMS } from "../item_backbone.js";
 import { isGroup } from "../enemy_backbone.js";
 import { game_config } from "../config.js";
 
@@ -77,6 +78,17 @@ export function saveGame(state, slotId) {
   );
   const deleteVisited = db.prepare(`DELETE FROM locations_visited WHERE player_id = ?`);
   const insertVisited = db.prepare(`INSERT INTO locations_visited (player_id, location_id) VALUES (?, ?)`);
+  // The worn black-market enhancements. Uses the `enhancements` table that has
+  // sat empty in the schema since the start - like `achievements` before it, its
+  // existing columns suffice, so this needed no ALTER TABLE migration.
+  //
+  // Only the item ids are stored, no slot column: an enhancement's slot IS a
+  // property of the item (ALL_ITEMS[id].enhancementSlot), so the map rebuilds
+  // itself on load and can't drift from the catalog.
+  const deleteEnhancements = db.prepare(`DELETE FROM enhancements WHERE player_id = ?`);
+  const insertEnhancement = db.prepare(
+    `INSERT INTO enhancements (player_id, enhancement_id) VALUES (?, ?)`
+  );
   const deleteCounters = db.prepare(`DELETE FROM lifetime_counters WHERE player_id = ?`);
   const insertCounter = db.prepare(
     `INSERT INTO lifetime_counters (player_id, kind, counter_key, quantity) VALUES (?, ?, ?, ?)`
@@ -131,6 +143,11 @@ export function saveGame(state, slotId) {
 
     deleteStations.run(slotId);
     for (const stationId of s.ownedStations) insertStation.run(slotId, stationId);
+
+    deleteEnhancements.run(slotId);
+    for (const itemId of Object.values(s.enhancements ?? {})) {
+      if (itemId) insertEnhancement.run(slotId, itemId);
+    }
 
     deleteSpells.run(slotId);
     for (const spellId of s.spells) insertSpell.run(slotId, spellId);
@@ -192,6 +209,7 @@ export function loadGame(slotId) {
     .prepare(`SELECT achievement_id, achievement_completed FROM achievements WHERE player_id = ?`)
     .all(slotId);
   const visitedRows = db.prepare(`SELECT location_id FROM locations_visited WHERE player_id = ?`).all(slotId);
+  const enhancementRows = db.prepare(`SELECT enhancement_id FROM enhancements WHERE player_id = ?`).all(slotId);
   const counterRows = db
     .prepare(`SELECT kind, counter_key, quantity FROM lifetime_counters WHERE player_id = ?`)
     .all(slotId);
@@ -222,6 +240,12 @@ export function loadGame(slotId) {
   state.mpMax = playerRow.mana_max || state.mpMax;
   state.house = !!playerRow.has_house;
   state.ownedStations = new Set(stationRows.map((r) => r.station_id));
+  // Slot comes from the item, not the row - see the save side. An id the
+  // catalog no longer knows resolves to no slot and is simply dropped.
+  for (const { enhancement_id: itemId } of enhancementRows) {
+    const slot = ALL_ITEMS[itemId]?.enhancementSlot;
+    if (slot && slot in state.enhancements) state.enhancements[slot] = itemId;
+  }
   state.spells = new Set(spellRows.map((r) => r.spell_id));
   // Groups are headers, not enemies - only members are ever recorded as kills.
   // Saves written before that rule existed contain group ids (they used to be
@@ -289,6 +313,7 @@ export function deleteSave(slotId) {
     db.prepare(`DELETE FROM enemies_defeated WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM achievements WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM locations_visited WHERE player_id = ?`).run(id);
+    db.prepare(`DELETE FROM enhancements WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM lifetime_counters WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM quests WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM player WHERE id = ?`).run(id);

@@ -58,6 +58,11 @@ test("saveGame()/loadGame() round-trips a fully-populated state (slot 1)", async
   // never in the ARMOR_SLOTS list at all.
   state.equipment.shield = "wooden_shield";
   state.equipment.cloak = "leather_cloak";
+  // The worn black-market enhancements. These live in their own map and their
+  // own table, and the slot is recovered from the item rather than stored - so
+  // a save that loses them would silently drop every bonus they grant.
+  state.enhancements.beads = "mining_beads";
+  state.enhancements.bangle = "luck_bangle";
   state.inventory = { wood: 5, tin_ore: 2 };
   state.toolbelt = { waterBottle: 55, slingshotAmmo: 3, quiver: 12 };
   state.skills.mining.level = 7;
@@ -102,6 +107,9 @@ test("saveGame()/loadGame() round-trips a fully-populated state (slot 1)", async
   assert.equal(loaded.equipment.head, "leather_cowl");
   assert.equal(loaded.equipment.shield, "wooden_shield");
   assert.equal(loaded.equipment.cloak, "leather_cloak");
+  assert.deepEqual(loaded.enhancements, {
+    charm: null, talisman: null, beads: "mining_beads", ring: null, bangle: "luck_bangle",
+  });
   assert.deepEqual(loaded.toolbelt, { waterBottle: 55, slingshotAmmo: 3, quiver: 12 });
   assert.equal(loaded.inventory.wood, 5);
   assert.equal(loaded.inventory.tin_ore, 2);

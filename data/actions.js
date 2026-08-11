@@ -1,6 +1,7 @@
 // apocylta world data - interactive actions
 
 import { ALL_ITEMS, SHOP_RARITY_DISPLAY } from "../item_backbone.js";
+import { effectiveSkillLevel } from "../state/gameState.js";
 
 // Every timed action rolls per attempt now, and can come up empty - see
 // gatherSuccessChance() below. Two bits of wording go with that: `attemptVerb`
@@ -202,7 +203,7 @@ const MAX_SUCCESS = 0.95;
 
 export function gatherSuccessChance(state, action, targetLevel = 1) {
   const base = action?.successChance ?? DEFAULT_SUCCESS_CHANCE;
-  const skillLevel = action?.skill ? state.skills[action.skill]?.level ?? 1 : 1;
+  const skillLevel = action?.skill ? effectiveSkillLevel(state, action.skill) : 1;
   const chance = base + (skillLevel - (targetLevel || 1)) * SKILL_BONUS_PER_LEVEL;
   return Math.min(MAX_SUCCESS, Math.max(MIN_SUCCESS, chance));
 }

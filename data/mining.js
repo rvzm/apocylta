@@ -5,6 +5,7 @@ import { ALL_ITEMS, getMineLockByName, isMineableAtTier } from "../item_backbone
 import { SKILL_BLOCKS } from "../skill_backbone.js";
 import { getMineType } from "./locations.js";
 import { rollLootByType } from "./actions.js";
+import { effectiveSkillLevel } from "../state/gameState.js";
 
 // Not ores you pick - incidental finds, handled by rollMineBonuses() below.
 // Filtered by subtype rather than by "has no required level", which reads as
@@ -90,7 +91,7 @@ export function canMineOre(state, oreId) {
   const requiredLevel = item ? SKILL_BLOCKS.mining.ores[item.subtype] : null;
   if (requiredLevel == null) return { ok: false, reason: "That can't be mined." };
 
-  if (state.skills.mining.level < requiredLevel) {
+  if (effectiveSkillLevel(state, "mining") < requiredLevel) {
     return { ok: false, reason: `Requires mining level ${requiredLevel}.` };
   }
 

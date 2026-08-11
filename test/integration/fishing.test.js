@@ -8,8 +8,19 @@ import { tmuxSession, uniqueSessionName } from "../helpers/tmux.js";
 import { bootstrapCharacter } from "../helpers/bootstrapCharacter.js";
 import { LOCATIONS } from "../../data/locations.js";
 import { validActionsAt } from "../../ui/screens/location.js";
+import { orderedExits } from "../../ui/screens/travel.js";
 
 const PROJECT_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+
+// Which digit an exit sits on, derived from the same function the travel screen
+// numbers with - orderedExits() is exported for exactly this. Hardcoding it has
+// broken these tests three times now, most recently when town_square gained a
+// magic shop and every path exit after it shifted down one.
+function exitDigit(fromId, toId) {
+  const index = orderedExits(LOCATIONS[fromId]).findIndex((exit) => exit.to === toId);
+  assert.ok(index >= 0, `${fromId} should have an exit to ${toId}`);
+  return String(index + 1);
+}
 
 // Which digit the Fish action sits on at a location - derived rather than
 // hardcoded, the same reason travel.js exports orderedExits(): the numbering
@@ -20,7 +31,7 @@ function fishDigit(locationId) {
   return String(index + 1);
 }
 
-// Same hop the mining test uses: town_square -[6]-> wilderness, which is
+// Same hop the mining test uses: town_square -> wilderness, which is
 // `water: "freshwater"`. Waiting on the location screen's own prompt is the
 // arrival-exclusive signal (the traveling screen never sets it).
 async function travelTo(session, digit, waitForText) {
@@ -50,7 +61,7 @@ test("fish action: species selector is gated by the local water, and blocks with
 
   await bootstrapCharacter(session, { name: "Anglr" });
 
-  await travelTo(session, "6", /wilderness/i);
+  await travelTo(session, exitDigit("town_square", "wilderness"), /wilderness/i);
 
   session.sendKeys(fishDigit("wilderness"));
   await session.waitFor("What would you like to fish for?");

@@ -1,7 +1,7 @@
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
 import { SKILLS } from "../../skill_backbone.js";
-import { ALL_ITEMS } from "../../item_backbone.js";
+import { ALL_ITEMS, ENHANCEMENT_SLOTS } from "../../item_backbone.js";
 import { RACES, CLASSES, DIFFICULTY_LEVELS } from "../../player_backbone.js";
 import { adminEnabled } from "./admin/shared.js";
 
@@ -66,6 +66,18 @@ export const menuScreen = {
     for (const [slot, label] of Object.entries(SLOT_LABELS)) {
       const itemId = state.equipment[slot];
       bodyLines.push(`  ${label.padEnd(7)}: ${itemId ? ALL_ITEMS[itemId]?.name ?? itemId : "empty"}`);
+    }
+
+    // Worn black-market enhancements. Listed only when something is worn, and
+    // on one line rather than a row per slot: this pane already overflows at
+    // 120x40, and five permanently-empty rows would cost the Skills block for
+    // a player who has never been to the black market.
+    const worn = ENHANCEMENT_SLOTS.map((slot) => state.enhancements?.[slot]).filter(Boolean);
+    if (worn.length) {
+      bodyLines.push(
+        "",
+        `Enhancements: ${worn.map((id) => ALL_ITEMS[id]?.name ?? id).join(", ")}`
+      );
     }
 
     bodyLines.push("", "Skills:");

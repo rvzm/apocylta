@@ -18,7 +18,9 @@ import { recordEnemyDefeated } from "./quests.js";
 import { evaluateAchievements } from "./achievements.js";
 import { castSpell } from "./magic.js";
 import { useItem, attemptRevive } from "./items.js";
-import { addItem, removeItem, grantSkillXp, grantRewardXp, getCurrentLocation, moveTo } from "../state/gameState.js";
+import {
+  addItem, removeItem, grantSkillXp, grantRewardXp, getCurrentLocation, moveTo, effectiveSkillLevel,
+} from "../state/gameState.js";
 import { logger } from "../logger.js";
 
 const UNARMED_DAMAGE = 2;
@@ -85,14 +87,14 @@ export function playerAttackPower(state) {
   // brand-new character really can walk into a fight bare-handed.
   const base = equippedWeapon(state)?.damage ?? UNARMED_DAMAGE;
   const buff = state.currentCombat?.buffs?.attack ?? 0;
-  return base + state.skills.fighting.level * FIGHTING_DAMAGE_PER_LEVEL + buff;
+  return base + effectiveSkillLevel(state, "fighting") * FIGHTING_DAMAGE_PER_LEVEL + buff;
 }
 
 // Sums `defense` across every equipped item rather than a fixed slot list, so
 // slots added later (cloak/ring/necklace exist in ARMOR_SLOTS but not yet in
 // state.equipment) start counting the moment they're wired up.
 export function playerDefensePower(state) {
-  let total = state.skills.defense.level + (state.currentCombat?.buffs?.defense ?? 0);
+  let total = effectiveSkillLevel(state, "defense") + (state.currentCombat?.buffs?.defense ?? 0);
   for (const itemId of Object.values(state.equipment)) {
     if (itemId) total += ALL_ITEMS[itemId]?.defense ?? 0;
   }
@@ -105,15 +107,15 @@ export function damageReduction(state) {
 }
 
 export function critChance(state) {
-  return Math.min(MAX_CRIT_CHANCE, (combat_config.criticalHitChance ?? 0.1) + state.skills.luck.level * CHANCE_PER_LEVEL);
+  return Math.min(MAX_CRIT_CHANCE, (combat_config.criticalHitChance ?? 0.1) + effectiveSkillLevel(state, "luck") * CHANCE_PER_LEVEL);
 }
 
 export function dodgeChance(state) {
-  return Math.min(MAX_DODGE_CHANCE, (combat_config.dodgeChance ?? 0.05) + state.skills.speed.level * CHANCE_PER_LEVEL);
+  return Math.min(MAX_DODGE_CHANCE, (combat_config.dodgeChance ?? 0.05) + effectiveSkillLevel(state, "speed") * CHANCE_PER_LEVEL);
 }
 
 export function blockChance(state) {
-  return Math.min(MAX_BLOCK_CHANCE, (combat_config.blockChance ?? 0.1) + state.skills.defense.level * CHANCE_PER_LEVEL);
+  return Math.min(MAX_BLOCK_CHANCE, (combat_config.blockChance ?? 0.1) + effectiveSkillLevel(state, "defense") * CHANCE_PER_LEVEL);
 }
 
 // ---------------------------------------------------------------- encounters
@@ -147,6 +149,8 @@ export function buildEncounter(state, enemyId, { boss = false } = {}) {
     defeated: [],
     outcome: null, // null | "victory" | "fled" | "defeat"
     hpAtStart: state.hp,
+    // Trained level, not effectiveSkillLevel: this is the baseline for the
+    // "gained this session" delta, and an enhancement isn't progress.
     fightingLevelAtStart: state.skills.fighting.level,
     fightingXpAtStart: state.skills.fighting.xp,
   };
@@ -186,7 +190,7 @@ export function spawnEncounter(state, { boss = false } = {}, rng = Math.random) 
 export const BOSS_LEVEL_REQUIREMENT = SKILL_BLOCKS.fighting?.boss?.all?.level ?? 20;
 
 export function canChallengeBoss(state) {
-  return state.skills.fighting.level >= BOSS_LEVEL_REQUIREMENT;
+  return effectiveSkillLevel(state, "fighting") >= BOSS_LEVEL_REQUIREMENT;
 }
 
 // Combat always interrupts whatever else was running - you can't keep
@@ -258,7 +262,7 @@ export function usePotion(state, itemId) {
 }
 
 export function attemptFlee(state, rng = Math.random) {
-  const chance = Math.min(0.9, FLEE_BASE_CHANCE + state.skills.speed.level * CHANCE_PER_LEVEL * 2);
+  const chance = Math.min(0.9, FLEE_BASE_CHANCE + effectiveSkillLevel(state, "speed") * CHANCE_PER_LEVEL * 2);
   const escaped = rng() < chance;
   if (escaped) grantSkillXp(state, "speed", SPEED_XP_PER_DODGE);
   return escaped;

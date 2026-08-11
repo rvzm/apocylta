@@ -6,7 +6,7 @@
 import { ALL_ITEMS, FISH, FISHING_CATALOG, FISHING_SUBTYPES, catchItemsFor } from "../item_backbone.js";
 import { SKILL_BLOCKS } from "../skill_backbone.js";
 import { getWaterType } from "./locations.js";
-import { removeItem } from "../state/gameState.js";
+import { removeItem, effectiveSkillLevel } from "../state/gameState.js";
 
 // The gear a `caught` method needs in the backpack, and what to call it when
 // refusing. "rod" isn't here: the rod is equipped, not carried, so it's checked
@@ -82,7 +82,7 @@ export function canCatchFish(state, speciesId) {
     return { ok: false, reason: "That can't be caught." };
   }
 
-  if (state.skills.fishing.level < requiredLevel) {
+  if (effectiveSkillLevel(state, "fishing") < requiredLevel) {
     return { ok: false, reason: `Requires fishing level ${requiredLevel}.` };
   }
 

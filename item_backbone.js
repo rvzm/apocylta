@@ -13,7 +13,12 @@ import { SKILLS, listSkills } from "./skill_backbone.js";
 //   - skill: The skill(s) associated with the listed items. This is used to determine what items can be used with what skills,
 //  and to display the correct items in the skill UI.
 //   - gather: The action(s) associated with the listed items. This is used to determine what items can be gathered with what actions,
-export const ITEM_TYPES = ["weapon", "armor", "scrap", "crafting", "recipe", "treasure", "mining", "smithing", "metal", "food", "potion", "tool", "kit", "set", "magic", "aid"];
+// "enhancement" is the black market's charm/talisman/beads/ring/bangle ladder,
+// translated into canonical items by withBlackMarketDefaults() below. It gets a
+// type of its own rather than riding "magic": that would put all 70 into the
+// magic shop's stock and into rollLootByType's magic pool, neither of which is
+// wanted for something only the black market sells.
+export const ITEM_TYPES = ["weapon", "armor", "scrap", "crafting", "recipe", "treasure", "mining", "smithing", "metal", "food", "potion", "tool", "kit", "set", "magic", "aid", "enhancement"];
 export const WEAPON_TYPES = ["melee", "sword", "dagger", "battleaxe", "slingshot", "ranged", "throwing", "staff", "bow"];
 export const ARMOR_TYPES = ["simple_robe","leather", "tin", "chainmail", "bronze", "cobalt", "copper", "wooden", "iron", "steel", "mithril", "adamantite", "syllic", "mage_robe", "mythic", "unique", "godlike"];
 export const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "cloak", "ring", "necklace", "belt", "shield"];
@@ -1234,92 +1239,113 @@ export function equipSlotOf(itemId) {
   if (item.type === "weapon") return "weapon";
   if (item.type === "tool") return "tool";
   if (item.type === "armor") return item.slot || null;
+  // Enhancements wear in their own five slots, not on the armor paperdoll -
+  // the "ring" tier would otherwise fight ring_of_eternity for one slot.
+  // state/gameState.js's equipItem() routes on ENHANCEMENT_SLOTS membership.
+  if (item.type === "enhancement") return item.enhancementSlot || null;
   return null;
 }
 
 // ** Black Market **
-export const BLACKMARKET_ENHANCEMENT_TYPES = ["charm", "talisman", "beads", "ring", "bangle"]
-export const BLACKMARKET_ENHANCEMENT_SUBTYPES = listSkills();
+// The five enhancement tiers, ascending. Also the five slots an enhancement can
+// be worn in - see ENHANCEMENT_SLOTS below, which is the same list under the
+// name state/gameState.js uses it by.
+export const BLACKMARKET_ENHANCEMENT_TYPES = ["charm", "talisman", "beads", "ring", "bangle"];
+// Skill KEYS, not skill objects: this is a subtype vocabulary, and every
+// enhancement's `subtype` is the id of the skill it boosts. listSkills() hands
+// back the full records, which is what it sat as while nothing read it.
+export const BLACKMARKET_ENHANCEMENT_SUBTYPES = listSkills().map((skill) => skill.key);
 export const BLACKMARKET = {
     enhancements: {
         //  Charms - Low tier, cheap, and easy to find. Provide small bonuses to skills or stats.
-        "luck_charm": { name: "Luck Charm", type: "charm", subtype: "luck", effect: { luckUp: 5 }, cost: 1000, desc: "Increases Luck by 5." },
-        "strength_charm": { name: "Strength Charm", type: "charm", subtype: "strength", effect: { strengthUp: 5 }, cost: 1000, desc: "Increases Strength by 5." },
-        "defense_charm": { name: "Defense Charm", type: "charm", subtype: "defense", effect: { defenseUp: 5 }, cost: 1000, desc: "Increases Defense by 5." },
-        "speed_charm": { name: "Speed Charm", type: "charm", subtype: "speed", effect: { speedUp: 5 }, cost: 1000, desc: "Increases Speed by 5." },
-        "survival_charm": { name: "Survival Charm", type: "charm", subtype: "survival", effect: { survivalUp: 5 }, cost: 1000, desc: "Increases Survival by 5." },
-        "fishing_charm": { name: "Fishing Charm", type: "charm", subtype: "fishing", effect: { fishingUp: 5 }, cost: 1000, desc: "Increases Fishing by 5." },
-        "smithing_charm": { name: "Smithing Charm", type: "charm", subtype: "smithing", effect: { smithingUp: 5 }, cost: 1000, desc: "Increases Smithing by 5." },
-        "mining_charm": { name: "Mining Charm", type: "charm", subtype: "mining", effect: { miningUp: 5 }, cost: 1000, desc: "Increases Mining by 5." },
-        "crafting_charm": { name: "Crafting Charm", type: "charm", subtype: "crafting", effect: { craftingUp: 5 }, cost: 1000, desc: "Increases Crafting by 5." },
-        "alchemy_charm": { name: "Alchemy Charm", type: "charm", subtype: "alchemy", effect: { alchemyUp: 5 }, cost: 1000, desc: "Increases Alchemy by 5." },
-        "trapping_charm": { name: "Trapping Charm", type: "charm", subtype: "trapping", effect: { trappingUp: 5 }, cost: 1000, desc: "Increases Trapping by 5." },
-        "woodcutting_charm": { name: "Woodcutting Charm", type: "charm", subtype: "woodcutting", effect: { woodcuttingUp: 5 }, cost: 1000, desc: "Increases Woodcutting by 5." },
-        "cooking_charm": { name: "Cooking Charm", type: "charm", subtype: "cooking", effect: { cookingUp: 5 }, cost: 1000, desc: "Increases Cooking by 5." },
-        "barter_charm": { name: "Barter Charm", type: "charm", subtype: "barter", effect: { barterUp: 5 }, cost: 1000, desc: "Increases Barter by 5." },
-        // Talismans - Mid-tier, more expensive, and harder to find. Provide moderate bonuses to skills or stats.
-        "luck_talisman": { name: "Luck Talisman", type: "talisman", subtype: "luck", effect: { luckUp: 10 }, cost: 5000, desc: "Increases Luck by 10." },
-        "strength_talisman": { name: "Strength Talisman", type: "talisman", subtype: "strength", effect: { strengthUp: 10 }, cost: 5000, desc: "Increases Strength by 10." },
-        "defense_talisman": { name: "Defense Talisman", type: "talisman", subtype: "defense", effect: { defenseUp: 10 }, cost: 5000, desc: "Increases Defense by 10." },
-        "speed_talisman": { name: "Speed Talisman", type: "talisman", subtype: "speed", effect: { speedUp: 10 }, cost: 5000, desc: "Increases Speed by 10." },
-        "survival_talisman": { name: "Survival Talisman", type: "talisman", subtype: "survival", effect: { survivalUp: 10 }, cost: 5000, desc: "Increases Survival by 10." },
-        "fishing_talisman": { name: "Fishing Talisman", type: "talisman", subtype: "fishing", effect: { fishingUp: 10 }, cost: 5000, desc: "Increases Fishing by 10." },
-        "smithing_talisman": { name: "Smithing Talisman", type: "talisman", subtype: "smithing", effect: { smithingUp: 10 }, cost: 5000, desc: "Increases Smithing by 10." },
-        "mining_talisman": { name: "Mining Talisman", type: "talisman", subtype: "mining", effect: { miningUp: 10 }, cost: 5000, desc: "Increases Mining by 10." },
-        "crafting_talisman": { name: "Crafting Talisman", type: "talisman", subtype: "crafting", effect: { craftingUp: 10 }, cost: 5000, desc: "Increases Crafting by 10." },
-        "alchemy_talisman": { name: "Alchemy Talisman", type: "talisman", subtype: "alchemy", effect: { alchemyUp: 10 }, cost: 5000, desc: "Increases Alchemy by 10." },
-        "trapping_talisman": { name: "Trapping Talisman", type: "talisman", subtype: "trapping", effect: { trappingUp: 10 }, cost: 5000, desc: "Increases Trapping by 10." },
-        "woodcutting_talisman": { name: "Woodcutting Talisman", type: "talisman", subtype: "woodcutting", effect: { woodcuttingUp: 10 }, cost: 5000, desc: "Increases Woodcutting by 10." },
-        "cooking_talisman": { name: "Cooking Talisman", type: "talisman", subtype: "cooking", effect: { cookingUp: 10 }, cost: 5000, desc: "Increases Cooking by 10." },
-        "barter_talisman": { name: "Barter Talisman", type: "talisman", subtype: "barter", effect: { barterUp: 10 }, cost: 5000, desc: "Increases Barter by 10." },
-        // Beads - High-tier, very expensive, and rare. Provide significant bonuses to skills or stats.
-        "luck_beads": { name: "Luck Beads", type: "beads", subtype: "luck", effect: { luckUp: 20 }, cost: 20000, desc: "Increases Luck by 20." },
-        "strength_beads": { name: "Strength Beads", type: "beads", subtype: "strength", effect: { strengthUp: 20 }, cost: 20000, desc: "Increases Strength by 20." },
-        "defense_beads": { name: "Defense Beads", type: "beads", subtype: "defense", effect: { defenseUp: 20 }, cost: 20000, desc: "Increases Defense by 20." },
-        "speed_beads": { name: "Speed Beads", type: "beads", subtype: "speed", effect: { speedUp: 20 }, cost: 20000, desc: "Increases Speed by 20." },
-        "survival_beads": { name: "Survival Beads", type: "beads", subtype: "survival", effect: { survivalUp: 20 }, cost: 20000, desc: "Increases Survival by 20." },
-        "fishing_beads": { name: "Fishing Beads", type: "beads", subtype: "fishing", effect: { fishingUp: 20 }, cost: 20000, desc: "Increases Fishing by 20." },
-        "smithing_beads": { name: "Smithing Beads", type: "beads", subtype: "smithing", effect: { smithingUp: 20 }, cost: 20000, desc: "Increases Smithing by 20." },
-        "mining_beads": { name: "Mining Beads", type: "beads", subtype: "mining", effect: { miningUp: 20 }, cost: 20000, desc: "Increases Mining by 20." },
-        "crafting_beads": { name: "Crafting Beads", type: "beads", subtype: "crafting", effect: { craftingUp: 20 }, cost: 20000, desc: "Increases Crafting by 20." },
-        "alchemy_beads": { name: "Alchemy Beads", type: "beads", subtype: "alchemy", effect: { alchemyUp: 20 }, cost: 20000, desc: "Increases Alchemy by 20." },
-        "trapping_beads": { name: "Trapping Beads", type: "beads", subtype: "trapping", effect: { trappingUp: 20 }, cost: 20000, desc: "Increases Trapping by 20." },
-        "woodcutting_beads": { name: "Woodcutting Beads", type: "beads", subtype: "woodcutting", effect: { woodcuttingUp: 20 }, cost: 20000, desc: "Increases Woodcutting by 20." },
-        "cooking_beads": { name: "Cooking Beads", type: "beads", subtype: "cooking", effect: { cookingUp: 20 }, cost: 20000, desc: "Increases Cooking by 20." },
-        "barter_beads": { name: "Barter Beads", type: "beads", subtype: "barter", effect: { barterUp: 20 }, cost: 20000, desc: "Increases Barter by 20." },
-        // Rings - Top-tier, extremely expensive, and legendary. Provide massive bonuses to skills or stats.
-        "luck_ring": { name: "Luck Ring", type: "ring", subtype: "luck", effect: { luckUp: 50 }, cost: 100000, desc: "Increases Luck by 50." },
-        "strength_ring": { name: "Strength Ring", type: "ring", subtype: "strength", effect: { strengthUp: 50 }, cost: 100000, desc: "Increases Strength by 50." },
-        "defense_ring": { name: "Defense Ring", type: "ring", subtype: "defense", effect: { defenseUp: 50 }, cost: 100000, desc: "Increases Defense by 50." },
-        "speed_ring": { name: "Speed Ring", type: "ring", subtype: "speed", effect: { speedUp: 50 }, cost: 100000, desc: "Increases Speed by 50." },
-        "survival_ring": { name: "Survival Ring", type: "ring", subtype: "survival", effect: { survivalUp: 50 }, cost: 100000, desc: "Increases Survival by 50." },
-        "fishing_ring": { name: "Fishing Ring", type: "ring", subtype: "fishing", effect: { fishingUp: 50 }, cost: 100000, desc: "Increases Fishing by 50." },
-        "smithing_ring": { name: "Smithing Ring", type: "ring", subtype: "smithing", effect: { smithingUp: 50 }, cost: 100000, desc: "Increases Smithing by 50." },
-        "mining_ring": { name: "Mining Ring", type: "ring", subtype: "mining", effect: { miningUp: 50 }, cost: 100000, desc: "Increases Mining by 50." },
-        "crafting_ring": { name: "Crafting Ring", type: "ring", subtype: "crafting", effect: { craftingUp: 50 }, cost: 100000, desc: "Increases Crafting by 50." },
-        "alchemy_ring": { name: "Alchemy Ring", type: "ring", subtype: "alchemy", effect: { alchemyUp: 50 }, cost: 100000, desc: "Increases Alchemy by 50." },
-        "trapping_ring": { name: "Trapping Ring", type: "ring", subtype: "trapping", effect: { trappingUp: 50 }, cost: 100000, desc: "Increases Trapping by 50." },
-        "woodcutting_ring": { name: "Woodcutting Ring", type: "ring", subtype: "woodcutting", effect: { woodcuttingUp: 50 }, cost: 100000, desc: "Increases Woodcutting by 50." },
-        "cooking_ring": { name: "Cooking Ring", type: "ring", subtype: "cooking", effect: { cookingUp: 50 }, cost: 100000, desc: "Increases Cooking by 50." },
-        "barter_ring": { name: "Barter Ring", type: "ring", subtype: "barter", effect: { barterUp: 50 }, cost: 100000, desc: "Increases Barter by 50." },
-        // Bangles - Legendary-tier, almost impossible to find. Provide unparalleled bonuses to skills or stats.
-        "luck_bangle": { name: "Luck Bangle", type: "bangle", subtype: "luck", effect: { luckUp: 100 }, cost: 500000, desc: "Increases Luck by 100." },
-        "strength_bangle": { name: "Strength Bangle", type: "bangle", subtype: "strength", effect: { strengthUp: 100 }, cost: 500000, desc: "Increases Strength by 100." },
-        "defense_bangle": { name: "Defense Bangle", type: "bangle", subtype: "defense", effect: { defenseUp: 100 }, cost: 500000, desc: "Increases Defense by 100." },
-        "speed_bangle": { name: "Speed Bangle", type: "bangle", subtype: "speed", effect: { speedUp: 100 }, cost: 500000, desc: "Increases Speed by 100." },
-        "survival_bangle": { name: "Survival Bangle", type: "bangle", subtype: "survival", effect: { survivalUp: 100 }, cost: 500000, desc: "Increases Survival by 100." },
-        "fishing_bangle": { name: "Fishing Bangle", type: "bangle", subtype: "fishing", effect: { fishingUp: 100 }, cost: 500000, desc: "Increases Fishing by 100." },
-        "smithing_bangle": { name: "Smithing Bangle", type: "bangle", subtype: "smithing", effect: { smithingUp: 100 }, cost: 500000, desc: "Increases Smithing by 100." },
-        "mining_bangle": { name: "Mining Bangle", type: "bangle", subtype: "mining", effect: { miningUp: 100 }, cost: 500000, desc: "Increases Mining by 100." },
-        "crafting_bangle": { name: "Crafting Bangle", type: "bangle", subtype: "crafting", effect: { craftingUp: 100 }, cost: 500000, desc: "Increases Crafting by 100." },
-        "alchemy_bangle": { name: "Alchemy Bangle", type: "bangle", subtype: "alchemy", effect: { alchemyUp: 100 }, cost: 500000, desc: "Increases Alchemy by 100." },
-        "trapping_bangle": { name: "Trapping Bangle", type: "bangle", subtype: "trapping", effect: { trappingUp: 100 }, cost: 500000, desc: "Increases Trapping by 100." },
-        "woodcutting_bangle": { name: "Woodcutting Bangle", type: "bangle", subtype: "woodcutting", effect: { woodcuttingUp: 100 }, cost: 500000, desc: "Increases Woodcutting by 100." },
-        "cooking_bangle": { name: "Cooking Bangle", type: "bangle", subtype: "cooking", effect: { cookingUp: 100 }, cost: 500000, desc: "Increases Cooking by 100." },
-        "barter_bangle": { name: "Barter Bangle", type: "bangle", subtype: "barter", effect: { barterUp: 100 }, cost: 500000, desc: "Increases Barter by 100." },
+        "charms": {
+            "luck_charm": { name: "Luck Charm", type: "charm", subtype: "luck", effect: { luckUp: 5 }, cost: 1000, desc: "Increases Luck by 5." },
+            "strength_charm": { name: "Strength Charm", type: "charm", subtype: "strength", effect: { strengthUp: 5 }, cost: 1000, desc: "Increases Strength by 5." },
+            "defense_charm": { name: "Defense Charm", type: "charm", subtype: "defense", effect: { defenseUp: 5 }, cost: 1000, desc: "Increases Defense by 5." },
+            "speed_charm": { name: "Speed Charm", type: "charm", subtype: "speed", effect: { speedUp: 5 }, cost: 1000, desc: "Increases Speed by 5." },
+            "survival_charm": { name: "Survival Charm", type: "charm", subtype: "survival", effect: { survivalUp: 5 }, cost: 1000, desc: "Increases Survival by 5." },
+            "fishing_charm": { name: "Fishing Charm", type: "charm", subtype: "fishing", effect: { fishingUp: 5 }, cost: 1000, desc: "Increases Fishing by 5." },
+            "smithing_charm": { name: "Smithing Charm", type: "charm", subtype: "smithing", effect: { smithingUp: 5 }, cost: 1000, desc: "Increases Smithing by 5." },
+            "mining_charm": { name: "Mining Charm", type: "charm", subtype: "mining", effect: { miningUp: 5 }, cost: 1000, desc: "Increases Mining by 5." },
+            "crafting_charm": { name: "Crafting Charm", type: "charm", subtype: "crafting", effect: { craftingUp: 5 }, cost: 1000, desc: "Increases Crafting by 5." },
+            "alchemy_charm": { name: "Alchemy Charm", type: "charm", subtype: "alchemy", effect: { alchemyUp: 5 }, cost: 1000, desc: "Increases Alchemy by 5." },
+            "trapping_charm": { name: "Trapping Charm", type: "charm", subtype: "trapping", effect: { trappingUp: 5 }, cost: 1000, desc: "Increases Trapping by 5." },
+            "woodcutting_charm": { name: "Woodcutting Charm", type: "charm", subtype: "woodcutting", effect: { woodcuttingUp: 5 }, cost: 1000, desc: "Increases Woodcutting by 5." },
+            "cooking_charm": { name: "Cooking Charm", type: "charm", subtype: "cooking", effect: { cookingUp: 5 }, cost: 1000, desc: "Increases Cooking by 5." },
+            "barter_charm": { name: "Barter Charm", type: "charm", subtype: "barter", effect: { barterUp: 5 }, cost: 1000, desc: "Increases Barter by 5." },
+        },
+        "talismans": {
+            // Talismans - Mid-tier, more expensive, and harder to find. Provide moderate bonuses to skills or stats.
+            "luck_talisman": { name: "Luck Talisman", type: "talisman", subtype: "luck", effect: { luckUp: 10 }, cost: 5000, desc: "Increases Luck by 10." },
+            "strength_talisman": { name: "Strength Talisman", type: "talisman", subtype: "strength", effect: { strengthUp: 10 }, cost: 5000, desc: "Increases Strength by 10." },
+            "defense_talisman": { name: "Defense Talisman", type: "talisman", subtype: "defense", effect: { defenseUp: 10 }, cost: 5000, desc: "Increases Defense by 10." },
+            "speed_talisman": { name: "Speed Talisman", type: "talisman", subtype: "speed", effect: { speedUp: 10 }, cost: 5000, desc: "Increases Speed by 10." },
+            "survival_talisman": { name: "Survival Talisman", type: "talisman", subtype: "survival", effect: { survivalUp: 10 }, cost: 5000, desc: "Increases Survival by 10." },
+            "fishing_talisman": { name: "Fishing Talisman", type: "talisman", subtype: "fishing", effect: { fishingUp: 10 }, cost: 5000, desc: "Increases Fishing by 10." },
+            "smithing_talisman": { name: "Smithing Talisman", type: "talisman", subtype: "smithing", effect: { smithingUp: 10 }, cost: 5000, desc: "Increases Smithing by 10." },
+            "mining_talisman": { name: "Mining Talisman", type: "talisman", subtype: "mining", effect: { miningUp: 10 }, cost: 5000, desc: "Increases Mining by 10." },
+            "crafting_talisman": { name: "Crafting Talisman", type: "talisman", subtype: "crafting", effect: { craftingUp: 10 }, cost: 5000, desc: "Increases Crafting by 10." },
+            "alchemy_talisman": { name: "Alchemy Talisman", type: "talisman", subtype: "alchemy", effect: { alchemyUp: 10 }, cost: 5000, desc: "Increases Alchemy by 10." },
+            "trapping_talisman": { name: "Trapping Talisman", type: "talisman", subtype: "trapping", effect: { trappingUp: 10 }, cost: 5000, desc: "Increases Trapping by 10." },
+            "woodcutting_talisman": { name: "Woodcutting Talisman", type: "talisman", subtype: "woodcutting", effect: { woodcuttingUp: 10 }, cost: 5000, desc: "Increases Woodcutting by 10." },
+            "cooking_talisman": { name: "Cooking Talisman", type: "talisman", subtype: "cooking", effect: { cookingUp: 10 }, cost: 5000, desc: "Increases Cooking by 10." },
+            "barter_talisman": { name: "Barter Talisman", type: "talisman", subtype: "barter", effect: { barterUp: 10 }, cost: 5000, desc: "Increases Barter by 10." },
+        },
+        "beads": {
+            // Beads - High-tier, very expensive, and rare. Provide significant bonuses to skills or stats.
+            "luck_beads": { name: "Luck Beads", type: "beads", subtype: "luck", effect: { luckUp: 20 }, cost: 20000, desc: "Increases Luck by 20." },
+            "strength_beads": { name: "Strength Beads", type: "beads", subtype: "strength", effect: { strengthUp: 20 }, cost: 20000, desc: "Increases Strength by 20." },
+            "defense_beads": { name: "Defense Beads", type: "beads", subtype: "defense", effect: { defenseUp: 20 }, cost: 20000, desc: "Increases Defense by 20." },
+            "speed_beads": { name: "Speed Beads", type: "beads", subtype: "speed", effect: { speedUp: 20 }, cost: 20000, desc: "Increases Speed by 20." },
+            "survival_beads": { name: "Survival Beads", type: "beads", subtype: "survival", effect: { survivalUp: 20 }, cost: 20000, desc: "Increases Survival by 20." },
+            "fishing_beads": { name: "Fishing Beads", type: "beads", subtype: "fishing", effect: { fishingUp: 20 }, cost: 20000, desc: "Increases Fishing by 20." },
+            "smithing_beads": { name: "Smithing Beads", type: "beads", subtype: "smithing", effect: { smithingUp: 20 }, cost: 20000, desc: "Increases Smithing by 20." },
+            "mining_beads": { name: "Mining Beads", type: "beads", subtype: "mining", effect: { miningUp: 20 }, cost: 20000, desc: "Increases Mining by 20." },
+            "crafting_beads": { name: "Crafting Beads", type: "beads", subtype: "crafting", effect: { craftingUp: 20 }, cost: 20000, desc: "Increases Crafting by 20." },
+            "alchemy_beads": { name: "Alchemy Beads", type: "beads", subtype: "alchemy", effect: { alchemyUp: 20 }, cost: 20000, desc: "Increases Alchemy by 20." },
+            "trapping_beads": { name: "Trapping Beads", type: "beads", subtype: "trapping", effect: { trappingUp: 20 }, cost: 20000, desc: "Increases Trapping by 20." },
+            "woodcutting_beads": { name: "Woodcutting Beads", type: "beads", subtype: "woodcutting", effect: { woodcuttingUp: 20 }, cost: 20000, desc: "Increases Woodcutting by 20." },
+            "cooking_beads": { name: "Cooking Beads", type: "beads", subtype: "cooking", effect: { cookingUp: 20 }, cost: 20000, desc: "Increases Cooking by 20." },
+            "barter_beads": { name: "Barter Beads", type: "beads", subtype: "barter", effect: { barterUp: 20 }, cost: 20000, desc: "Increases Barter by 20." },
+        },
+        "rings": {
+            // Rings - Top-tier, extremely expensive, and legendary. Provide massive bonuses to skills or stats.
+            "luck_ring": { name: "Luck Ring", type: "ring", subtype: "luck", effect: { luckUp: 50 }, cost: 100000, desc: "Increases Luck by 50." },
+            "strength_ring": { name: "Strength Ring", type: "ring", subtype: "strength", effect: { strengthUp: 50 }, cost: 100000, desc: "Increases Strength by 50." },
+            "defense_ring": { name: "Defense Ring", type: "ring", subtype: "defense", effect: { defenseUp: 50 }, cost: 100000, desc: "Increases Defense by 50." },
+            "speed_ring": { name: "Speed Ring", type: "ring", subtype: "speed", effect: { speedUp: 50 }, cost: 100000, desc: "Increases Speed by 50." },
+            "survival_ring": { name: "Survival Ring", type: "ring", subtype: "survival", effect: { survivalUp: 50 }, cost: 100000, desc: "Increases Survival by 50." },
+            "fishing_ring": { name: "Fishing Ring", type: "ring", subtype: "fishing", effect: { fishingUp: 50 }, cost: 100000, desc: "Increases Fishing by 50." },
+            "smithing_ring": { name: "Smithing Ring", type: "ring", subtype: "smithing", effect: { smithingUp: 50 }, cost: 100000, desc: "Increases Smithing by 50." },
+            "mining_ring": { name: "Mining Ring", type: "ring", subtype: "mining", effect: { miningUp: 50 }, cost: 100000, desc: "Increases Mining by 50." },
+            "crafting_ring": { name: "Crafting Ring", type: "ring", subtype: "crafting", effect: { craftingUp: 50 }, cost: 100000, desc: "Increases Crafting by 50." },
+            "alchemy_ring": { name: "Alchemy Ring", type: "ring", subtype: "alchemy", effect: { alchemyUp: 50 }, cost: 100000, desc: "Increases Alchemy by 50." },
+            "trapping_ring": { name: "Trapping Ring", type: "ring", subtype: "trapping", effect: { trappingUp: 50 }, cost: 100000, desc: "Increases Trapping by 50." },
+            "woodcutting_ring": { name: "Woodcutting Ring", type: "ring", subtype: "woodcutting", effect: { woodcuttingUp: 50 }, cost: 100000, desc: "Increases Woodcutting by 50." },
+            "cooking_ring": { name: "Cooking Ring", type: "ring", subtype: "cooking", effect: { cookingUp: 50 }, cost: 100000, desc: "Increases Cooking by 50." },
+            "barter_ring": { name: "Barter Ring", type: "ring", subtype: "barter", effect: { barterUp: 50 }, cost: 100000, desc: "Increases Barter by 50." },
+        },
+        "bangles": {
+            // Bangles - Legendary-tier, almost impossible to find. Provide unparalleled bonuses to skills or stats.
+            "luck_bangle": { name: "Luck Bangle", type: "bangle", subtype: "luck", effect: { luckUp: 100 }, cost: 500000, desc: "Increases Luck by 100." },
+            "strength_bangle": { name: "Strength Bangle", type: "bangle", subtype: "strength", effect: { strengthUp: 100 }, cost: 500000, desc: "Increases Strength by 100." },
+            "defense_bangle": { name: "Defense Bangle", type: "bangle", subtype: "defense", effect: { defenseUp: 100 }, cost: 500000, desc: "Increases Defense by 100." },
+            "speed_bangle": { name: "Speed Bangle", type: "bangle", subtype: "speed", effect: { speedUp: 100 }, cost: 500000, desc: "Increases Speed by 100." },
+            "survival_bangle": { name: "Survival Bangle", type: "bangle", subtype: "survival", effect: { survivalUp: 100 }, cost: 500000, desc: "Increases Survival by 100." },
+            "fishing_bangle": { name: "Fishing Bangle", type: "bangle", subtype: "fishing", effect: { fishingUp: 100 }, cost: 500000, desc: "Increases Fishing by 100." },
+            "smithing_bangle": { name: "Smithing Bangle", type: "bangle", subtype: "smithing", effect: { smithingUp: 100 }, cost: 500000, desc: "Increases Smithing by 100." },
+            "mining_bangle": { name: "Mining Bangle", type: "bangle", subtype: "mining", effect: { miningUp: 100 }, cost: 500000, desc: "Increases Mining by 100." },
+            "crafting_bangle": { name: "Crafting Bangle", type: "bangle", subtype: "crafting", effect: { craftingUp: 100 }, cost: 500000, desc: "Increases Crafting by 100." },
+            "alchemy_bangle": { name: "Alchemy Bangle", type: "bangle", subtype: "alchemy", effect: { alchemyUp: 100 }, cost: 500000, desc: "Increases Alchemy by 100." },
+            "trapping_bangle": { name: "Trapping Bangle", type: "bangle", subtype: "trapping", effect: { trappingUp: 100 }, cost: 500000, desc: "Increases Trapping by 100." },
+            "woodcutting_bangle": { name: "Woodcutting Bangle", type: "bangle", subtype: "woodcutting", effect: { woodcuttingUp: 100 }, cost: 500000, desc: "Increases Woodcutting by 100." },
+            "cooking_bangle": { name: "Cooking Bangle", type: "bangle", subtype: "cooking", effect: { cookingUp: 100 }, cost: 500000, desc: "Increases Cooking by 100." },
+            "barter_bangle": { name: "Barter Bangle", type: "bangle", subtype: "barter", effect: { barterUp: 100 }, cost: 500000, desc: "Increases Barter by 100." },
+        },
     },
     illicit_goods: {
         "Magic Focuses": {
+            global: { type: "magic", keyRef: MAGIC_ITEMS },
             "void_crystal": { key: "void_crystal", name: "Void Crystal", cost: 50000 },
             "black_crystal": { key: "black_crystal", name: "Black Crystal", cost: 75000 },
             "white_orb": { key: "white_orb", name: "White Orb", cost: 100000 },
@@ -1329,7 +1355,10 @@ export const BLACKMARKET = {
             "demonic_void": { key: "demonic_void", name: "Demonic Void", cost: 300000 },
             "black_hole_void": { key: "black_hole_void", name: "Black Hole Void", cost: 500000 },
         },
+        // No single `type`: this section genuinely mixes weapon (the four
+        // named blades/bows) and armor (the four named pieces).
         "Forbidden Artifacts": {
+            global: { keyRef: UNIQUE_ITEMS },
             "excalibur": { key: "excalibur", name: "Excalibur", cost: 200000 },
             "dagger_of_time": { key: "dagger_of_time", name: "Dagger of Time", cost: 300000 },
             "bow_of_eternity": { key: "bow_of_eternity", name: "Bow of Eternity", cost: 400000 },
@@ -1339,92 +1368,114 @@ export const BLACKMARKET = {
             "cloak_of_invisibility": { key: "cloak_of_invisibility", name: "Cloak of Invisibility", cost: 400000 },
             "ring_of_eternity": { key: "ring_of_eternity", name: "Ring of Eternity", cost: 500000 },
         },
+        // Unlike the two sections above, these keys are NOT item ids - a bundle
+        // is a name for a pile of something else, and what you get is its
+        // `outputs`. So `keyRef` here points at where those OUTPUTS live, and it
+        // takes two catalogs because coal is a MINING_RESOURCES entry while the
+        // five ores are ITEMS - which is the reason the screen resolves through
+        // ALL_ITEMS rather than through keyRef.
         "Smithing Bundles": {
-            "box_of_coal": { key: "box_of_coal", name: "Box of Coal", cost: 1000 },
+            global: { type: "smithing", keyRef: [ITEMS, MINING_RESOURCES], outputsOnly: true },
+            "box_of_coal": { key: "box_of_coal", name: "Box of Coal", outputs: { "coal": 100 }, cost: 1000 },
+            "box_of_iron": { key: "box_of_iron", name: "Box of Iron", outputs: { "iron_ore": 30 }, cost: 5000 },
+            "box_of_gold": { key: "box_of_gold", name: "Box of Gold", outputs: { "gold_ore": 20 }, cost: 10000 },
+            "box_of_mithril": { key: "box_of_mithril", name: "Box of Mithril", outputs: { "mithril_ore": 10 }, cost: 20000 },
+            "box_of_adamantite": { key: "box_of_adamantite", name: "Box of Adamantite", outputs: { "adamantite_ore": 5 }, cost: 50000 },
+            "box_of_runite": { key: "box_of_runite", name: "Box of Runite", outputs: { "runite_ore": 2 }, cost: 100000 },
         }
     },
 
 };
 // Black Market Helpers
-export function getBlackMarketItemByKey(key) {
-    if (BLACKMARKET.enhancements[key]) {
-        return BLACKMARKET.enhancements[key];
-    }
-    for (const category in BLACKMARKET.illicit_goods) {
-        if (BLACKMARKET.illicit_goods[category][key]) {
-            return BLACKMARKET.illicit_goods[category][key];
+//
+// Both collections are two levels deep - a section, then its entries - and a
+// section may carry a `global` block. Everything below strips that key rather
+// than treating it as an entry, the same guard the recipe collections and
+// withGlobalDefaults() rely on; without it "global" renders as a shop row.
+function sectionEntries(section) {
+    return Object.entries(section).filter(([key]) => key !== "global");
+}
+
+// The sections of one BLACKMARKET collection ("illicit_goods"/"enhancements"),
+// in declaration order - which is the order the shop screen tabs them in, and
+// for enhancements is also cheapest-tier-first.
+export function blackMarketSections(collectionKey) {
+    const collection = BLACKMARKET[collectionKey];
+    if (!collection) return [];
+    return Object.entries(collection).map(([key, section]) => ({
+        key,
+        // "illicit_goods" sections are authored with display names already
+        // ("Magic Focuses"); enhancement groups are lowercase keys ("charms").
+        label: key.includes(" ") ? key : key.charAt(0).toUpperCase() + key.slice(1),
+        global: section.global ?? null,
+        entries: sectionEntries(section),
+    }));
+}
+
+// One entry by key, from either collection. Returns { key, entry, collection,
+// section } so a caller knows which half of the market it came from.
+export function blackMarketEntry(key) {
+    for (const collectionKey of Object.keys(BLACKMARKET)) {
+        for (const section of blackMarketSections(collectionKey)) {
+            const hit = section.entries.find(([entryKey]) => entryKey === key);
+            if (hit) return { key, entry: hit[1], collection: collectionKey, section: section.key };
         }
     }
     return null;
 }
-export function getBlackMarketItemCostByKey(key) {
-    const item = getBlackMarketItemByKey(key);
-    return item ? item.cost : null;
+
+// What buying one entry actually hands over: { itemId: qty }. Most entries are
+// a single real item named by their own id; the smithing bundles name a pile
+// of something else in `outputs` and are not items themselves.
+//
+// Takes the id separately rather than reading entry.key: only illicit_goods
+// entries carry a `key` field, the 70 translated enhancements don't.
+export function blackMarketGrants(id, entry) {
+    return entry?.outputs ?? { [id]: 1 };
 }
-export function getBlackMarketEnhancementEffectByKey(key) {
-    const item = getBlackMarketItemByKey(key);
-    return item && item.type === "enhancement" ? item.effect : null;
-}
-export function getBlackMarketEnhancementDescByKey(key) {
-    const item = getBlackMarketItemByKey(key);
-    return item && item.type === "enhancement" ? item.desc : null;
-}
-export function getBlackMarketEnhancementNameByKey(key) {
-    const item = getBlackMarketItemByKey(key);
-    return item && item.type === "enhancement" ? item.name : null;
-}
-// Black Market Enhancement Check
-export function isBlackMarketEnhancement(key) {
-    const item = getBlackMarketItemByKey(key);
-    return item && item.type === "enhancement";
-}
-// Black Market Enhancement application
-export function applyBlackMarketEnhancement(player, key) {
-    const item = getBlackMarketItemByKey(key);
-    if (item && item.type === "enhancement") {
-        // Apply the enhancement effect to the player
-        Object.assign(player.effects, item.effect);
-        return true;
-    }
-    return false;
-}
-export function removeBlackMarketEnhancement(player, key) {
-    const item = getBlackMarketItemByKey(key);
-    if (item && item.type === "enhancement") {
-        // Remove the enhancement effect from the player
-        for (const effectKey in item.effect) {
-            if (player.effects.hasOwnProperty(effectKey)) {
-                delete player.effects[effectKey];
-            }
-        }
-        return true;
-    }
-    return false;
-}
-export function hasBlackMarketEnhancement(player, key) {
-    const item = getBlackMarketItemByKey(key);
-    if (item && item.type === "enhancement") {
-        for (const effectKey in item.effect) {
-            if (player.effects.hasOwnProperty(effectKey)) {
-                return true;
-            }
+
+// The five slots an enhancement can be worn in, under the name the state layer
+// uses. Same list as the tier ladder - one worn item per tier.
+export const ENHANCEMENT_SLOTS = BLACKMARKET_ENHANCEMENT_TYPES;
+
+// Rarity by tier, so the enhancements price and sort alongside everything else
+// through SHOP_RARITY_DISPLAY. The black market skips the barter gate these
+// levels would otherwise impose (see ui/screens/blackMarket.js) - this is here
+// for getSellPrice, the backpack and the playercard.
+const ENHANCEMENT_RARITY = {
+    charm: "rare", talisman: "epic", beads: "legendary", ring: "mythic", bangle: "godlike",
+};
+
+// BLACKMARKET.enhancements is authored in its own vocabulary - a `type` of
+// "charm"/"talisman"/"beads"/"ring"/"bangle", none of which ITEM_TYPES knows -
+// exactly like FISHING_ITEMS below. Same treatment: translate once into
+// canonical items, keep the authored vocabulary under its own field names
+// (enhancementSlot/enhancementGroup, mirroring fishingType/fishingTier), and
+// export the result as what ALL_ITEMS carries.
+//
+// `subtype` needs no translating: it is already the id of the skill the entry
+// boosts, which is what state/gameState.js's effectiveSkillLevel() sums by.
+function withBlackMarketDefaults(enhancements) {
+    const items = {};
+    for (const [group, section] of Object.entries(enhancements)) {
+        for (const [id, entry] of sectionEntries(section)) {
+            const { type, cost, ...rest } = entry;
+            items[id] = {
+                ...rest,
+                type: "enhancement",
+                enhancementSlot: type,
+                enhancementGroup: group,
+                rarity: ENHANCEMENT_RARITY[type] ?? "rare",
+                // getBuyPrice/getSellPrice read `value` first, so the authored
+                // cost is the price rather than a rarity-derived guess.
+                value: cost,
+            };
         }
     }
-    return false;
+    return items;
 }
-// Black Market Enhancement List
-export function listBlackMarketEnhancements() {
-    const enhancements = [];
-    for (const category in BLACKMARKET.illicit_goods) {
-        for (const key in BLACKMARKET.illicit_goods[category]) {
-            const item = BLACKMARKET.illicit_goods[category][key];
-            if (item.type === "enhancement") {
-                enhancements.push(item);
-            }
-        }
-    }
-    return enhancements;
-}
+
+export const BLACKMARKET_CATALOG = withBlackMarketDefaults(BLACKMARKET.enhancements);
 
 // Dedicated Fishing Section
 // Fishing is a unique skill in the game, and it has its own set of items, recipes, and logic. The following section defines the fishing-related items, recipes, and mechanics.
@@ -2103,4 +2154,5 @@ export const ALL_ITEMS = {
   ...withGlobalDefaults(MAGIC_ITEMS),
   ...withGlobalDefaults(TOOLBELTS),
   ...FISHING_CATALOG,
+  ...BLACKMARKET_CATALOG,
 };

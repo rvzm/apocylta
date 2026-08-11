@@ -79,6 +79,9 @@ export function requirementStatus(state, achievementId, reqKey, ctx = {}) {
       return allOf(listed, (id) => state.ownedStations.has(id));
     }
 
+    // Trained level, not gameState's effectiveSkillLevel - same reason as the
+    // matching quest objective: an achievement for reaching a level is about
+    // having reached it, and a worn enhancement isn't progress.
     case "learnSkill":
       return counted(state.skills[req.type]?.level ?? 0, req.level ?? 1);
 

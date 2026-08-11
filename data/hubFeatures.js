@@ -43,12 +43,10 @@ export const HUB_FEATURES = {
     label: "Herbalist",
     message: "The ingredients shelf is bare. Not implemented yet.",
   },
-  shop_upgrades: {
-    id: "shop_upgrades",
-    hotkey: "E",
-    label: "Enhancements",
-    message: "No upgrades available yet. Not implemented yet.",
-  },
+  // Was the shop_upgrades stub until BLACKMARKET.enhancements got a screen -
+  // the two black markets were its only consumers, so it was renamed in place
+  // rather than left beside a near-duplicate.
+  shop_enhancements: { id: "shop_enhancements", hotkey: "E", label: "Enhancements" },
   // "G" rather than "M": main.js has no claim on it, and unlike M (Menu) it is
   // free at the location screen - it also appears in the label, which the "R"
   // action_key style needs a letter to embolden.

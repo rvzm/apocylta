@@ -15,7 +15,7 @@ const {
   FOOD_CATAGORIES, FOOD_SUBTYPES, POTION_CATAGORIES, TOOL_CATAGORIES, KIT_CATAGORIES,
   SET_CATAGORIES, MAGIC_CATAGORIES, ITEM_RARITIES,
   ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, TREASURE_ITEMS, STARTER_PACKS, METALURGY,
-  MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS, FISHING_CATALOG,
+  MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS, FISHING_CATALOG, BLACKMARKET_CATALOG,
   SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, FISHING_RECIPES, ALL_ITEMS,
   FISH, catchItemsFor, equipSlotOf,
 } = IB;
@@ -44,7 +44,11 @@ const KNOWN_DANGLING_RECIPE_REFS = new Set([
 // fishing vocabulary (type "rod", "mollusk"...) and only becomes a real item
 // once withFishingDefaults() has mapped it, which is the form ALL_ITEMS carries
 // and therefore the form these invariants apply to.
-const ITEM_CATALOGS = { ITEMS, TREASURE_ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, MAGIC_ITEMS, MINING_RESOURCES, MAGIC_RESOURCES, TOOLBELTS, FISHING_CATALOG };
+// BLACKMARKET_CATALOG joins them for the same reason FISHING_CATALOG does: the
+// black market's enhancements are authored in their own vocabulary (a `type` of
+// "charm"/"bangle"...) and only become real items once withBlackMarketDefaults()
+// has mapped them, which is the form ALL_ITEMS carries.
+const ITEM_CATALOGS = { ITEMS, TREASURE_ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, MAGIC_ITEMS, MINING_RESOURCES, MAGIC_RESOURCES, TOOLBELTS, FISHING_CATALOG, BLACKMARKET_CATALOG };
 
 function entries(catalog) {
   return Object.entries(catalog).filter(([id]) => id !== "global");

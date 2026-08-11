@@ -1734,7 +1734,7 @@ export const LOCATIONS = {
     safe: false,
     exits: [{ label: "town square", to: "town_square", category: "path" }],
     interactiveActions: [],
-    hubFeatures: ["shop_upgrades", "shop_illegal", "shop_sell"],
+    hubFeatures: ["shop_enhancements", "shop_illegal", "shop_sell"],
     openHours: { open: 23, close: 6 },
   },
 
@@ -1833,7 +1833,7 @@ export const LOCATIONS = {
     safe: false,
     exits: [{ label: "zenthal market", to: "zenthal_market", category: "path" }],
     interactiveActions: [],
-    hubFeatures: ["shop_upgrades", "shop_illegal", "shop_sell"],
+    hubFeatures: ["shop_enhancements", "shop_illegal", "shop_sell"],
     openHours: { open: 23, close: 6 },
   },
 
