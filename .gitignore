@@ -1,5 +1,5 @@
 # Apocylta .gitignore
-<<<<<<< HEAD
+
 # Logs
 logs
 *.log
@@ -143,15 +143,17 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
-=======
-node_modules/
+
+# Apocylta's own files. node_modules/ and *.log are already covered above.
+# The SQLite save database (file_config.dbFile, overridable with DB_PATH).
 *.sqlite
 *.sqlite-journal
-*.log
-FUTURE.md
->>>>>>> d364eee (apocylta is born)
 
-=======
-
+# The autosave snapshot (state/autosave.js, overridable with AUTOSAVE_PATH).
+# It changes on every play session and is personal to whoever is running the
+# game, so it is deliberately not tracked.
 data/autosave.json
+
+# Scratch planning notes.
+FUTURE.md
 planned.*
