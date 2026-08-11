@@ -10,7 +10,10 @@ function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-function buildSellRows(state, selectedIds) {
+// Exported for the same reason as shopBuy.js's buildBuyRows - see the note
+// there. `selectedIds` is only the tick marks, so a caller that just wants the
+// row order can pass an empty Set.
+export function buildSellRows(state, selectedIds) {
   const entries = Object.entries(state.inventory).filter(([, qty]) => qty > 0);
 
   const byType = {};

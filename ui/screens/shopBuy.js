@@ -9,7 +9,12 @@ function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-function buildBuyRows(state) {
+// Exported so the row building can be exercised without blessed - the same
+// reason blackMarket.js's buildBlackMarketRows, spellbook.js's buildSpellRows
+// and achievements.js's buildRows are. test/helpers/rows.js uses it to derive
+// how far down a row sits rather than hardcoding a position that the barter
+// gate or a catalog addition would shift.
+export function buildBuyRows(state) {
   const shop = state.shopContext;
   const barterLevel = effectiveSkillLevel(state, "barter");
 
