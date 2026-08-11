@@ -4,6 +4,9 @@ import { getCurrentLocation, isSafeZone, formatClock, activeToast } from "../sta
 import { getAction } from "../data/actions.js";
 import { skillLevelCost } from "../skill_backbone.js";
 import { colorTag } from "./format.js";
+// COLOR/pickBand/HP_BANDS live in markup.js so data/flavor.js can band its
+// health line with the same table this file's HP number uses.
+import { COLOR, pickBand, HP_BANDS } from "../markup.js";
 
 const INFO_BAR_HEIGHT = 3;
 // The optional second header bar. Bordered, so it needs 3 rows to show one
@@ -217,25 +220,6 @@ export function formatXpBar(progress, width = XP_BAR_WIDTH) {
   const filled = Math.max(0, Math.min(width, Math.round(progress * width)));
   return "+".repeat(filled) + "-".repeat(width - filled);
 }
-
-// A few shades neo-blessed's named 8/16-color tags don't cover - resolved
-// via its hex-tag support instead (Program.prototype._attr's `#`-prefixed
-// branch, node_modules/neo-blessed/lib/program.js).
-const COLOR = { orange: "#ffa500", yellowOrange: "#ffae42", darkBlue: "#00008b", gold: "#ffd700" };
-
-// Ordered high -> low threshold; first match wins.
-function pickBand(pct, bands) {
-  for (const band of bands) if (pct >= band.min) return band;
-  return bands[bands.length - 1];
-}
-
-const HP_BANDS = [
-  { min: 0.8, color: "green" },
-  { min: 0.6, color: "white" },
-  { min: 0.4, color: "blue" },
-  { min: 0.2, color: COLOR.orange },
-  { min: 0, color: "red" },
-];
 
 const MP_BANDS = [
   { min: 0.75, color: "light-blue" },

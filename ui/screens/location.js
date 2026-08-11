@@ -5,9 +5,16 @@ import { HUB_FEATURES, getHubFeature } from "../../data/hubFeatures.js";
 import { getShop } from "../../data/shops.js";
 import { resolveFlavorText } from "../../data/locations.js";
 import { stationIdsAtLocation } from "../../data/stations.js";
-import { formatCommandRow } from "../format.js";
+import { formatCommandRow, wrapIndented, bold } from "../format.js";
 import { switchScreen } from "../router.js";
 import { logger } from "../../logger.js";
+
+// The flavour block's own indent, and the fallbacks for a screen that hasn't
+// reported a width yet. Exported so test/unit/locations.test.js can measure the
+// body exactly the way this screen renders it, rather than approximating.
+export const BODY_INDENT = 4;
+export const DEFAULT_SCREEN_WIDTH = 120;
+export const MIN_WRAP_WIDTH = 40;
 
 // Single source of truth for "what actions actually work here" - used by
 // both the numbered display and the digit dispatch below, so a location
@@ -143,12 +150,20 @@ export const locationScreen = {
   render(state, ui) {
     const location = getCurrentLocation(state);
 
-    // flavorText may be one string or an array with computed entries - see
-    // resolveFlavorText. Blank spacers stay blank rather than being indented.
-    const flavor = resolveFlavorText(location, state).map((line) => (line ? `    ${line}` : ""));
-    const bodyLines = [location.description, "", ...flavor];
+    // mainContent is width:"100%" with a line border, so its inner width is the
+    // screen minus the two border columns. Read per render rather than captured:
+    // the pane follows a terminal resize, and so must the wrap.
+    const width = Math.max(MIN_WRAP_WIDTH, (ui.screen?.width ?? DEFAULT_SCREEN_WIDTH) - 2);
+    const wrap = (line, indent) => wrapIndented(line, { width, indent });
+
+    // flavorText may be one string or an array with computed entries, and those
+    // entries may carry markup - see resolveFlavorText and data/flavor.js.
+    // Blank spacers stay blank rather than being indented; wrapIndented returns
+    // a single empty row for them, so the flatMap preserves them as-is.
+    const flavor = resolveFlavorText(location, state).flatMap((line) => (line ? wrap(line, BODY_INDENT) : [""]));
+    const bodyLines = [...wrap(bold(location.description), 0), "", ...flavor];
     if (state.lastMessage) {
-      bodyLines.push("", `    ${state.lastMessage}`);
+      bodyLines.push("", ...wrap(state.lastMessage, BODY_INDENT));
     }
     ui.mainContent.setContent(bodyLines.join("\n"));
 

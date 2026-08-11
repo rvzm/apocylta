@@ -7,6 +7,8 @@ import assert from "node:assert/strict";
 import { LOCATIONS, resolveFlavorText } from "../../data/locations.js";
 import { createInitialState } from "../../state/gameState.js";
 import { MINE_LOCK, FISH } from "../../item_backbone.js";
+import { wrapIndented } from "../../ui/format.js";
+import { BODY_INDENT, DEFAULT_SCREEN_WIDTH } from "../../ui/screens/location.js";
 
 // The gate a location's `mine:`/`water:` field opens is looked up by NAME, and a
 // name nothing recognises resolves to null - which reads as "no gate" rather
@@ -93,15 +95,24 @@ test("every location resolves to plain strings", () => {
 // blank plus the flavour has to fit inside that with room for a lastMessage.
 const MAX_BODY_LINES = 18;
 
-// Rows, not lines: blessed wraps rather than truncating, and the flavour is
-// indented by 4 inside a 118-wide pane, so a long sentence costs two rows
-// instead of vanishing. Long prose is fine - it just has to be counted.
-const USABLE_WIDTH = 114;
+// Rows, not lines: a long sentence costs two rows instead of vanishing. This
+// used to approximate with Math.ceil(line.length / width), which broke twice
+// over once flavour lines could carry markup:
+//
+//   - `.length` counts the tags, which occupy no columns, so a styled line was
+//     measured as wider than it renders and could fail a body that fits;
+//   - the ceil assumed a hard character split, but ui/screens/location.js wraps
+//     on WORD boundaries with a hanging indent, so the real row count differs.
+//
+// It now calls the exact function the screen calls, with the screen's own
+// indent and width constants - the guard measures what actually renders.
+const USABLE_WIDTH = DEFAULT_SCREEN_WIDTH - 2; // mainContent is 100% wide with a line border
 
 function renderedRows(location, state) {
-  const flavor = resolveFlavorText(location, state);
-  const wrapped = flavor.reduce((rows, line) => rows + Math.max(1, Math.ceil(line.length / USABLE_WIDTH)), 0);
-  return 2 + wrapped; // description + spacer
+  const wrap = (line) => (line ? wrapIndented(line, { width: USABLE_WIDTH, indent: BODY_INDENT }) : [""]);
+  const description = wrapIndented(location.description, { width: USABLE_WIDTH, indent: 0 }).length;
+  const flavor = resolveFlavorText(location, state).reduce((rows, line) => rows + wrap(line).length, 0);
+  return description + 1 + flavor; // description + spacer
 }
 
 test("no location renders a body taller than the pane", () => {

@@ -13,6 +13,8 @@ import {
   weatherLine,
 } from "../../data/flavor.js";
 import { createInitialState } from "../../state/gameState.js";
+import { getDisplay, setDisplay } from "../../state/displaySettings.js";
+import { stripMarkup, pickBand, HP_BANDS } from "../../markup.js";
 import { ALL_ITEMS } from "../../item_backbone.js";
 
 // The clock is minutes since the run started, seeded to 7:38pm.
@@ -110,6 +112,22 @@ test("openLine(): null without openHours, and reflects the hours when present", 
   assert.match(openLine(at(3), shop), /8am/, "and says when to come back");
 });
 
+// The open branch used to say nothing at all about when the shop shuts, which
+// is the one thing worth knowing while you're standing in it.
+test("openLine(): names hours on BOTH branches", () => {
+  const shop = { id: "weapons_shop", openHours: { open: 8, close: 20 } };
+  assert.match(stripMarkup(openLine(at(12), shop)), /Open until 8pm\./, "open says when it shuts");
+  assert.match(stripMarkup(openLine(at(3), shop)), /Open 8am - 8pm\./, "shut says the whole window");
+});
+
+// Green for go, red for no - the signal spellbook/blackMarket rows and
+// renderChrome's safe-zone bracket already share.
+test("openLine(): colours the hours by whether you can shop now", () => {
+  const shop = { id: "weapons_shop", openHours: { open: 8, close: 20 } };
+  assert.match(openLine(at(12), shop), /\{green-fg\}\{bold\}8pm\{\/bold\}\{\/green-fg\}/);
+  assert.match(openLine(at(3), shop), /\{red-fg\}\{bold\}8am - 8pm\{\/bold\}\{\/red-fg\}/);
+});
+
 // black_market runs 11pm-6am, so its hours wrap past midnight.
 test("openLine(): handles hours that wrap past midnight", () => {
   const market = { id: "black_market", openHours: { open: 23, close: 6 } };
@@ -166,4 +184,67 @@ test("packLine(): quiet only when the pack is empty", () => {
     .slice(0, 100);
   for (const [id] of fillers) state.inventory[id] = 1;
   assert.match(packLine(state), /completely full/);
+});
+
+// ------------------------------------------------------------- styling
+
+// Every helper routes its colour through markup.js's `styled`, so the display
+// setting still governs. Colour goes; the prose (and any bold) stays.
+test("colorize off leaves every helper's prose intact and tag-free", () => {
+  const before = { ...getDisplay() };
+  try {
+    setDisplay({ colorize: false });
+    const state = createInitialState();
+    state.hp = state.hpMax; // healthLine only speaks at full health or below 90%
+    state.inventory = { wood: 1 };
+    const location = { id: "wilderness", name: "wilderness", safe: false, openHours: { open: 8, close: 20 } };
+
+    const lines = [
+      timeLine(state),
+      weatherLine(state),
+      openLine(at(3), location),
+      dangerLine(state, location),
+      healthLine(state),
+      packLine(state),
+      firstVisitLine(state, location),
+    ].filter((line) => line != null);
+
+    assert.ok(lines.length >= 5, "expected most helpers to have something to say");
+    for (const line of lines) {
+      assert.equal(typeof line, "string");
+      assert.doesNotMatch(line, /-fg\}/, `"${line}" still carries a colour tag`);
+    }
+  } finally {
+    setDisplay(before);
+  }
+});
+
+// resolveFlavorText drops nulls to make a line conditional; a helper that
+// stringified its null through a style wrapper would render "null" instead.
+test("a helper with nothing to say still returns null, not styled null", () => {
+  const clear = at(0);
+  // weather() is derived from the clock, so find an hour whose weather is clear.
+  let quiet = null;
+  for (let hour = 0; hour < 24 && quiet === null; hour++) {
+    if (weatherLine(at(hour)) === null) quiet = hour;
+  }
+  assert.notEqual(quiet, null, "some hour of day 0 should have clear weather");
+  assert.equal(weatherLine(at(quiet)), null);
+  assert.equal(healthLine(Object.assign(createInitialState(), { hp: 95, hpMax: 100 })), null);
+  assert.equal(packLine(createInitialState()), null);
+  assert.equal(clear.clock.totalMinutes, 0);
+});
+
+// healthLine and the status bar's HP number read the same table, so they can't
+// disagree about how bad things are.
+test("healthLine() bands with markup.js's shared HP_BANDS", () => {
+  const state = createInitialState();
+  state.hpMax = 100;
+
+  state.hp = 100;
+  assert.match(healthLine(state), /\{green-fg\}/);
+  state.hp = 45;
+  assert.match(healthLine(state), new RegExp(`\\{${pickBand(0.45, HP_BANDS).color}-fg\\}`));
+  state.hp = 5;
+  assert.match(healthLine(state), /\{red-fg\}\{bold\}/, "critical health shouts");
 });

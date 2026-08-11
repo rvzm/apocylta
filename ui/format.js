@@ -1,29 +1,14 @@
 import { getDisplay } from "../state/displaySettings.js";
+import { visibleLength } from "../markup.js";
 
 const DEFAULT_COLUMNS = 3;
 const DEFAULT_COLUMN_WIDTH = 20;
 
-// Wraps text in neo-blessed markup tags. Only renders as color on widgets
-// built with `tags: true` (ui/layout.js's mainContent and inventoryList).
-// `color` is either a named blessed color ("green") or a hex string
-// ("#ffd700") - see the COLOR note in ui/layout.js.
-//
-// With colorize off this drops the colour but KEEPS {bold}: bold is a video
-// attribute (SGR 1) rather than a colour, and renders fine on a terminal with
-// no colour support. The same reasoning exempts inventoryList's
-// `inverse: true` selection highlight, which isn't routed through here at all.
-export function colorTag(text, color, bold) {
-  if (!getDisplay().colorize) return bold ? `{bold}${text}{/bold}` : String(text);
-  return bold ? `{${color}-fg}{bold}${text}{/bold}{/${color}-fg}` : `{${color}-fg}${text}{/${color}-fg}`;
-}
-
-// Blessed markup doesn't occupy columns, so anything that pads has to measure
-// the text the user actually sees - style "R" below emits {bold} tags inside a
-// padded cell and would otherwise throw the legend's alignment out by 13
-// characters per cell.
-function visibleLength(text) {
-  return text.replace(/\{[^}]*\}/g, "").length;
-}
+// Markup building moved to the top-level markup.js so data/flavor.js can style
+// its lines without data/ having to import ui/. Re-exported here because ~39
+// screen files and renderChrome already import colorTag from this module, and
+// the whole point of the move was to change nothing for them.
+export { colorTag, styled, bold, underline, visibleLength, stripMarkup, COLOR } from "../markup.js";
 
 function padVisible(text, width) {
   return text + " ".repeat(Math.max(0, width - visibleLength(text)));
@@ -94,6 +79,74 @@ export function formatCommandRow(commands, { columns = DEFAULT_COLUMNS, columnWi
     rows.push(padded.join("| "));
   }
   return rows.join("\n");
+}
+
+// Word-wraps one line into rows, indenting the continuations past the first so
+// a long sentence reads as one paragraph instead of dropping its tail against
+// the border. blessed wraps by itself, but only ever back to column zero - and
+// once a caller emits rows narrower than the pane, blessed leaves them alone,
+// which is the whole trick. Emit anything WIDER than the pane and blessed
+// re-wraps it and undoes the indent, so `width` must be the pane's real inner
+// width (its box width minus its border).
+//
+// Measures on visibleLength, not .length: a styled span costs columns only for
+// the text inside its tags. Splitting on whitespace can't cut a tag in half
+// either, since no tag contains a space - a whole `{green-fg}word{/green-fg}`
+// travels as one atom.
+//
+// An empty string yields a single empty row, so blank spacers survive a
+// flatMap over this untouched.
+export function wrapIndented(text, { width = 80, indent = 0, hangingIndent = 2 } = {}) {
+  const words = text == null ? [] : String(text).split(/\s+/).filter(Boolean);
+  if (!words.length) return [""];
+
+  const head = " ".repeat(indent);
+  const continuation = " ".repeat(indent + hangingIndent);
+
+  const rows = [];
+  let row = [];
+  let used = indent;
+
+  for (const word of words) {
+    const wordWidth = visibleLength(word);
+    const space = row.length ? 1 : 0;
+    if (row.length && used + space + wordWidth > width) {
+      rows.push((rows.length ? continuation : head) + row.join(" "));
+      row = [word];
+      used = indent + hangingIndent + wordWidth;
+      continue;
+    }
+    row.push(word);
+    used += space + wordWidth;
+  }
+  rows.push((rows.length ? continuation : head) + row.join(" "));
+  return balanceRows(rows);
+}
+
+// Closes any span still open at the end of a row and re-opens it on the next,
+// so every row is valid markup on its own.
+//
+// A single word can't be split (no tag contains a space), but a span covering
+// SEVERAL words can - data/flavor.js's openLine styles "8am - 8pm" as one span,
+// which is three tokens. Left alone, one row would end mid-span and the next
+// would carry an orphaned closer. blessed parses tags across the whole content
+// and would very likely cope, but rows that don't depend on that are cheaper
+// than finding out they don't - and it keeps the "tags balance per row"
+// invariant true for anything measuring or slicing a single row later.
+//
+// Tags cost no columns, so the re-opened prefix can't push a row over `width`.
+function balanceRows(rows) {
+  const open = [];
+  return rows.map((row) => {
+    const reopened = open.join("");
+    for (const tag of row.match(/\{[^}]*\}/g) ?? []) {
+      if (tag.startsWith("{/")) open.pop();
+      else open.push(tag);
+    }
+    const closed = [...open].reverse().map((tag) => `{/${tag.slice(1)}`).join("");
+    // After the indent, not before it - leading spaces stay outside the span.
+    return row.replace(/^(\s*)/, `$1${reopened}`) + closed;
+  });
 }
 
 const GRID_MIN_COLUMN_WIDTH = 14;

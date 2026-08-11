@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatCommandRow, formatCommandCell, colorTag } from "../../ui/format.js";
+import { formatCommandRow, formatCommandCell, colorTag, wrapIndented, visibleLength, stripMarkup } from "../../ui/format.js";
 import { getDisplay, setDisplay } from "../../state/displaySettings.js";
 
 // The three tests below assert the shipped default (action_key "B"), which is
@@ -120,4 +120,71 @@ test("colorTag(): colorize on is unchanged", () => {
     assert.equal(colorTag("Cure", "green", false), "{green-fg}Cure{/green-fg}");
     assert.equal(colorTag("Cure", "green", true), "{green-fg}{bold}Cure{/bold}{/green-fg}");
   });
+});
+
+// ------------------------------------------------------------ wrapIndented
+
+// The location body indents its flavour four spaces, but blessed's own wrapping
+// only ever returns to column zero - so a long sentence used to drop its tail
+// flush against the pane border. wrapIndented pre-wraps narrower than the pane
+// so blessed leaves the rows alone, and hangs the continuations.
+test("wrapIndented(): short text is one row at the given indent", () => {
+  assert.deepEqual(wrapIndented("a short line", { width: 40, indent: 4 }), ["    a short line"]);
+});
+
+test("wrapIndented(): continuations hang past the first row's indent", () => {
+  const rows = wrapIndented("one two three four five six", { width: 20, indent: 4 });
+  assert.deepEqual(rows, ["    one two three", "      four five six"]);
+  for (const row of rows) assert.ok(row.length <= 20, `"${row}" is wider than the pane`);
+});
+
+test("wrapIndented(): an empty line stays one empty row, so spacers survive", () => {
+  assert.deepEqual(wrapIndented("", { width: 40, indent: 4 }), [""]);
+  assert.deepEqual(wrapIndented(null, { width: 40, indent: 4 }), [""]);
+});
+
+function tagsBalance(row) {
+  const opens = (row.match(/\{[^/][^}]*\}/g) ?? []).length;
+  const closes = (row.match(/\{\/[^}]*\}/g) ?? []).length;
+  return opens === closes;
+}
+
+// Splitting on whitespace can't cut a tag in half - no tag contains a space -
+// so a styled word travels as one atom.
+test("wrapIndented(): never splits a markup tag", () => {
+  const text = `plain ${colorTag("styled", "green", true)} words here now`;
+  for (const row of wrapIndented(text, { width: 24, indent: 0 })) {
+    assert.ok(tagsBalance(row), `unbalanced tags in "${row}"`);
+  }
+});
+
+// A span covering SEVERAL words can still land across a break - openLine styles
+// "8am - 8pm" as one three-token span. Every row closes what it opened and the
+// next row re-opens it, so no row depends on its neighbour to be valid markup.
+test("wrapIndented(): closes and re-opens a span broken across rows", () => {
+  const text = `The shutters are down here today. Open ${colorTag("8am - 8pm", "red", true)}.`;
+  for (let width = 30; width <= 60; width++) {
+    const rows = wrapIndented(text, { width, indent: 4 });
+    for (const row of rows) {
+      assert.ok(tagsBalance(row), `unbalanced at width ${width}: "${row}"`);
+      // Re-opened tags cost no columns, so they can't push a row over.
+      assert.ok(visibleLength(row) <= width, `width ${width} overflowed: "${row}"`);
+    }
+    assert.equal(
+      rows.map(stripMarkup).join(" ").replace(/\s+/g, " ").trim(),
+      stripMarkup(text),
+      `text lost at width ${width}`
+    );
+  }
+});
+
+// The whole point: a styled word costs only the columns its text occupies, so a
+// line full of markup must not wrap earlier than the same line without it.
+test("wrapIndented(): measures visible width, not tag length", () => {
+  const plain = "alpha bravo charlie delta";
+  const styledText = `${colorTag("alpha", "green", true)} bravo ${colorTag("charlie", "red", false)} delta`;
+  assert.equal(
+    wrapIndented(styledText, { width: 30, indent: 0 }).length,
+    wrapIndented(plain, { width: 30, indent: 0 }).length
+  );
 });
