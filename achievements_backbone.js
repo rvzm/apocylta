@@ -186,26 +186,26 @@ export const ACHIEVEMENTS = {
     },
     "beginner_merchant": {
         name: "Beginner Merchant",
-        desc: "Sold 10 items!",
-        reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
-        req: {
-            sellItem: { quantity: 10 },
-        },
-    },
-    "intermediate_merchant": {
-        name: "Intermediate Merchant",
-        desc: "Sold 50 items!",
-        reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
-        req: {
-            sellItem: { quantity: 50 },
-        },
-    },
-    "master_merchant": {
-        name: "Master Merchant",
         desc: "Sold 100 items!",
         reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
         req: {
             sellItem: { quantity: 100 },
+        },
+    },
+    "intermediate_merchant": {
+        name: "Intermediate Merchant",
+        desc: "Sold 500 items!",
+        reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
+        req: {
+            sellItem: { quantity: 500 },
+        },
+    },
+    "master_merchant": {
+        name: "Master Merchant",
+        desc: "Sold 1000 items!",
+        reward: { gold: 100, xp: { player: 100, skill: { "barter": 50} } },
+        req: {
+            sellItem: { quantity: 1000 },
         },
     },
     "beginner_mage": {
