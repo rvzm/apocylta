@@ -132,10 +132,12 @@ export const SKILL_TREES = {
             combat: {
                 "heavystrike": { name: "Heavy Strike", effect: { damageUp: 10 }, cooldown: 10, desc: "Increases damage dealt by 10%. Cooldown: 10s" },
                 "shieldwall": { name: "Shield Wall", effect: { defenseUp: 10 }, cooldown: 15, desc: "Increases defense by 10%. Cooldown: 15s" },
+                "maximum_effort": { name: "Maximum Effort!", effect: { damageUp: 30, defenseUp: 30, hpUp: 100 }, cooldown: 30, desc: "Increases both damage and defense by 30% and HP by 100. Cooldown: 30s" },
             },
             survival: {
                 "forager": { name: "Forager", effect: { gatherUp: 10 }, cooldown: 20, desc: "Increases gathering efficiency by 10%. Cooldown: 20s" },
                 "hunter": { name: "Hunter", effect: { trapUp: 10 }, cooldown: 25, desc: "Increases trapping efficiency by 10%. Cooldown: 25s" },
+                "fisherman": { name: "Fisherman", effect: { fishingUp: 10 }, cooldown: 30, desc: "Increases fishing efficiency by 10%. Cooldown: 30s" },
             },
             smithing: {
                 "blacksmith": { name: "Blacksmith", effect: { smithUp: 10 }, cooldown: 30, desc: "Increases Smithing efficiency by 10%. Cooldown: 30s" },
@@ -154,6 +156,7 @@ export const SKILL_TREES = {
                 "battle_meditation": { name: "Battle Meditation", effect: { combatHpRegenUp: 5 }, maxlevel: 5, desc: "Increases health regeneration during combat by 5% per level, up to 25%." },
                 "tactical_mastery": { name: "Tactical Mastery", effect: { combatDmgVsMultipleUp: 5 }, maxlevel: 5, desc: "Increases damage dealt to multiple enemies by 5% per level, up to 25%." },
                 "overdive": { name: "Overdrive", effect: { combatDmgVsBossUp: 5 }, maxlevel: 5, desc: "Increases 'extra health' that can be stored beyond maximum health by 5% per level, up to 25%." },
+                "medium_effort": { name: "Medium Effort!", effect: { combatCritDmgUp: 5, combatCritChanceUp: 5, combatDmgVsLowHpUp: 5, combatDmgVsHighHpUp: 5, combatDmgVsMultipleUp: 5, combatDmgVsBossUp: 5 }, maxlevel: 5, desc: "Increases all combat damage and critical hit stats by 5% per level, up to 25%." },
             },
             survival: {
                 "keen_eyesight": { name: "Keen Eyesight", effect: { gatherUp: 5 }, maxlevel: 5, desc: "Increases gathering efficiency by 5% per level, up to 25%." },

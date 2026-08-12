@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS enhancements (
 CREATE TABLE IF NOT EXISTS skilltree (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id INTEGER NOT NULL,
-    skilltree_id TEXT NOT NULL,                    -- every skill tree the player has ever unlocked
+    skilltree_id TEXT NOT NULL,                    -- Skill Tree Path (e.g. "Warforger", "Mercenary", "Survivalist", "Monk")
     tree1_skill1_id TEXT NOT NULL DEFAULT 0,       -- Skill Tree 1, Skill 1 id
     tree1_skill1_level INTEGER NOT NULL DEFAULT 0,            -- Skill Tree 1, Skill 1 level
     tree1_skill2_id TEXT NOT NULL DEFAULT 0,       -- Skill Tree 1, Skill 2 id
