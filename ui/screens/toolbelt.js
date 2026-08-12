@@ -28,6 +28,10 @@ export const toolbeltScreen = {
   keymap: {
     S: (state, ui) => switchScreen(state, ui, "toolSwap"),
     C: (state, ui) => switchScreen(state, ui, "slingshotSwap"),
+    // The belt's CONTENTS, as against the equipped gear and load numbers this
+    // screen shows. Its own B/ESCAPE come back here, so it reads as a
+    // sub-screen rather than a sibling of the backpack.
+    P: (state, ui) => switchScreen(state, ui, "pouch"),
     X: (state, ui) => switchScreen(state, ui, "spellbook"),
     B: (state, ui) => {
       state.returnScreen = "toolbelt";
@@ -71,6 +75,7 @@ export const toolbeltScreen = {
     ui.commandList.setContent(
       formatCommandRow(
         [
+          { label: "Pouch", hotkey: "P" },
           { label: "Swap Tool", hotkey: "S" },
           { label: "Change Slingshot", hotkey: "C" },
           { label: "Spellbook", hotkey: "X" },

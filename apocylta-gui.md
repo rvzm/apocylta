@@ -612,7 +612,8 @@ _________________________________________________________________________
 |  Slingshot Ammo:     0/10                                             |
 |  Equipped Slingshot: none                                             |
 |  Quiver:             0                                                |
-|  Backpack:           7/100                                            |
+|  Toolbelt Load:      12.4/17                                          |
+|  Backpack Load:      41.6/102                                         |
 |  Potions:            2/5                                              |
 |                                                                       |
 |_______________________________________________________________________|
@@ -620,12 +621,47 @@ _________________________________________________________________________
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | What would you like to do? |__________________________________________|
 |                                                                       |
-| [S]wap Tool            | [C]hange Slingshot                           |
-| [X] Spellbook          | [B]ackpack                                   |
-| [J]ournal              | [ESC] Back                                   |
+| [P] Pouch              | [S]wap Tool                                  |
+| [C]hange Slingshot     | [X] Spellbook                                |
+| [B]ackpack             | [J]ournal                                    |
+| [ESC] Back             |                                              |
 |_______________________________________________________________________|
 ```
 `[ESC]` goes back to wherever you came from rather than always to the location screen. Most screens that offer `[B]ack` accept `[ESC]` for it too, even where the legend only prints the letter - Settings, Achievements, the Admin hub and the combat Cast/Potion picker all do. You start out wearing the leather belt; take it off and the water bottle, slingshot ammo and quiver caps all drop to 0 (unusable until you put one back on), while the backpack and potion pouch fall back to a small baseline instead of going away entirely - any belt is a strict upgrade. `[S]wap Tool` opens a picker just like the mining one above, grouped into tabs by tool category (pickaxe, axe, hammer, etc.); `[C]hange Slingshot` opens the same kind of picker without tabs, since there's only one slingshot category.
+
+## Pouch
+
+`[P]` from the Toolbelt opens the belt's contents - the scrap, tools, bait and hooks that are charged against the belt's weight rather than the backpack's. They don't appear in the [Backpack](#inventory) at all; each thing you carry lives in exactly one of the two screens.
+
+Tabs across the top are item types, the same dynamic way the backpack's are. Inside a tab, rows are gathered under a heading per kind, with how many kinds that heading holds and what the group weighs - a belt full of mining gear reads as three sections instead of thirty loose rows. The bar above the list is your belt's total load:
+```
+_________________________________________________________________________
+| apocylta | Rae Lv.4 | [cave mines] | 10sy           [idle]     7:38pm  |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|  On your belt: 12.4 of 17.                                            |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+|_[All]| scrap | tool | crafting____________________________________ ___|
+|  Metal (2)                                              3.4          |
+|    - [12] Scrap Metal                                   2.4          |
+|    - [5] Copper Wire                                    1            |
+|                                                                       |
+|  Pickaxe (1)                                            3            |
+|    - [1] Iron Pickaxe                                   3            |
+|                                                                       |
+|  Bait (1)                                               0.25         |
+|    - [5] Fishing Bait                                   0.25         |
+|                                                                       |
+|_______________________________________________________________________|
+| hp: 100 | mp: 100 | [ DANGER ] |                                      |
+|‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
+| What would you like to do? |__________________________________________|
+|                                                                       |
+| [B]ack                 | [<>] Switch tab                              |
+| [D]rop                 | [E]quip                                      |
+| [U]se                  | [M]enu                                       |
+|_______________________________________________________________________|
+```
+Section headings and the blank lines between them aren't selectable - land on one and Drop/Equip/Use say "Select an item first." rather than acting on whatever was nearest. `[U]se` currently refuses everything here: nothing on the belt is a consumable, so it's an affordance waiting on the catalog rather than a broken key.
 
 ## Quests
 

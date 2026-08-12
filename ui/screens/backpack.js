@@ -5,16 +5,19 @@ import { useItem } from "../../data/items.js";
 import { switchScreen } from "../router.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 
-// Everything you're carrying, wherever it's stored. Tools used to be excluded
-// here on the grounds that they "live in the Toolbelt" - but this is the only
-// screen with Drop, Use and Equip, so that quietly made every tool impossible
-// to get rid of. Now that scrap, bait and hooks live on the belt too, hiding
-// them would have made a beltful of rock unshiftable as well.
+// The PACK's contents only - what's on the belt belongs to ui/screens/pouch.js.
 //
-// What `storeIn` decides is which capacity an item is charged against
-// (data/toolbelt.js), not whether you can see it.
+// Tools were excluded here once before on the grounds that they "live in the
+// Toolbelt", and that was a bug: this was the only screen with Drop, Use and
+// Equip, so hiding them made every tool impossible to get rid of. They were
+// brought back for exactly that reason, and they leave again now for exactly
+// the reason they couldn't then - the Pouch drops and equips them itself. Each
+// thing you carry now appears in exactly one screen.
+//
+// Keep that history in mind before filtering anything else out of here: hiding
+// a row is only safe once somewhere else can act on it.
 function carriedEntries(state) {
-  return Object.entries(state.inventory).filter(([, qty]) => qty > 0);
+  return Object.entries(state.inventory).filter(([id, qty]) => qty > 0 && storeInOf(id) === "backpack");
 }
 
 // "All" first, then whatever item types are actually present, in
@@ -31,11 +34,10 @@ function buildInventoryRows(state, activeTab) {
   const lines = [];
   const itemIds = [];
   for (const [id, qty] of filtered) {
-    // The stack's weight, and a marker for the ones riding the belt rather than
-    // the pack - the two have separate budgets, so which is which matters.
+    // The stack's weight - what this row costs against the pack's budget. No
+    // "(belt)" marker any more: every row here is a pack row, so it said nothing.
     const stack = Math.round(weightOf(id) * qty * 100) / 100;
-    const where = storeInOf(id) === "toolbelt" ? " (belt)" : "";
-    lines.push(`  - [${qty}] ${ALL_ITEMS[id]?.name ?? id}${where}  ${stack}`);
+    lines.push(`  - [${qty}] ${ALL_ITEMS[id]?.name ?? id}  ${stack}`);
     itemIds.push(id);
   }
 

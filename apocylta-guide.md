@@ -664,9 +664,20 @@ For a sense of scale: a starting character with a leather belt can carry about e
 seventy-five pieces of scrap metal on the belt beside it. Scrap and bait weigh almost nothing; ore, bars and
 armor are what fill you up. A leviathan's bones are the heaviest thing in the world and are meant to be.
 
-The backpack screen lists everything you're carrying with its stack weight, marking the ones riding the belt
-with `(belt)`. Anything consumable is used from there, and using it pays a little xp in the relevant skill —
-plus you keep the empty bottle.
+### Looking through it
+
+There's a screen per container, and each thing you carry appears in exactly one of them:
+
+- **`[B] Backpack`** — the pack. Tabbed by item type, each row showing its stack weight, with `[D] Drop`,
+  `[E] Equip` and `[U] Use`. Anything consumable is used from here, and using it pays a little xp in the
+  relevant skill — plus you keep the empty bottle.
+- **`[P] Pouch`**, from the Toolbelt — the belt. Same tabs and the same three actions, but rows are gathered
+  under headings by kind, so a belt holding nine axes and nine pickaxes reads as two sections rather than
+  eighteen loose rows. Each heading carries how many kinds it holds and what the group weighs, and the bar
+  above the list shows your belt's total load.
+
+Your **potions** are the exception with no screen of their own: they show in the Backpack like everything
+else, and the pouch that limits them is just a number on the Toolbelt screen.
 
 ---
 

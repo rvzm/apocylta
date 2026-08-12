@@ -63,13 +63,15 @@ test("backpack tabs (dynamic, arrow-key driven) and the Toolbelt screen", async 
   await session.waitFor("[All]");
 
   const allTabPane = session.capture();
-  assert.doesNotMatch(allTabPane, /Hammer/, "tools must not appear in the backpack anymore");
+  // Belt items are NOT here - they're the Pouch's (Toolbelt -> [P]), which is
+  // walked further down. This exclusion was briefly a real bug: tools were
+  // hidden while this was the only screen with Drop, so they couldn't be got
+  // rid of at all. It's safe now because the Pouch drops and equips them.
+  assert.doesNotMatch(allTabPane, /Hammer/, "tools belong to the Pouch now");
+  assert.doesNotMatch(allTabPane, /\bscrap\b/, "and so does scrap");
+  assert.match(allTabPane, /Wooden Dagger\s+[\d.]+/, "pack rows carry their stack weight");
   assert.match(allTabPane, /\bweapon\b/, "a weapon tab should exist (starter wooden_dagger)");
   assert.match(allTabPane, /\barmor\b/, "an armor tab should exist (starter leather_belt)");
-  assert.match(allTabPane, /\bscrap\b/, "a scrap tab should exist (gathered loot)");
-
-  const scrapTabPane = await cycleToTab(session, "scrap");
-  assert.doesNotMatch(scrapTabPane, /Nothing here\./);
 
   // --- Equip the starter belt from the armor tab ---
   const armorTabPane = await cycleToTab(session, "armor");
@@ -92,8 +94,28 @@ test("backpack tabs (dynamic, arrow-key driven) and the Toolbelt screen", async 
   assert.match(toolbeltPane, /Slingshot Ammo:\s+0\/10/);
   assert.match(toolbeltPane, /Equipped Slingshot:\s+none/);
   assert.match(toolbeltPane, /Quiver:\s+0/);
-  assert.match(toolbeltPane, /Backpack:\s+\d+\/100/);
+  // Two weight budgets and one slot count. The caps aren't pinned exactly: the
+  // leather belt's 15/100 both get + 2 per strength level, and bootstrapCharacter
+  // picks its proficiencies by walking the list, so whether this character has
+  // strength at 1 or 5 isn't this test's business.
+  assert.match(toolbeltPane, /Toolbelt Load:\s+[\d.]+\/\d+/);
+  assert.match(toolbeltPane, /Backpack Load:\s+[\d.]+\/1\d\d/, "the pack budget is the belt's 100 plus strength");
   assert.match(toolbeltPane, /Potions:\s+0\/5/);
+  assert.match(toolbeltPane, /\[P\]\s*Pouch|\[P\]ouch/, "the Pouch is reachable from here");
+
+  // --- Pouch: the belt's contents, which the backpack no longer shows ---
+  session.sendKeys("p");
+  await session.waitFor("[All]");
+  const pouchPane = session.capture();
+  // Sectioned by subtype, with the section's own count - so the hammer sits
+  // under a "Hammer" heading rather than loose in a flat list.
+  assert.match(pouchPane, /Hammer \(1\)/, "sections are headed and counted");
+  assert.match(pouchPane, /- \[1\] Hammer\s+[\d.]+/, "and rows carry their stack weight");
+  assert.match(pouchPane, /On your belt:\s*[\d.]+ of [\d.]+/, "the sub-header shows the belt's load");
+  assert.match(pouchPane, /\bscrap\b/, "the gathered scrap is here, not in the backpack");
+
+  session.sendKeys("b"); // Pouch's Back -> toolbelt
+  await session.waitFor("Equipped Tool:");
 
   session.sendKeys("s"); // Swap Tool
   await session.waitFor("Hammer");
