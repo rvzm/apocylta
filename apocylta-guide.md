@@ -9,8 +9,12 @@ Everything about how the game actually works. If you'd rather see what the scree
 ## 1. Getting started
 
 `npm start` and the game takes over your terminal. Every screen prints its own command legend along the
-bottom — `[T]ravel | [1] Gather scraps | [M]enu` — so the letter in brackets is the key to press. Case
+bottom — `[T] Travel | [1] Gather scraps | [M] Menu` — so the letter in brackets is the key to press. Case
 doesn't matter. `q` quits from anywhere, immediately and without asking, so be a little careful with it.
+
+This guide writes those keys in the **Prefix** style, `[T] Travel`. A fresh install draws them boxed
+instead — `[T]ravel` — which is the same key doing the same thing. If you'd rather the game matched this
+page, Action key style in the Settings (§15) switches it.
 
 The screen is always laid out the same way. The top bar carries your name and level, where you are, your
 money, whatever you're currently doing, and the time of day. Some screens — the shops, the workbenches, the
@@ -18,7 +22,8 @@ mine and fishing pickers, your backpack — add a second bar beneath it with a l
 standing; it changes with the hour and tells you nothing you need, so read it or don't. Under that is the main
 pane, which is the screen you're actually on. Below that, a status bar with your health, mana, and whether
 you're somewhere safe — and, while you're working, a progress bar for the skill you're using. Achievement
-unlocks arrive there too, as a gold banner. At the bottom, the prompt and the command legend.
+unlocks arrive there too, as a gold banner, and a gold `[ BLESSED ]` sits there while an aid spell is
+running (§8). At the bottom, the prompt and the command legend.
 
 Health, mana and that progress bar are all colour-banded, so you can read how you're doing without reading
 the numbers.
@@ -72,8 +77,9 @@ Then you pick however many extra proficient skills your difficulty allows. A pro
 level 5 instead of 1, and up to Hard it earns xp 50% faster for the whole run — so on those difficulties the
 choice compounds. See the proficiency row above before spending picks on Survival or harder.
 
-Two of the seventeen skills — **strength** and **luck** — can be picked as proficiencies but have no way to
-earn xp yet, so a pick spent there buys you the starting level 5 and nothing after it.
+Three of the seventeen skills are worth knowing about before you spend a pick. **Strength** and **luck**
+have no way to earn xp at all, and **crafting** has almost none — a pick spent on any of the three buys you
+the starting level 5 and very little after it. §6 has the details and the rest of the table.
 
 ---
 
@@ -82,19 +88,212 @@ earn xp yet, so a pick spent there buys you the starting level 5 and nothing aft
 73 locations, connected by exits you can see on the travel screen. Some are **safe** — nothing will jump
 you in a town square — and some aren't, which the status bar tells you at a glance.
 
-Most journeys take real time. Press `[T]ravel`, pick a numbered destination, and a longer trip hands you a
+Most journeys take real time. Press `[T] Travel`, pick a numbered destination, and a longer trip hands you a
 countdown screen with a small animation appropriate to the route: someone walking a road, a glider over open
 sky, a cart rattling through a tunnel, a shimmer for a teleport. Arriving pays Speed xp in proportion to the
 trip — a thirty-second haul is worth thirty. Short hops stay instant, and there are plenty of them: every
 shop door and most footpaths between neighbours cost nothing.
 
+**Your speed skill shortens the walk**, gently: the times on the map below are what a new character walks,
+and every level shaves a fraction off, down to a floor of 40% faster at around speed 100. It bottoms out
+there rather than trending toward nothing. The xp a route pays doesn't shrink with it — a trip is worth its
+posted length however fast you cover it, so training speed never makes speed harder to train.
+
 The travel screen also previews where each exit leads *next*, a column per destination, so you can see one
 hop past the one you're choosing.
 
-Travel can't be interrupted by an ambush; that's deliberate. It does keep running if you open the `[M]enu`,
-but **`[B]ack` abandons the trip** — you return to where you set out from and the elapsed time is gone.
+Travel can't be interrupted by an ambush; that's deliberate. It does keep running if you open the
+`[M] Menu`, but **`[B] Back` abandons the trip** — you return to where you set out from and the elapsed
+time is gone.
 
 Shops keep **opening hours**. A closed shop tells you when to come back rather than letting you in.
+
+### Getting around quickly
+
+Two things save you the long walk, and both are worth going out of your way for early.
+
+The **Apocylta Regional Hub** is the airboat interchange: seven routes out of one room, thirty seconds
+each, reaching every region in the game. Getting *to* it is the awkward part — from Apocylta Haven it's a
+walk out to Mountain Peak and an airboat to Zenthal Airport before you can catch one onward.
+
+**Your own house** is the better answer, and the real reason to buy a deed. It teleports you to five places
+for five seconds apiece, and `[J] Go Home` from the town square or the housing district gets you into it.
+That includes **Apocyltia Castle**, which nothing else in the world leads to — the castle has an exit *out*
+to the Regional Hub, but no route in except your front door. That also makes it the quickest way to the Hub
+there is: home, castle, hub, twenty seconds all told, against the better part of a minute going the long way
+round through Zenthal.
+
+### The map
+
+<!-- worldmap:begin -->
+
+### The long hauls
+
+Every route that crosses from one region into another. Everything else is local, and shows up on the
+region maps below.
+
+```
+                            +-- 30s airboat --> Zenthal Airport
+                            +-- 30s airboat --> Zenthal City
+                            +-- 30s airboat --> Town Square
+  APOCYLTA REGIONAL HUB ----+-- 30s airboat --> Cordura Outpost
+                            +-- 30s airboat --> Vetron Station
+                            +-- 30s airboat --> Kooz Station
+                            +-- 30s airboat --> Azari Town
+
+                +-- 5s teleport --> Town Square
+                +-- 5s teleport --> Zenthal City
+  YOUR HOME ----+-- 5s teleport --> Azari Castle
+                +-- 5s teleport --> Kooz Docks
+                +-- 5s teleport --> Apocyltia Castle
+
+  Mountain Peak (Apocylta Haven)  <-->  30s airboat  Zenthal Airport (Zenthal)
+  Apocyltia Castle                 -->  10s teleport  Apocylta Regional Hub   (one way)
+```
+
+Read the region maps as *how you'd walk it*: each location hangs off the one you'd reach it from, with
+the trip time and the kind of route beside it. `->` on a row lists the shortcuts leaving that location
+that the tree doesn't need — teleports and airboats. Shop interiors aren't drawn; they're gathered into
+the `Shops:` line under each region.
+
+### Apocylta Haven — 30 locations (6 behind shop doors)
+
+```
+town square                                 safe
+|- wilderness                               15s road   freshwater
+|  |- mountain pass                         18s road   -> portal room 5s
+|  |- north path                            12s road   safe
+|  |  |- cliffside                          10s road
+|  |  |- riverbank                          10s road   safe, freshwater
+|  |  `- abandoned village                  15s road   boss: Hubert
+|  |- east path                             12s road
+|  |  |- forest edge                        10s road   safe
+|  |  `- abandoned cabin                    10s road
+|  |- west path                             12s road
+|  |  |- mountain peak                      20s road   -> portal room 5s, zenthal airport 30s
+|  |  `- cave entrance                      10s road   -> portal room 5s, mountain pass 5s
+|  |     `- cave mines                      15s cave   safe, mine: basic
+|  |        |- cave hub                     10s tunnel   safe, mine: mid tier
+|  |        |- north deep cave              10s tunnel   safe, mine: high tier
+|  |        `- south deep cave              10s tunnel   mine: legendary, boss: Goblin King
+|  `- south path                            12s road
+|     |- desert                             20s road   boss: Gilbert
+|     `- oasis                              10s road   safe, freshwater
+|- park                                     10s road   safe
+|- housing district                         5s road   safe
+|- safehouse                                [S] Safehouse   safe
+`- portal room                              5s teleport   safe
+                                            -> mountain pass 5s, mountain peak 5s, cave entrance 5s
+```
+
+**Shops:** weapons shop (weapons); armor shop (armor); potions shop (potions); magic shop (magic); general
+store (browse); black market (enhancements, illicit goods); plus counters at cave hub (browse); housing
+district (deeds).
+
+### Zenthal — 10 locations (4 behind shop doors)
+
+```
+zenthal airport                             safe, -> mountain peak 30s, apocylta regional hub 30s
+`- zenthal city                             15s road   saltwater
+   |- zenthal market                        10s road   safe
+   |  |- zenthal slums                      10s road   freshwater
+   |  `- zenthal park                       5s road   safe, saltwater
+   `- zenthal docks                         20s road   saltwater
+```
+
+**Shops:** zenthal residential (deeds); zenthal blacksmith (weapons, armor); zenthal general store (browse);
+zenthal black market (enhancements, illicit goods); plus counters at zenthal airport (browse); zenthal market
+(browse).
+
+### Apocylta Regional Hub — 2 locations
+
+```
+apocylta regional hub                       safe
+                                            -> zenthal airport 30s, zenthal city 30s, town square 30s,
+                                               cordura outpost 30s, vetron station 30s, kooz station 30s,
+                                               azari town 30s
+`- apocylta regional hub shops              5s road   safe
+```
+
+**Shops:** counters at apocylta regional hub (browse); apocylta regional hub shops (weapons, armor, potions,
+browse).
+
+### Cordura — 12 locations
+
+```
+cordura outpost                             safe
+|- cordura mines                            20s road   mine: basic
+|  `- cordura mines deep                    15s tunnel   mine: advanced
+|     |- cordura north tunnel               10s tunnel   mine: advanced
+|     |  `- cordura north chamber           15s tunnel   mine: advanced, boss: Beelzebub
+|     |- cordura south tunnel               10s tunnel   mine: advanced
+|     |  `- cordura south chamber           15s tunnel   mine: advanced, boss: Azrael
+|     |- cordura east tunnel                10s tunnel   mine: advanced
+|     |  `- cordura east chamber            15s tunnel   mine: advanced, boss: Vortigern
+|     `- cordura west tunnel                10s tunnel   mine: advanced
+|        `- cordura west chamber            15s tunnel   mine: advanced, boss: Morgoth
+`- cordura forest                           15s road
+```
+
+**Shops:** counters at cordura outpost (browse).
+
+### Vetron — 4 locations
+
+```
+vetron station                              safe, -> apocylta regional hub 30s
+|- vetron city                              20s road   safe, saltwater
+|  `- vetron market                         10s road   safe
+`- vetron docks                             15s road   saltwater
+```
+
+**Shops:** counters at vetron station (browse); vetron market (armor, weapons, magic, browse).
+
+### Kooz — 4 locations
+
+```
+kooz station                                safe, -> apocylta regional hub 30s
+|- kooz city                                20s road   safe, saltwater
+|  `- kooz market                           10s road   safe
+`- kooz docks                               15s road   saltwater
+```
+
+**Shops:** counters at kooz station (browse); kooz market (armor, weapons, magic, browse).
+
+### Azari — 3 locations
+
+```
+azari town                                  safe
+|- azari castle                             20s road   safe
+`- azari docks                              15s road   safe, saltwater
+```
+
+**Shops:** counters at azari town (browse).
+
+### Apocyltia Castle — 7 locations
+
+```
+apocyltia castle                            safe, -> apocylta regional hub 10s
+|- apocyltia castle courtyard               5s hallway   safe, freshwater
+|- apocyltia castle keep                    5s hallway   safe
+|- apocyltia castle north wing              5s hallway   safe
+|- apocyltia castle south wing              5s hallway   safe
+|- apocyltia castle east wing               5s hallway   safe
+`- apocyltia castle west wing               5s hallway   safe
+```
+
+**Shops:** none.
+
+### Your Home — 1 location
+
+```
+Your Home                                   safe
+                                            -> town square 5s, zenthal city 5s, azari castle 5s, kooz docks 5s,
+                                               apocyltia castle 5s
+```
+
+**Shops:** none.
+
+<!-- worldmap:end -->
 
 ---
 
@@ -133,7 +332,7 @@ faster on harder difficulties, and it interrupts whatever you were doing.
 **Scavenging, foraging, chopping, trapping** are the straightforward ones: pick the action from a
 location's numbered list and it runs until you stop it.
 
-**Mining** has a picker, reached with `[N]` where a location has a seam. A mine has one of five tiers and
+**Mining** has a picker, reached with `[N] Mine` where a location has a seam. A mine has one of five tiers and
 only lists the ores that tier reaches, each tier keeping everything below it:
 
 | the mine | adds | needs mining |
@@ -165,9 +364,9 @@ tarvus at 60; the three kings behind them want **75**.
 
 ## 6. Skills and levelling
 
-17 skills. Fifteen of them level on their own as you use them: magic, defense, fighting, speed, survival,
-woodcutting, fishing, mining, smithing, crafting, cooking, foraging, trapping, alchemy and barter. (Strength
-and luck are the other two — see §2.)
+17 skills. Fourteen of them level on their own as you use them: magic, defense, fighting, speed, survival,
+woodcutting, fishing, mining, smithing, cooking, foraging, trapping, alchemy and barter. The other three
+have no ordinary way to earn xp — see the notes under the table.
 
 Some of those you'll never train on purpose. **Defense levels by being hit**, speed by travelling and by
 fleeing, alchemy and survival by drinking what you brewed, barter by trading at either counter.
@@ -176,6 +375,58 @@ Skill xp **accumulates** — it's a running total that never goes down, and each
 to have reached it. So your bar fills toward the next threshold rather than emptying when you arrive. The
 curve climbs steeply, so early levels come quickly and later ones are a project. Proficient skills earn a
 multiplier on every payment, which your difficulty sets (§2). **Skills cap at 500.**
+
+### What each skill is for
+
+Skills do two different jobs, and it's worth keeping them apart. A few **gate** things — below the level,
+the game simply refuses you. The rest **scale** something, quietly, with no threshold to cross.
+
+| skill | what it does for you | how it earns xp |
+| --- | --- | --- |
+| **Mining** | **gates** which ores you can break: tin and copper 1, iron 5, gold 8, cobalt 10, mithril 25, syllic 40, adamantite 45, runite 60 — and your odds on each swing | successful attempts |
+| **Fishing** | **gates** which species you can land, from 1 up to 75 for the three kings — and your odds per cast | successful attempts |
+| **Magic** | **gates** which spells you may learn — every spell prints the level it wants | casting, paying each spell's own xp — 3 for Magic Missile, 50 for a Divine Cure |
+| **Barter** | **gates** what a shop will show you at all: common 1, uncommon 5, rare 15, epic 25, legendary 35, mythic 65, unique 80, godlike 100 | buying and selling, scaled by the item's rarity |
+| **Fighting** | **gates** boss fights at **level 20**; below that, scales how hard you hit | every swing, plus a lump on the kill worth half the enemy's xp |
+| **Defense** | how much damage your armor soaks, and your block chance (caps at 60%) | every hit you take — you train it by being hit, not by choosing to |
+| **Speed** | **how long travel takes**, dodging (caps at 50%) and running away (40% base, two points a level, caps at 90%) | one xp per second of every trip you finish, plus a little each dodge or escape |
+| **Luck** | your critical-hit chance (caps at 50%) | nothing |
+| **Woodcutting** | your odds per swing at a tree | successful attempts |
+| **Foraging** | your odds when scavenging or foraging | successful attempts |
+| **Trapping** | your odds per trap | successful attempts |
+| **Survival** | your odds looking for food | looking for food, and eating anything |
+| **Smithing** | nothing yet — the forge asks for ingredients, not a level | crafting, scaled by the rarity of what came out |
+| **Cooking** | nothing yet — same | crafting, scaled by rarity |
+| **Alchemy** | nothing yet — same | crafting, and drinking a potion |
+| **Crafting** | nothing | **nothing — see below** |
+| **Strength** | nothing | nothing |
+
+Four things there want spelling out, because each is a place the game doesn't do what an RPG usually would.
+
+**Gear has no level requirement.** You can equip anything you can carry — a mithril sword at fighting 1,
+adamantite plate at defense 1. The game's data *describes* a tier ladder for weapons, armor, shields, axes,
+hammers and mage robes, but nothing checks it. The two ladders that are real are mining's pickaxes and
+fishing's rods, which are enforced exactly as §5 describes them.
+
+**Crafting stations have no level requirement either.** If you have the ingredients, you can make the thing,
+whatever your smithing, cooking or alchemy level. Those three skills earn xp and currently spend it on
+nothing.
+
+**Crafting earns nothing from crafting.** The crafting table and the anvil share their recipe pool with the
+forge, and that pool pays **Smithing**. So every general craft you make raises smithing instead, and the only
+crafting xp in the game comes from three achievements. Take it as a proficiency pick and it will sit at level
+5 for the whole run.
+
+**Strength and Luck have no xp source at all.** Both can be picked as proficiencies at creation, which starts
+them at 5, and both stay there. Luck at least does something from there — it feeds your crit chance — while
+strength currently does nothing whatsoever.
+
+One last thing, since it cuts across the whole table: **enhancements and blessings raise your effective
+level, not your trained one.** A charm that says `+10 mining` — or a Blessed Pickaxe, which does the same
+thing for ten minutes (§8) — will open an ore you couldn't touch a moment ago and improve your odds on it,
+but every number the game *shows* you, every quest objective and every achievement reads the level you
+actually trained. Both routes go through the same seam, so both behave identically here. See §11 for the
+charms and §8 for the blessings.
 
 ### Your player level
 
@@ -210,12 +461,27 @@ your level, so a quest is worth about the same slice of a level at 100 as it was
 Combat is turn-based and deliberate: one keypress resolves one full exchange — your action, then theirs.
 Nothing happens while you're thinking.
 
-You can `[A]ttack`, cast a spell, drink a potion, or `[F]lee`. There's no defend command — defending isn't
-something you choose, it's what your armor and your defense level do for you on every hit you take. Fleeing
-isn't guaranteed: it starts at 40% and gains a point per level of speed, up to 90%.
+### What you can do on your turn
 
-An encounter can be a single enemy or a **pack** — groups queue up and you fight them one at a time, with a
-bonus for clearing the whole thing. Harder difficulties throw packs far more often.
+- **`[A] Attack`** — swing whatever you have equipped. *Spends your round.*
+- **`[C] Cast`** — opens your spell list: everything you know that does something in a fight, with its
+  damage or healing and its mana cost, and a note on any you can't currently afford. `[C] Cast` again on the
+  one you want. *Spends your round* — but backing out with `[B] Back` costs you nothing.
+- **`[P] Potion`** — the same picker over the potions you're carrying, with what each one does. `[C] Use`
+  drinks it. *Spends your round.*
+- **`[F] Flee`** — 40% to start, two points per level of speed, capped at 90%. *Spends your round whether or
+  not it works*, so a failed escape is a free hit for them.
+- **`[B] Backpack`** — your bags, mid-fight. **Free**, and so is `[U] Use` from inside it: eating or drinking
+  out of the backpack doesn't cost you a round, where the `[P]` picker does. If you only want the healing and
+  not the tempo, go the long way round.
+- **`[M] Menu`** — free. The fight waits; nothing resolves while you're away.
+- **`[X] Continue`** — leaves the encounter, and only works once it's decided. Until then every other key is
+  simply refused, so you can't walk out of a fight you're losing.
+
+There's no defend command — defending isn't something you choose, it's what your armor and your defense
+level do for you on every hit you take.
+
+### How a round resolves
 
 Your damage comes from your weapon plus your fighting level. Armor doesn't subtract from incoming hits — it
 mitigates a *percentage*, with diminishing returns and a cap of **80%**, so stacking defense always helps but
@@ -223,28 +489,100 @@ never makes you untouchable. The three lucky breaks each ride a different skill 
 crits on **luck** (up to 50%), dodges on **speed** (50%), blocks on **defense** (60%). Since luck can't
 currently be trained, crits stay near their base rate for the whole run.
 
+Three buff spells reach into that maths for the rest of the encounter: **Shield**, **Protection** and
+**Fortitude** on your defense, **Strength** and **God's Hand** on your attack, and **Haste** on your speed —
+which means Haste raises both your dodge chance and your odds of getting away. All three still respect the
+ceilings above, so a buff helps up to the cap and no further.
+
+An encounter can be a single enemy or a **pack** — groups queue up and you fight them one at a time, with a
+bonus for clearing the whole thing. Harder difficulties throw packs far more often. The pack's name sits
+above whoever you're currently facing, along with how far through it you are.
+
 **Bosses** are a separate action at locations that have one, and they're gated behind fighting level 20.
+
+### Losing
 
 **Death**, on most difficulties, strips you of every item and every coin you were carrying and puts you back
 at the town square with your equipment, skills and levels intact, plus the basics to start again. On
 Survival, Nightmare and Demon Lord it's the end: the save slot and the autosave are both deleted. If you're
-carrying a revive when you drop, it's spent automatically before any of that happens.
+carrying a revive when you drop, it's spent automatically before any of that happens — the weakest one you
+have, and a revive potion counts as readily as a proper revive item.
 
 ---
 
 ## 8. Magic
 
-46 spells across attack, healing, buffs, debuffs, poison and teleportation, laid out in a rarity ladder
-from starter to godlike.
+46 spells across seven types, laid out in a rarity ladder from starter to godlike. You begin knowing one:
+Magic Missile, which costs nothing to learn and never stops being cheap.
 
-Learning one usually costs reagents — ley crystals, arcane shards, mystic dust — and always requires the
-magic level printed on it. The Spellbook shows everything, including spells you can't have yet, with the
-reason spelled out and your reagents counted as owned/required, so you know what you're working toward
-rather than guessing.
+### The seven types
 
-Casting costs mana and pays magic xp. Healing and teleport spells work anywhere; attack, debuff and poison
-spells need something to point at, and **buffs only hold inside a fight** — cast one standing in a town
-square and it fades with nothing to attach to, mana and all.
+A spell's type is also its targeting rule — there's no separate "who does this hit" setting, so what a
+spell does tells you where it works.
+
+| type | what it does | needs a target? | where it works |
+| --- | --- | --- | --- |
+| **attack** | straight damage, 10 (Magic Missile) up to 175 (Explosion) | yes | in a fight only |
+| **heal** | restores hp, 15 (Cure) up to 1000 (Divine Cure) | no | anywhere |
+| **buff** | raises your attack, defense or speed for the rest of the encounter | no | **in a fight only** |
+| **debuff** | weakens the enemy's attack for the rest of the encounter | yes | in a fight only |
+| **poison** | damage over time, ticking for a set number of rounds | yes | in a fight only |
+| **aid** | the Blessed line — raises a skill for a set time | no | anywhere |
+| **teleport** | moves you to a fixed location | no | anywhere |
+
+**Buffs are the trap here.** They land on the *encounter*, not on you, so casting one in a town square
+spends the mana and does nothing at all — there's nothing to attach to and nothing carries over into your
+next fight. Cast them after the enemy shows up, not before you go looking.
+
+### The Blessed line
+
+The eight **aid** spells are the exception to all of that: they land on *you*, they hold for a set time
+rather than for one fight, and they ride your save. A gold `[ BLESSED ]` badge sits in the status bar while
+one is running.
+
+| spell | raises | for |
+| --- | --- | --- |
+| Blessed Hammer | Smithing +10 | 10 minutes |
+| Blessed Pickaxe | Mining +10 | 10 minutes |
+| Blessed Hands | Crafting +10 | 10 minutes |
+| Blessed Satchel | Foraging, Woodcutting, Trapping and Fishing +10 | 10 minutes |
+| Blessed Alchemy | Alchemy +10 | 10 minutes |
+| Zion's / K'ratch's / Blessing of Apocylta | all of the above +25 | 30 minutes |
+
+Those are real minutes, and they're the only thing separating the three godlike blessings from the five
+rare ones — they buff the same skills, three times as long, for reagents that cost void shards.
+
+What a blessing raises is your **effective** level, the same thing an enhancement raises (§11), so the same
+rule applies: it opens an ore or a fish species that was locked a moment ago and improves your odds on it,
+but the level the game *shows* you, and every quest and achievement that measures one, still reads what you
+actually trained.
+
+Two practical notes. Recasting the same blessing **refreshes** its clock rather than stacking a second
+bonus, so topping up early costs you nothing but mana. Two *different* blessings do stack — which is what
+makes casting a rare one on top of a godlike one worth the mana, for +35 on a skill.
+
+### Learning and casting
+
+Learning one usually costs reagents — ley crystals, arcane shards, mystic dust, and void shards at the top
+end — and always requires the magic level printed on it. Casting costs mana and pays magic xp, and both
+scale with the spell: Magic Missile is 6 mana for 3 xp, Divine Cure is 100 for 50.
+
+The **Spellbook** is reached with `[C] Spellbook` from your backpack, and shows everything — including
+spells you can't have yet, with the reason spelled out and your reagents counted as owned against required,
+so you can see what you're working toward instead of guessing.
+
+- **`[L] Learn`** — learn the highlighted spell, if you have the level and the reagents.
+- **`[C] Cast`** — cast it right there. Useful for healing, aid and teleports; attack spells politely do
+  nothing with no one to point at.
+- **`[<]` / `[>]`** — switch between Learned and Unlearned. The unlearned tab further splits into what you
+  could learn now and what you couldn't, then groups by type.
+- **`[B] Back`** — to the backpack.
+
+In a fight you cast from `[C] Cast` on the combat screen instead, which lists only the spells that would
+do something there.
+
+**One known gap:** the godlike Azrael Castle Teleport names a destination that isn't in the game yet.
+Every other teleport goes where it says.
 
 ---
 
@@ -267,6 +605,22 @@ you can't use them at all, whatever the number says.
 
 So general storage barely moves until the plate belt; what the early upgrades really buy is the potion pouch
 and the ammo. Arrows are uncapped the moment any belt is on.
+
+**A backpack is the other half of that**, worn in its own slot alongside the belt rather than instead of it:
+
+| backpack | slots |
+| --- | --- |
+| starter | 100 |
+| small | 150 |
+| medium | 200 |
+| large | 300 |
+| mythic | 500 |
+| Apocyltian | 1000 |
+| God's Back | 2000 |
+
+The two don't add up — whichever grants more storage is the one that counts, so a backpack is a straight
+upgrade once it beats whatever your belt was already giving you, and taking a belt off never buys you room.
+Everything a belt gates (water, sling ammo, arrows) still needs the belt; the backpack only carries.
 
 The backpack is tabbed by item type. Tools don't live there; they go in the tool slot, one at a time,
 which is why a pickaxe and a fishing rod compete for the same space. Anything consumable is used from the
@@ -340,13 +694,13 @@ The sell screen lets you tick several stacks and offload them in one go.
 Two shops trade outside all of that, and you'll find them in the black market off the town square (and
 again in Zenthal). Neither asks your barter level, because every single thing on the table is mythic or
 better — a barter gate would show you an empty room until you'd traded half the game away. **The price is
-the gate**, and nothing here is cheap: entries run from a thousand base units to five hundred thousand — ten syllic to five thousand. Rows are
-green when you can afford them and red when you can't.
+the gate**, and nothing here is cheap: entries run from a thousand base units to five hundred thousand —
+ten syllic to five thousand. Rows are green when you can afford them and red when you can't.
 
-**Illicit Goods** `[I]` sells named one-off artifacts and focuses, plus bundles — a bundle is a name for a
+`[I] Illicit Goods` sells named one-off artifacts and focuses, plus bundles — a bundle is a name for a
 pile of something else, so its row tells you what's actually inside before you pay for it.
 
-**Enhancements** `[E]` sells 70 items across five slots — charm, talisman, beads, ring and bangle — with
+`[E] Enhancements` sells 70 items across five slots — charm, talisman, beads, ring and bangle — with
 one entry per slot for each of the 14 skills. You wear one per slot, so five at a time, and they stack.
 
 An enhancement raises your **effective** skill level, not your trained one, and the difference matters:
@@ -388,7 +742,7 @@ Two things worth knowing about how objectives read:
 Objectives can also ask for a *kind* of thing rather than a specific one — "a Mythic Weapon" means any
 weapon of that rarity, and how you come by it is your business.
 
-`[C]laim Rewards` in the Journal collects everything that's finished, in one go.
+`[C] Claim Rewards` in the Journal collects everything that's finished, in one go.
 
 ---
 
@@ -424,7 +778,7 @@ back.
   or `T: [Travel]`. Purely cosmetic, and it applies everywhere at once.
 
 The screen also keeps a few dates for you — when you first played, when you last did, and when the autosave
-last ran. `[T]` toggles whatever the cursor is on, `[B]` or Esc goes back.
+last ran. `[T] Toggle` flips whatever the cursor is on, `[B] Back` or Esc goes back.
 
 While the game runs it also serves a small read-only web page at `localhost:4000` — a live playercard with
 tabs for your stats, toolbelt, backpack, quests and achievements, refreshing every five seconds. It's meant

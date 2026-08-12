@@ -60,8 +60,8 @@ const CHECKS = [
 
   // --- apocylta-guide.md ---
   { file: "apocylta-guide.md", label: "location count", actual: Object.keys(LOCATIONS).length, pattern: /^(\d+) locations, connected by exits/m },
-  { file: "apocylta-guide.md", label: "skill count", actual: Object.keys(SKILLS).length, pattern: /^(\d+) skills\. Fifteen of them level/m },
-  { file: "apocylta-guide.md", label: "spell count", actual: Object.keys(SPELLS).length, pattern: /^(\d+) spells across attack, healing/m },
+  { file: "apocylta-guide.md", label: "skill count", actual: Object.keys(SKILLS).length, pattern: /^(\d+) skills\. Fourteen of them level/m },
+  { file: "apocylta-guide.md", label: "spell count", actual: Object.keys(SPELLS).length, pattern: /^(\d+) spells across seven types/m },
   { file: "apocylta-guide.md", label: "achievement count", actual: Object.keys(ACHIEVEMENTS).length, pattern: /^(\d+) of them, and there's nothing to accept/m },
   { file: "apocylta-guide.md", label: "max skill level", actual: MAX_SKILL_LEVEL, pattern: /\*\*Skills cap at (\d+)\.\*\*/ },
   { file: "apocylta-guide.md", label: "max player level", actual: MAX_PLAYER_LEVEL, pattern: /\*\*player level caps at (\d+)\*\*/ },
@@ -86,6 +86,18 @@ test("every count quoted in the docs matches the live value", () => {
     if (found !== actual) wrong.push(`${file}: ${label} reads ${found}, code says ${actual}`);
   }
   assert.deepEqual(wrong, []);
+});
+
+// A count agreeing while the list beneath it is short by one is the same rot
+// wearing a disguise - the guide's skills table is the thing a reader actually
+// uses, and a skill missing from it is invisible. Checks the table names every
+// skill, not just that it claims the right total.
+test("the guide's skills table names every skill", () => {
+  const guide = sources.get("apocylta-guide.md") ?? read("apocylta-guide.md");
+  const missing = Object.values(SKILLS)
+    .map((skill) => skill.name)
+    .filter((name) => !new RegExp(`\\|\\s*\\*\\*${name}\\*\\*\\s*\\|`, "i").test(guide));
+  assert.deepEqual(missing, [], "skills with no row in the guide's what-each-skill-is-for table");
 });
 
 // The two docs contradicted each other on how long the suite takes, which is the
