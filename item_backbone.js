@@ -36,7 +36,10 @@ export const SMITHING_TYPES = ["tin", "copper", "bronze", "iron", "cobalt", "bla
 export const METAL_TYPES = ["base", "alloy", "precious", "rare", "exotic"];
 // Tool and Tool related Subtypes
 export const POTION_CATEGORIES = ["heal", "mana", "poison", "buff"];
-export const TOOL_CATEGORIES = ["shovel", "pickaxe", "hammer", "saw", "axe", "fishing rod", "lockpick", "combat_aid", "combat_bait", "combat_trap", "combat_bomb"];
+// "combat_aid" is gone from here: the five kits that used it are `type: "aid"`
+// now (see the Aid block below), so nothing can be a tool/combat_aid again and
+// leaving the entry would be vocabulary describing something that doesn't exist.
+export const TOOL_CATEGORIES = ["shovel", "pickaxe", "hammer", "saw", "axe", "fishing rod", "lockpick", "combat_bait", "combat_trap", "combat_bomb"];
 export const KIT_CATEGORIES = ["first_aid", "survival", "tool", "crafting", "armor"];
 export const SET_CATEGORIES = ["armor", "weapon", "tool", "crafting"];
 // Magic Item Types
@@ -148,11 +151,28 @@ export const ITEMS = {
 
     // Combat Tools and Resources
     // - Aid
-    "bandage_box": { name: "Bandage Box", type: "tool", subtype: "combat_aid", rarity: "common", value: 10, effect: "heals minor wounds", durability: 5, weight: 1, storeIn: "toolbelt" },
-    "medic_bag": { name: "Medic Bag", type: "tool", subtype: "combat_aid", rarity: "uncommon", value: 50, effect: "heals moderate wounds", durability: 10, weight: 1, storeIn: "toolbelt" },
-    "trauma_bag": { name: "Trauma Bag", type: "tool", subtype: "combat_aid", rarity: "rare", value: 150, effect: "heals severe wounds", durability: 15, weight: 1, storeIn: "toolbelt" },
-    "aegis_kit": { name: "AEGIS Kit", type: "tool", subtype: "combat_aid", rarity: "epic", value: 250, effect: "heals critical wounds and stabilizes the patient", durability: 20, weight: 1, storeIn: "toolbelt" },
-    "phoenix_kit": { name: "Phoenix Kit", type: "tool", subtype: "combat_aid", rarity: "legendary", value: 350, effect: "heals critical wounds, stabilizes the patient, and revives them from death", durability: 25, weight: 1, storeIn: "toolbelt" },
+    //
+    // `type: "aid"` rather than "tool", which is what makes these usable at all:
+    // data/items.js's consumeEffectOf() resolves food/potion/aid and nothing
+    // else, so as tools they were refused by every [U]se in the game despite
+    // being named Medic Bag and Bandage Box. Being tools also made them
+    // EQUIPPABLE - equipSlotOf sent them to the single tool slot, so a bandage
+    // box could displace your pickaxe.
+    //
+    // They keep `storeIn: "toolbelt"` and so stay in the Pouch: storeInOf reads
+    // that field rather than inferring from the type. Two knock-ons of the
+    // retype worth knowing - they move from the general store to the potions
+    // shop (shop_potions stocks ["potion","aid"]), and they're no longer
+    // equippable, which is the point.
+    "bandage_box": { name: "Bandage Box", type: "aid", subtype: "heal", rarity: "common", value: 10, heal: 15, weight: 1, storeIn: "toolbelt", description: "Field dressings and tape. Heals minor wounds." },
+    "medic_bag": { name: "Medic Bag", type: "aid", subtype: "heal", rarity: "uncommon", value: 50, heal: 40, weight: 1, storeIn: "toolbelt", description: "A proper kit, properly packed. Heals moderate wounds." },
+    "trauma_bag": { name: "Trauma Bag", type: "aid", subtype: "heal", rarity: "rare", value: 150, heal: 80, weight: 1, storeIn: "toolbelt", description: "For the wounds you don't walk away from. Heals severe wounds." },
+    "aegis_kit": { name: "AEGIS Kit", type: "aid", subtype: "heal", rarity: "epic", value: 250, heal: 150, weight: 1, storeIn: "toolbelt", description: "Heals critical wounds and stabilizes the patient." },
+    // A real revive, not a heal: `subtype: "revive"` puts it in the pool
+    // attemptRevive() spends from the instant hp hits 0, BEFORE anything treats
+    // it as a death. It ties with the `revive` item at full health, so which of
+    // the two burns first is down to sort order - they do the same thing.
+    "phoenix_kit": { name: "Phoenix Kit", type: "aid", subtype: "revive", rarity: "legendary", value: 350, revive: true, weight: 1, storeIn: "toolbelt", description: "Stabilizes the patient, and revives them from death." },
     // - Bait
     "small_bait": { name: "Small Bait", type: "tool", subtype: "combat_bait", rarity: "common", value: 10, effect: "attracts small enemies", durability: 10, weight: 0.3, storeIn: "toolbelt" },
     "medium_bait": { name: "Medium Bait", type: "tool", subtype: "combat_bait", rarity: "uncommon", value: 50, effect: "attracts medium enemies", durability: 20, weight: 0.3, storeIn: "toolbelt" },
@@ -935,7 +955,12 @@ export const MAGIC_RESOURCES = {
 
     // Crafting Magic Resources
     "ley_crystals": { name: "Ley Crystals", type: "crafting", subtype: "magic", rarity: "rare", value: 120, weight: 0.1 },
-    "arcane_essence": { name: "Arcane Essence", type: "crafting", subtype: "magic", rarity: "legendary", value: 280, weight: 0.1 },
+    // Rare/120, with ley_crystals and arcane_shard. The reagents run in families
+    // at one price each - arcane and ley rare 120, mystic epic 200, enchanted
+    // legendary 280, void mythic 520, celestial godlike 800 - and this sat at
+    // legendary/280, i.e. in the enchanted family's slot, which also pushed it
+    // above the barter-35 shop gate.
+    "arcane_essence": { name: "Arcane Essence", type: "crafting", subtype: "magic", rarity: "rare", value: 120, weight: 0.1 },
     "mystic_dust": { name: "Mystic Dust", type: "crafting", subtype: "magic", rarity: "epic", value: 200, weight: 0.1 },
     "void_shard": { name: "Void Shard", type: "crafting", subtype: "magic", rarity: "mythic", value: 520, weight: 0.1 },
     "celestial_fragment": { name: "Celestial Fragment", type: "crafting", subtype: "magic", rarity: "godlike", value: 800, weight: 0.1 },

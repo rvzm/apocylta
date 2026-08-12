@@ -34,7 +34,7 @@ export function sectionOf(itemId) {
   return item.subtype ?? "other";
 }
 
-// "combat_aid" -> "Combat Aid", "fishing rod" -> "Fishing Rod"
+// "combat_bait" -> "Combat Bait", "fishing rod" -> "Fishing Rod"
 function sectionTitle(key) {
   return key
     .replace(/_/g, " ")
