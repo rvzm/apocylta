@@ -1,6 +1,6 @@
 import { LOCATIONS } from "../../data/locations.js";
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, pushScreen } from "../router.js";
 
 const TRACK_WIDTH = 40;
 
@@ -44,10 +44,7 @@ export const travelingScreen = {
       state.currentTravel = null;
       switchScreen(state, ui, "location");
     },
-    M: (state, ui) => {
-      state.menuOrigin = state.currentScreen;
-      switchScreen(state, ui, "menu");
-    },
+    M: (state, ui) => pushScreen(state, ui, "menu"),
   },
 
   render(state, ui) {
@@ -55,7 +52,7 @@ export const travelingScreen = {
     // currentAction) - but unlike currentAction, it can complete itself
     // while the player is elsewhere (e.g. they pressed M mid-trip, it
     // finished while they were on the Menu screen, then Menu's ESCAPE sends
-    // them back to menuOrigin="traveling"). Guard against rendering a
+    // them back onto it off the Menu). Guard against rendering a
     // completed/null currentTravel instead of assuming it's still live.
     if (!state.currentTravel) {
       switchScreen(state, ui, "location");

@@ -5,7 +5,7 @@ import { ingredientCount } from "../../data/stations.js";
 import { healthLine } from "../../data/flavor.js";
 import { colorTag, formatCommandRow } from "../format.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, popScreen } from "../router.js";
 
 const TABS = ["Learned", "Unlearned"];
 
@@ -122,7 +122,7 @@ export const spellbookScreen = {
   ],
 
   keymap: {
-    B: (state, ui) => switchScreen(state, ui, "backpack"),
+    B: (state, ui) => popScreen(state, ui, "backpack"),
     LEFT: (state, ui) => switchTab(state, ui, -1),
     RIGHT: (state, ui) => switchTab(state, ui, 1),
     L: (state, ui) => {

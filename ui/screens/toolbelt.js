@@ -2,7 +2,7 @@ import { ALL_ITEMS } from "../../item_backbone.js";
 import { formatCommandRow } from "../format.js";
 import { timeLine, weatherLine } from "../../data/flavor.js";
 import { applySubHeader } from "../subHeader.js";
-import { switchScreen } from "../router.js";
+import { pushScreen, popScreen } from "../router.js";
 import {
   waterBottleCap,
   slingshotAmmoCap,
@@ -26,21 +26,20 @@ export const toolbeltScreen = {
   subHeader: ["Your Toolbelt"],
   
   keymap: {
-    S: (state, ui) => switchScreen(state, ui, "toolSwap"),
-    C: (state, ui) => switchScreen(state, ui, "slingshotSwap"),
+    S: (state, ui) => pushScreen(state, ui, "toolSwap"),
+    C: (state, ui) => pushScreen(state, ui, "slingshotSwap"),
     // The belt's CONTENTS, as against the equipped gear and load numbers this
     // screen shows. Its own B/ESCAPE come back here, so it reads as a
     // sub-screen rather than a sibling of the backpack.
-    P: (state, ui) => switchScreen(state, ui, "pouch"),
-    X: (state, ui) => switchScreen(state, ui, "spellbook"),
-    B: (state, ui) => {
-      state.returnScreen = "toolbelt";
-      switchScreen(state, ui, "backpack");
-    },
-    J: (state, ui) => switchScreen(state, ui, "journal"),
-    // Hub features (unlike Menu) are only ever reached from the location
-    // screen, so ESC can go straight there without an origin-tracking field.
-    ESCAPE: (state, ui) => switchScreen(state, ui, state.menuOrigin || "location"),
+    P: (state, ui) => pushScreen(state, ui, "pouch"),
+    X: (state, ui) => pushScreen(state, ui, "spellbook"),
+    B: (state, ui) => pushScreen(state, ui, "backpack"),
+    J: (state, ui) => pushScreen(state, ui, "journal"),
+    // Back to whoever opened it. This used to read menuOrigin - a DIFFERENT
+    // screen's origin - on the assumption that hub features are only ever
+    // reached from the location screen. The action screen's [J] broke that
+    // assumption, and ESC dropped you wherever the Menu was last opened from.
+    ESCAPE: (state, ui) => popScreen(state, ui, "location"),
   },
 
   onEnter(state) {

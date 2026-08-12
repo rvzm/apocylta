@@ -53,6 +53,36 @@ test("backpack tabs (dynamic, arrow-key driven) and the Toolbelt screen", async 
   // confirms) and can miss, so this needs room for several tries - the default
   // 5s wait predates both and would now time out on cadence alone.
   await session.waitFor(/gathered: (?!\(nothing yet\))/, 60000);
+
+  // --- Every way off the action screen has to come back to it ---
+  //
+  // The gather is still running through all of this. [J] used to write a
+  // `toolbeltOrigin` that nothing read, so the Toolbelt's ESC fell back to
+  // menuOrigin and dropped you on the location screen with a gather ticking
+  // away behind it.
+  const ON_ACTION = /next attempt in \d+s/;
+
+  session.sendKeys("j"); // Toolbelt
+  await session.waitFor("Equipped Tool:");
+  session.sendKeys("Escape");
+  await session.waitFor(ON_ACTION, 10000);
+
+  // And the three-hop detour a single origin slot could never survive:
+  // action -> backpack -> menu -> backpack, then back out again.
+  session.sendKeys("b"); // Backpack
+  await session.waitFor("[All]");
+  session.sendKeys("m"); // Menu
+  await session.waitFor("[S]ave");
+  session.sendKeys("b"); // Menu's Backpack - the hop that used to lose "action"
+  await session.waitFor("[All]");
+
+  session.sendKeys("b"); // back -> menu
+  await session.waitFor("[S]ave");
+  session.sendKeys("Escape"); // back -> backpack
+  await session.waitFor("[All]");
+  session.sendKeys("b"); // back -> action
+  await session.waitFor(ON_ACTION, 10000);
+
   session.sendKeys("s"); // Stop action -> back to location
   await session.waitFor("town square");
 

@@ -118,8 +118,12 @@ export function createInitialState() {
     toasts: [], // transient unlock banners - see pushToast() below
     aidBuffs: [], // live blessings: [{ spellId, untilMinutes }] - see applyAidBuff() below
     currentScreen: "title",
-    returnScreen: "location",
-    menuOrigin: null,
+    // Where "back" goes, as a path rather than a single slot - see
+    // ui/router.js's pushScreen/popScreen. Replaced returnScreen/menuOrigin/
+    // toolbeltOrigin, which were three copies of the same idea and could not
+    // represent a route through the graph's cycles. Ephemeral, like
+    // currentScreen: never persisted.
+    screenStack: [],
     lastMessage: null,
     lastDefeat: null, // ephemeral { permadeath, itemsLost, goldLost } for the defeat screen
     characterDraft: null, // ephemeral wizard staging: { name, starterPackId, raceId, classId, proficientSkillIds }

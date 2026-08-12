@@ -3,7 +3,7 @@ import { getAction } from "../../data/actions.js";
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { gatherTimeFor } from "../../player_backbone.js";
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, pushScreen } from "../router.js";
 import { logger } from "../../logger.js";
 
 // Rows reserved for the attempt log. The loop keeps a couple more than this;
@@ -17,12 +17,13 @@ export const actionScreen = {
       state.currentAction = null;
       switchScreen(state, ui, "location");
     },
-    B: (state, ui) => {
-      state.returnScreen = "action";
-      switchScreen(state, ui, "backpack");
-    },
-    J: (state, ui) => { state.toolbeltOrigin = state.currentScreen; switchScreen(state, ui, "toolbelt"); },
-    M: (state, ui) => { state.menuOrigin = state.currentScreen; switchScreen(state, ui, "menu"); },
+    // All three go DEEPER - the gather keeps running behind them, so every one
+    // has to come back here. [J] used to write a `toolbeltOrigin` that nothing
+    // read, which is how the Toolbelt ended up returning you to the location
+    // screen with a gather still ticking.
+    B: (state, ui) => pushScreen(state, ui, "backpack"),
+    J: (state, ui) => pushScreen(state, ui, "toolbelt"),
+    M: (state, ui) => pushScreen(state, ui, "menu"),
   },
 
   render(state, ui) {

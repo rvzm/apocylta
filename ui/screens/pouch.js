@@ -15,7 +15,7 @@ import { removeItem, equipItem } from "../../state/gameState.js";
 import { useItem } from "../../data/items.js";
 import { colorTag, formatCommandRow, COLOR } from "../format.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, pushScreen, popScreen } from "../router.js";
 
 // Everything on the belt, in inventory order.
 function pouchEntries(state) {
@@ -121,8 +121,8 @@ export const pouchScreen = {
   ],
 
   keymap: {
-    B: (state, ui) => switchScreen(state, ui, "toolbelt"),
-    ESCAPE: (state, ui) => switchScreen(state, ui, "toolbelt"),
+    B: (state, ui) => popScreen(state, ui, "toolbelt"),
+    ESCAPE: (state, ui) => popScreen(state, ui, "toolbelt"),
     LEFT: (state, ui) => switchTab(state, ui, -1),
     RIGHT: (state, ui) => switchTab(state, ui, 1),
 
@@ -155,10 +155,7 @@ export const pouchScreen = {
         state.lastMessage = useItem(state, itemId).message;
       }),
 
-    M: (state, ui) => {
-      state.menuOrigin = state.currentScreen;
-      switchScreen(state, ui, "menu");
-    },
+    M: (state, ui) => pushScreen(state, ui, "menu"),
   },
 
   onEnter(state, ui) {

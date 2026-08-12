@@ -2,7 +2,7 @@ import { ALL_ITEMS, ITEM_TYPES, equipSlotOf, weightOf, storeInOf } from "../../i
 import { formatCommandRow } from "../format.js";
 import { removeItem, equipItem } from "../../state/gameState.js";
 import { useItem } from "../../data/items.js";
-import { switchScreen } from "../router.js";
+import { pushScreen, popScreen } from "../router.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 
 // The PACK's contents only - what's on the belt belongs to ui/screens/pouch.js.
@@ -61,7 +61,7 @@ function switchTab(state, ui, direction) {
 export const backpackScreen = {
   subHeader: ["Your Backpack"],
   keymap: {
-    B: (state, ui) => switchScreen(state, ui, state.returnScreen || "location"),
+    B: (state, ui) => popScreen(state, ui, "location"),
     LEFT: (state, ui) => switchTab(state, ui, -1),
     RIGHT: (state, ui) => switchTab(state, ui, 1),
     D: (state, ui) => {
@@ -75,7 +75,7 @@ export const backpackScreen = {
       removeItem(state, itemId, 1, { force: true });
       state.lastMessage = `Dropped 1 ${ALL_ITEMS[itemId]?.name ?? itemId}.`;
     },
-    C: (state, ui) => switchScreen(state, ui, "spellbook"),
+    C: (state, ui) => pushScreen(state, ui, "spellbook"),
     U: (state, ui) => {
       const itemId = selectedItemId(ui);
       if (!itemId) {
@@ -102,7 +102,7 @@ export const backpackScreen = {
         ? `Equipped ${item.name}, returned ${ALL_ITEMS[previous]?.name ?? previous} to backpack.`
         : `Equipped ${item.name}.`;
     },
-    M: (state, ui) => { state.menuOrigin = state.currentScreen; switchScreen(state, ui, "menu"); },
+    M: (state, ui) => pushScreen(state, ui, "menu"),
   },
 
   onEnter(state, ui) {

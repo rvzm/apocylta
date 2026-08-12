@@ -6,7 +6,7 @@ import { getShop } from "../../data/shops.js";
 import { resolveFlavorText } from "../../data/locations.js";
 import { stationIdsAtLocation } from "../../data/stations.js";
 import { formatCommandRow, wrapIndented, bold } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, pushScreen } from "../router.js";
 import { logger } from "../../logger.js";
 
 // The flavour block's own indent, and the fallbacks for a screen that hasn't
@@ -82,7 +82,7 @@ function triggerHubFeature(state, ui, featureId) {
     return;
   }
   if (feature.screen) {
-    switchScreen(state, ui, feature.screen);
+    pushScreen(state, ui, feature.screen);
     return;
   }
   const shop = getShop(featureId);
@@ -121,10 +121,7 @@ function triggerStations(state, ui) {
 const keymap = {
   T: (state, ui) => switchScreen(state, ui, "travel"),
   K: (state, ui) => triggerStations(state, ui),
-  M: (state, ui) => {
-    state.menuOrigin = state.currentScreen;
-    switchScreen(state, ui, "menu");
-  },
+  M: (state, ui) => pushScreen(state, ui, "menu"),
 };
 for (let n = 1; n <= 9; n++) {
   keymap[String(n)] = (state, ui) => {

@@ -1,7 +1,7 @@
 import { formatBase } from "../../currency_backbone.js";
 import { startedQuests, objectiveStatus, claimCompletedQuests, walkObjectives } from "../../data/quests.js";
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, popScreen } from "../router.js";
 
 // A group's children indent under it, and the group's own line ends in a colon
 // to read as a heading rather than as another thing to go and do. Counters stay
@@ -42,7 +42,7 @@ function buildBody(state) {
 
 export const journalScreen = {
   keymap: {
-    ESCAPE: (state, ui) => switchScreen(state, ui, "toolbelt"),
+    ESCAPE: (state, ui) => popScreen(state, ui, "toolbelt"),
     C: (state, ui) => {
       const claimed = claimCompletedQuests(state);
       state.lastMessage = claimed.length

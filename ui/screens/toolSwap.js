@@ -1,7 +1,7 @@
 import { ALL_ITEMS, TOOL_CATEGORIES } from "../../item_backbone.js";
 import { equipItem } from "../../state/gameState.js";
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, popScreen } from "../router.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 
 function ownedTools(state) {
@@ -45,7 +45,7 @@ function switchTab(state, ui, direction) {
 
 export const toolSwapScreen = {
   keymap: {
-    B: (state, ui) => switchScreen(state, ui, "toolbelt"),
+    B: (state, ui) => popScreen(state, ui, "toolbelt"),
     LEFT: (state, ui) => switchTab(state, ui, -1),
     RIGHT: (state, ui) => switchTab(state, ui, 1),
     C: (state, ui) => {

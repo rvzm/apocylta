@@ -1,7 +1,7 @@
 import { ALL_ITEMS } from "../../item_backbone.js";
 import { equipItem } from "../../state/gameState.js";
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, popScreen } from "../router.js";
 
 // No tabs here (unlike toolSwap) - slingshot is a single weapon subtype, so
 // there's only ever one category to browse.
@@ -35,7 +35,7 @@ function selectedSlingshotId(ui) {
 
 export const slingshotSwapScreen = {
   keymap: {
-    B: (state, ui) => switchScreen(state, ui, "toolbelt"),
+    B: (state, ui) => popScreen(state, ui, "toolbelt"),
     C: (state, ui) => {
       const slingshotId = selectedSlingshotId(ui);
       if (!slingshotId) {

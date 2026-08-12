@@ -1,5 +1,5 @@
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, pushScreen, popScreen } from "../router.js";
 import { SKILLS } from "../../skill_backbone.js";
 import { ALL_ITEMS, ENHANCEMENT_SLOTS } from "../../item_backbone.js";
 import { RACES, CLASSES, DIFFICULTY_LEVELS } from "../../player_backbone.js";
@@ -20,10 +20,7 @@ const SLOT_LABELS = {
 
 export const menuScreen = {
   keymap: {
-    B: (state, ui) => {
-      state.returnScreen = "menu";
-      switchScreen(state, ui, "backpack");
-    },
+    B: (state, ui) => pushScreen(state, ui, "backpack"),
     S: (state, ui) => {
       state.saveSlotsContext = { mode: "save", returnScreen: "menu" };
       switchScreen(state, ui, "saveSlots");
@@ -43,7 +40,7 @@ export const menuScreen = {
       ui.screen.destroy();
       process.exit(0);
     },
-    ESCAPE: (state, ui) => switchScreen(state, ui, state.menuOrigin || "location"),
+    ESCAPE: (state, ui) => popScreen(state, ui, "location"),
   },
 
   onEnter(state) {

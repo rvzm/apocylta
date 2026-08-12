@@ -1,7 +1,7 @@
 import { getEnemy } from "../../enemy_backbone.js";
 import { currentEnemy, resolveRound, endCombat } from "../../data/combat.js";
 import { formatCommandRow } from "../format.js";
-import { switchScreen } from "../router.js";
+import { switchScreen, pushScreen } from "../router.js";
 import { logger } from "../../logger.js";
 
 const BAR_WIDTH = 28;
@@ -65,14 +65,8 @@ export const combatScreen = {
       switchScreen(state, ui, "combatSelect");
     },
 
-    B: (state, ui) => {
-      state.returnScreen = "combat";
-      switchScreen(state, ui, "backpack");
-    },
-    M: (state, ui) => {
-      state.menuOrigin = state.currentScreen;
-      switchScreen(state, ui, "menu");
-    },
+    B: (state, ui) => pushScreen(state, ui, "backpack"),
+    M: (state, ui) => pushScreen(state, ui, "menu"),
 
     // Only meaningful once the fight is decided - see the legend swap in render().
     X: (state, ui) => leaveCombat(state, ui),
@@ -80,7 +74,7 @@ export const combatScreen = {
 
   render(state, ui) {
     // An encounter can end while the player is on another screen (they pressed
-    // M mid-fight, then Menu's ESCAPE sent them back to menuOrigin="combat").
+    // M mid-fight, then popped back off the Menu into the fight).
     // Same defensive re-route the traveling screen needs.
     if (!state.currentCombat) {
       switchScreen(state, ui, "location");
