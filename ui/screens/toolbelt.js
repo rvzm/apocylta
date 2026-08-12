@@ -7,12 +7,19 @@ import {
   waterBottleCap,
   slingshotAmmoCap,
   quiverCap,
-  backpackSlotCap,
-  backpackSlotsUsed,
+  backpackWeightCap,
+  backpackWeightUsed,
+  toolbeltWeightCap,
+  toolbeltWeightUsed,
   potionSlotCap,
   potionSlotsUsed,
 } from "../../data/toolbelt.js";
 
+// Weights go down to 0.01, so a load reads as a decimal - but a whole number
+// shouldn't render as "17.00". One decimal is enough to see a stack move.
+function fmt(weight) {
+  return Number.isInteger(weight) ? String(weight) : weight.toFixed(1);
+}
 
 export const toolbeltScreen = {
 
@@ -51,7 +58,10 @@ export const toolbeltScreen = {
       `Slingshot Ammo:     ${state.toolbelt.slingshotAmmo}/${slingshotAmmoCap(state)}`,
       `Equipped Slingshot: ${slingshotName}`,
       `Quiver:             ${state.toolbelt.quiver}${quiverMax === Infinity ? "" : `/${quiverMax}`}`,
-      `Backpack:           ${backpackSlotsUsed(state)}/${backpackSlotCap(state)}`,
+      // Two weight budgets and one slot count - see data/toolbelt.js for why
+      // the potion pouch is still counted in slots.
+      `Toolbelt Load:      ${fmt(toolbeltWeightUsed(state))}/${fmt(toolbeltWeightCap(state))}`,
+      `Backpack Load:      ${fmt(backpackWeightUsed(state))}/${fmt(backpackWeightCap(state))}`,
       `Potions:            ${potionSlotsUsed(state)}/${potionSlotCap(state)}`,
     ];
     if (state.lastMessage) bodyLines.push("", `    ${state.lastMessage}`);

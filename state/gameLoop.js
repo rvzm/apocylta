@@ -79,23 +79,36 @@ export function resolveGatherAttempt(state, rng = Math.random) {
   if (action.id === "mine") rolled.push(...rollMineBonuses(state, rng));
 
   const taken = [];
+  let leftBehind = 0;
   for (const loot of rolled) {
     if (!loot) continue;
-    addItem(state, loot.itemId, loot.qty);
+    // addItem takes what fits and reports how much - report what you actually
+    // got, not what the roll produced, or the log claims ore you never carried.
+    const got = addItem(state, loot.itemId, loot.qty);
+    leftBehind += loot.qty - got;
+    if (got <= 0) continue;
     state.currentAction.gatheredThisSession[loot.itemId] =
-      (state.currentAction.gatheredThisSession[loot.itemId] || 0) + loot.qty;
-    taken.push(`${loot.qty} ${ALL_ITEMS[loot.itemId]?.name ?? loot.itemId}`);
-    logger.full("gameLoop", `Looted ${loot.qty}x ${loot.itemId} from ${action.id}.`);
+      (state.currentAction.gatheredThisSession[loot.itemId] || 0) + got;
+    taken.push(`${got} ${ALL_ITEMS[loot.itemId]?.name ?? loot.itemId}`);
+    logger.full("gameLoop", `Looted ${got}x ${loot.itemId} from ${action.id}.`);
   }
 
   // An empty pool still counts as a miss to the player - there's nothing to
   // show them either way - so it reads as one rather than as a silent success.
+  // A roll that produced something you had no room for is a different failure
+  // and says so, since dropping something would fix it.
   if (!taken.length) {
-    recordAttempt(state, action.missLine ?? "You didn't find anything.");
+    recordAttempt(
+      state,
+      leftBehind > 0
+        ? "You've no room for it - you leave it where it lies."
+        : action.missLine ?? "You didn't find anything."
+    );
     return;
   }
 
-  recordAttempt(state, `You ${action.attemptVerb ?? "found"} ${taken.join(" and ")}.`);
+  const shortfall = leftBehind > 0 ? ` You leave ${leftBehind} behind - no room.` : "";
+  recordAttempt(state, `You ${action.attemptVerb ?? "found"} ${taken.join(" and ")}.${shortfall}`);
   if (action.skill) {
     grantSkillXp(state, action.skill, SKILL_XP_PER_GRANT);
   }

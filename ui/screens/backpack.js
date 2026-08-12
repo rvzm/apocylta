@@ -1,31 +1,41 @@
-import { ALL_ITEMS, ITEM_TYPES, equipSlotOf } from "../../item_backbone.js";
+import { ALL_ITEMS, ITEM_TYPES, equipSlotOf, weightOf, storeInOf } from "../../item_backbone.js";
 import { formatCommandRow } from "../format.js";
 import { removeItem, equipItem } from "../../state/gameState.js";
 import { useItem } from "../../data/items.js";
 import { switchScreen } from "../router.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 
-// Tools live in the Toolbelt now, never in the backpack - excluded here
-// unconditionally rather than filtered per-tab.
-function nonToolEntries(state) {
-  return Object.entries(state.inventory).filter(([id]) => ALL_ITEMS[id]?.type !== "tool");
+// Everything you're carrying, wherever it's stored. Tools used to be excluded
+// here on the grounds that they "live in the Toolbelt" - but this is the only
+// screen with Drop, Use and Equip, so that quietly made every tool impossible
+// to get rid of. Now that scrap, bait and hooks live on the belt too, hiding
+// them would have made a beltful of rock unshiftable as well.
+//
+// What `storeIn` decides is which capacity an item is charged against
+// (data/toolbelt.js), not whether you can see it.
+function carriedEntries(state) {
+  return Object.entries(state.inventory).filter(([, qty]) => qty > 0);
 }
 
 // "All" first, then whatever item types are actually present, in
 // ITEM_TYPES's declared order - dynamic, not a fixed category list.
 function buildTabs(state) {
-  const present = new Set(nonToolEntries(state).map(([id]) => ALL_ITEMS[id]?.type).filter(Boolean));
+  const present = new Set(carriedEntries(state).map(([id]) => ALL_ITEMS[id]?.type).filter(Boolean));
   return ["All", ...ITEM_TYPES.filter((type) => present.has(type))];
 }
 
 function buildInventoryRows(state, activeTab) {
-  const entries = nonToolEntries(state);
+  const entries = carriedEntries(state);
   const filtered = activeTab === "All" ? entries : entries.filter(([id]) => ALL_ITEMS[id]?.type === activeTab);
 
   const lines = [];
   const itemIds = [];
   for (const [id, qty] of filtered) {
-    lines.push(`  - [${qty}] ${ALL_ITEMS[id]?.name ?? id}`);
+    // The stack's weight, and a marker for the ones riding the belt rather than
+    // the pack - the two have separate budgets, so which is which matters.
+    const stack = Math.round(weightOf(id) * qty * 100) / 100;
+    const where = storeInOf(id) === "toolbelt" ? " (belt)" : "";
+    lines.push(`  - [${qty}] ${ALL_ITEMS[id]?.name ?? id}${where}  ${stack}`);
     itemIds.push(id);
   }
 

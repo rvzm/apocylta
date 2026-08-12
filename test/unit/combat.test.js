@@ -20,7 +20,7 @@ import {
   canChallengeBoss,
   BOSS_LEVEL_REQUIREMENT,
 } from "../../data/combat.js";
-import { BASIC_ENEMIES } from "../../enemy_backbone.js";
+import { BASIC_ENEMIES, getEnemy } from "../../enemy_backbone.js";
 import { DIFFICULTY_LEVELS } from "../../player_backbone.js";
 import { player_config } from "../../config.js";
 import { SPELLS } from "../../magic_backbone.js";
@@ -775,4 +775,45 @@ test("Haste is encounter-scoped: no buff outside a fight", () => {
   // fight in progress - the defeat screen and the achievement sweep both reach
   // for combat stats after endCombat() has cleared it.
   assert.ok(dodgeChance(state) > 0);
+});
+
+// ----- Strength -----
+//
+// Strength trains by hauling (state/gameState.js's addItem) and by the two
+// fights that take something out of you: clearing a pack, and putting down a
+// boss. A routine kill pays fighting xp and nothing else.
+
+test("killing a boss trains strength; an ordinary kill does not", () => {
+  const ordinary = fighter();
+  ordinary.currentCombat = buildEncounter(ordinary, "weak_goblin");
+  // Kill it outright, however many swings that takes.
+  for (let i = 0; i < 50 && !ordinary.currentCombat.outcome; i++) resolveRound(ordinary, { type: "attack" }, ALWAYS);
+  assert.equal(ordinary.currentCombat.outcome, "victory");
+  assert.equal(ordinary.skills.strength.xp, 0, "a goblin is not a workout");
+
+  const slayer = fighter();
+  slayer.skills.fighting.level = 500; // one-shot the boss
+  slayer.currentCombat = buildEncounter(slayer, "hubert", { boss: true });
+  assert.equal(getEnemy("hubert").subtype, "boss", "the catalog is what defines a boss");
+  for (let i = 0; i < 200 && !slayer.currentCombat.outcome; i++) resolveRound(slayer, { type: "attack" }, ALWAYS);
+  assert.equal(slayer.currentCombat.outcome, "victory");
+  assert.ok(slayer.skills.strength.xp > 0, "a boss is");
+});
+
+test("clearing a whole pack trains strength, scaled by the pack's own xp", () => {
+  const state = fighter();
+  state.skills.fighting.level = 500;
+  state.currentCombat = buildEncounter(state, "mixed_group");
+  for (let i = 0; i < 200 && !state.currentCombat.outcome; i++) resolveRound(state, { type: "attack" }, ALWAYS);
+
+  assert.equal(state.currentCombat.outcome, "victory");
+  assert.ok(state.skills.strength.xp > 0, "clearing the pack is what pays");
+});
+
+test("fleeing a pack trains no strength - you have to actually clear it", () => {
+  const state = fighter();
+  state.currentCombat = buildEncounter(state, "mixed_group");
+  resolveRound(state, { type: "flee" }, ALWAYS);
+  assert.equal(state.currentCombat.outcome, "fled");
+  assert.equal(state.skills.strength.xp, 0);
 });

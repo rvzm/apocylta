@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createInitialState, formatClock, isLocationOpen, addItem, removeItem, finalizeCharacter, walletTotal } from "../../state/gameState.js";
-import { backpackSlotsUsed } from "../../data/toolbelt.js";
+import { backpackWeightCap, backpackWeightUsed, toolbeltWeightCap } from "../../data/toolbelt.js";
+import { weightOf } from "../../item_backbone.js";
 import { ALL_ITEMS } from "../../item_backbone.js";
 
 test("formatClock() formats minutes-since-midnight as 12h time", () => {
@@ -50,49 +51,96 @@ test("addItem()/removeItem() manage inventory quantities, deleting at zero", () 
   assert.equal("wood" in state.inventory, false);
 });
 
-test("addItem() returns true and succeeds while stacking an already-held item, even at the slot cap", () => {
+// addItem() takes what fits and returns HOW MUCH, not a boolean - a pack with
+// room for two of the three ore you just mined gives you two rather than
+// voiding the haul. Under weight, every add is checked: stacking more of
+// something you already carry costs exactly what the first one did.
+
+test("addItem() returns the amount actually taken", () => {
   const state = createInitialState();
-  state.inventory.wood = 1; // pre-existing slot, no belt equipped (baseline cap 100)
-  assert.equal(addItem(state, "wood", 5), true);
-  assert.equal(state.inventory.wood, 6);
+  assert.equal(addItem(state, "wood", 5), 5);
+  assert.equal(state.inventory.wood, 5);
 });
 
-test("addItem() blocks a brand-new item id once the backpack slot cap is reached", () => {
+test("addItem() fills to the brim and reports the shortfall, rather than refusing outright", () => {
   const state = createInitialState();
-  // No belt equipped -> baseline backpack cap is 100 - fill it exactly with
-  // real, distinct, non-tool/non-potion item ids (backpackSlotsUsed only
-  // counts ids that actually resolve through ALL_ITEMS).
-  const fillerIds = Object.entries(ALL_ITEMS)
-    .filter(([id, item]) => id !== "wood" && item.type !== "tool" && item.type !== "potion")
-    .slice(0, 100)
-    .map(([id]) => id);
-  assert.equal(fillerIds.length, 100, "expected at least 100 non-tool/non-potion items in the catalog");
-  for (const id of fillerIds) state.inventory[id] = 1;
+  const each = weightOf("iron_ore");
+  const fits = Math.floor(backpackWeightCap(state) / each);
 
-  assert.equal(addItem(state, "wood", 1), false, "backpack is full - new item should be rejected");
-  assert.equal("wood" in state.inventory, false);
-
-  assert.equal(addItem(state, fillerIds[0], 1), true, "stacking an existing item never costs a slot");
-  assert.equal(state.inventory[fillerIds[0]], 2);
+  assert.equal(addItem(state, "iron_ore", fits - 2), fits - 2, "well within the pack");
+  // Ask for five more when only two will fit.
+  assert.equal(addItem(state, "iron_ore", 5), 2, "takes what fits");
+  assert.equal(state.inventory.iron_ore, fits);
+  assert.equal(addItem(state, "iron_ore", 1), 0, "and nothing at all once full");
 });
 
-test("addItem() gates potions against their own separate cap, not the general backpack cap", () => {
+test("addItem() charges every add, not just the one that opens a new id", () => {
+  const state = createInitialState();
+  const before = backpackWeightUsed(state);
+  addItem(state, "iron_ore", 1);
+  const afterFirst = backpackWeightUsed(state);
+  addItem(state, "iron_ore", 1);
+
+  assert.ok(afterFirst > before, "the first one costs");
+  assert.equal(backpackWeightUsed(state) - afterFirst, afterFirst - before, "and so does the second");
+});
+
+test("addItem() spends the toolbelt's budget for belt-stored items, leaving the pack alone", () => {
+  const state = createInitialState();
+  const fits = Math.floor(toolbeltWeightCap(state) / weightOf("scrap_metal"));
+
+  assert.equal(addItem(state, "scrap_metal", fits + 10), fits, "capped by the belt, not the pack");
+  assert.equal(backpackWeightUsed(state), 0, "and the pack is untouched");
+  assert.equal(addItem(state, "iron_ore", 1), 1, "which still has all its own room");
+});
+
+test("addItem() gates potions on pouch slots, not weight", () => {
   const state = createInitialState();
   // Baseline potion cap is 5 - fill it with 5 distinct potions.
   const potions = ["healing_potion", "mana_potion", "attack_potion", "strength_potion", "defense_potion"];
-  for (const id of potions) assert.equal(addItem(state, id, 1), true);
+  for (const id of potions) assert.equal(addItem(state, id, 1), 1);
 
-  assert.equal(addItem(state, "poison_potion", 1), false, "potion pouch is full");
+  assert.equal(addItem(state, "poison_potion", 1), 0, "potion pouch is full");
   assert.equal("poison_potion" in state.inventory, false);
-  // General backpack items are unaffected by the full potion pouch.
-  assert.equal(addItem(state, "wood", 1), true);
+  assert.equal(addItem(state, "healing_potion", 99), 99, "but topping up an existing one is free");
+  assert.equal(addItem(state, "wood", 1), 1, "and general storage is unaffected");
 });
 
-test("addItem() never counts tools against either cap", () => {
+// Godmode already skips every cost in removeItem(); a badge that says the rules
+// don't apply shouldn't leave you rummaging for space.
+test("addItem() ignores capacity entirely in godmode", () => {
   const state = createInitialState();
-  assert.equal(addItem(state, "hammer", 1), true);
-  assert.equal(addItem(state, "pickaxe", 1), true);
-  assert.equal(backpackSlotsUsed(state), 0, "tools are excluded from the backpack slot count");
+  const fits = Math.floor(backpackWeightCap(state) / weightOf("iron_ore"));
+  assert.equal(addItem(state, "iron_ore", fits + 500), fits, "mortals are capped");
+
+  const god = createInitialState();
+  god.godmode = true;
+  assert.equal(addItem(god, "iron_ore", fits + 500), fits + 500);
+});
+
+// A save written before weight existed can sit over its new budget. It must
+// load and behave, simply accepting nothing more until it's back under.
+test("addItem() copes with an already-overloaded inventory", () => {
+  const state = createInitialState();
+  state.inventory.iron_ore = 10_000; // far past any cap
+
+  assert.ok(backpackWeightUsed(state) > backpackWeightCap(state));
+  assert.equal(addItem(state, "iron_ore", 1), 0);
+  assert.equal(addItem(state, "wood", 1), 0);
+  assert.equal(state.inventory.iron_ore, 10_000, "and nothing already carried is lost");
+});
+
+test("hauling a heavy load trains strength", () => {
+  const state = createInitialState();
+  assert.equal(state.skills.strength.xp, 0, "strength has no other source in this test");
+
+  // A light pickup teaches nothing.
+  addItem(state, "iron_ore", 1);
+  assert.equal(state.skills.strength.xp, 0);
+
+  // Loading up past HEAVY_LOAD_FRACTION does.
+  addItem(state, "iron_ore", Math.floor(backpackWeightCap(state) / weightOf("iron_ore")));
+  assert.ok(state.skills.strength.xp > 0, "carrying a real load is how strength trains");
 });
 
 test("finalizeCharacter() merges race + starter pack items/gold and sets proficient skills to level 5", () => {

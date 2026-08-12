@@ -16,8 +16,10 @@ import {
   waterBottleCap,
   slingshotAmmoCap,
   quiverCap,
-  backpackSlotCap,
-  backpackSlotsUsed,
+  backpackWeightCap,
+  backpackWeightUsed,
+  toolbeltWeightCap,
+  toolbeltWeightUsed,
   potionSlotCap,
   potionSlotsUsed,
 } from "./data/toolbelt.js";
@@ -164,8 +166,11 @@ export function buildToolbeltPayload(state) {
     slingshotAmmoCap: slingshotAmmoCap(state),
     quiver: state.toolbelt.quiver,
     quiverCap: quiverMax === Infinity ? null : quiverMax,
-    backpackUsed: backpackSlotsUsed(state),
-    backpackCap: backpackSlotCap(state),
+    // Weights now, not slot counts - the frontend labels them as such.
+    backpackUsed: backpackWeightUsed(state),
+    backpackCap: backpackWeightCap(state),
+    toolbeltUsed: toolbeltWeightUsed(state),
+    toolbeltCap: toolbeltWeightCap(state),
     potionsUsed: potionSlotsUsed(state),
     potionsCap: potionSlotCap(state),
   };

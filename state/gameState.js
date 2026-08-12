@@ -11,12 +11,24 @@ import {
 } from "../skill_backbone.js";
 import { RACES, CLASSES, DIFFICULTY_LEVELS, STARTER_ITEMS } from "../player_backbone.js";
 import { player_config } from "../config.js";
-import { STARTER_PACKS, ALL_ITEMS, ENHANCEMENT_SLOTS } from "../item_backbone.js";
+import { STARTER_PACKS, ALL_ITEMS, ENHANCEMENT_SLOTS, weightOf } from "../item_backbone.js";
 // The backbone, not data/magic.js - that one imports this file, and this only
 // needs the catalog and its vocabulary translation.
 import { SPELLS, aidSkillBonuses } from "../magic_backbone.js";
 import { logger } from "../logger.js";
-import { backpackSlotCap, backpackSlotsUsed, potionSlotCap, potionSlotsUsed } from "../data/toolbelt.js";
+// Deliberate import cycle: data/toolbelt.js imports effectiveSkillLevel from
+// here so strength can raise your carry capacity. Safe for the same reason the
+// data/magic.js <-> data/quests.js cycle is - both modules export only hoisted
+// function declarations and do no work at module-evaluation time, so neither
+// needs the other resolved at import. It would break if either ever called
+// across at the top level.
+import {
+  backpackWeightCap,
+  toolbeltWeightCap,
+  weightRoomFor,
+  potionSlotsFree,
+  loadFraction,
+} from "../data/toolbelt.js";
 import { minutesIntoDay, isOpenAt } from "./clock.js";
 import { emptyPurse, purseTotal, addToPurse, spendFrom, purseFromBase } from "../currency_backbone.js";
 
@@ -175,19 +187,54 @@ export function isLocationOpen(state) {
   return isOpenAt(getCurrentLocation(state)?.openHours, state);
 }
 
-// Only blocks gaining a item id the backpack doesn't already hold once its
-// slot cap (belt-derived - see data/toolbelt.js) is reached; stacking more
-// of something already held never costs a slot. Returns whether the item
-// was actually added, so callers that care can react to a full backpack.
-export function addItem(state, itemId, qty) {
-  const isNewSlot = !(itemId in state.inventory);
-  if (isNewSlot) {
-    const item = ALL_ITEMS[itemId];
-    if (item?.type === "potion" && potionSlotsUsed(state) >= potionSlotCap(state)) return false;
-    if (item?.type !== "potion" && item?.type !== "tool" && backpackSlotsUsed(state) >= backpackSlotCap(state)) return false;
+// Grants strength xp for hauling a heavy load. Fires from addItem() rather than
+// from the gather loop, so it covers every way items arrive - mining, loot,
+// crafting, the shop counter - which is the same "one hook where it actually
+// happens" reasoning that keeps recordSpellCast inside castSpell().
+const HEAVY_LOAD_FRACTION = 0.75;
+const STRENGTH_XP_PER_HAUL = 1;
+
+// How much of `qty` will actually fit. Weight for the two weighed containers,
+// pouch slots for a potion - data/toolbelt.js owns which is which.
+function roomFor(state, itemId, qty) {
+  if (state.godmode) return qty;
+
+  if (ALL_ITEMS[itemId]?.type === "potion") {
+    // The pouch counts ids, not amounts: topping up a potion you already carry
+    // is free, a new one needs a free slot, and it's all-or-nothing either way.
+    return potionSlotsFree(state, itemId) > 0 ? qty : 0;
   }
-  state.inventory[itemId] = (state.inventory[itemId] || 0) + qty;
-  return true;
+
+  const each = weightOf(itemId);
+  // An id the catalog doesn't know weighs 0 and would divide by zero. Nothing
+  // in the catalog is weightless (itemBackboneConsistency pins that), so this
+  // is only reachable via a stale save row or an admin typo - let it through
+  // rather than refusing an item nobody can ever carry.
+  if (!(each > 0)) return qty;
+  return Math.max(0, Math.min(qty, Math.floor(weightRoomFor(state, itemId) / each)));
+}
+
+// Adds as much of `qty` as will fit and RETURNS THE AMOUNT TAKEN (0..qty), not
+// a boolean - a pack with room for two of the three ore you just mined gives
+// you two and says so, rather than voiding the whole haul over one unit.
+//
+// Unlike the slot-counting version this replaced, EVERY add is checked, not
+// just the ones opening a new id: under weight, stacking more of something you
+// already carry costs exactly as much as the first one did.
+//
+// Godmode skips the limit entirely, matching removeItem()'s carve-out - a badge
+// that says the rules don't apply shouldn't leave you rummaging for space.
+export function addItem(state, itemId, qty) {
+  const taken = roomFor(state, itemId, qty);
+  if (taken <= 0) return 0;
+
+  state.inventory[itemId] = (state.inventory[itemId] || 0) + taken;
+
+  // After the add, so it reads the load you're actually now carrying.
+  if (loadFraction(state) >= HEAVY_LOAD_FRACTION) {
+    grantSkillXp(state, "strength", STRENGTH_XP_PER_HAUL);
+  }
+  return taken;
 }
 
 // Godmode and admin-flagged infinite items skip the decrement here rather than

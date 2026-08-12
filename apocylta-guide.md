@@ -77,9 +77,9 @@ Then you pick however many extra proficient skills your difficulty allows. A pro
 level 5 instead of 1, and up to Hard it earns xp 50% faster for the whole run — so on those difficulties the
 choice compounds. See the proficiency row above before spending picks on Survival or harder.
 
-Three of the seventeen skills are worth knowing about before you spend a pick. **Strength** and **luck**
-have no way to earn xp at all, and **crafting** has almost none — a pick spent on any of the three buys you
-the starting level 5 and very little after it. §6 has the details and the rest of the table.
+Two of the seventeen skills are worth knowing about before you spend a pick. **Luck** has no way to earn xp
+at all, and **crafting** has almost none — a pick spent on either buys you the starting level 5 and very
+little after it. §6 has the details and the rest of the table.
 
 ---
 
@@ -322,6 +322,10 @@ Mining pays two extras on top, rolled separately on any attempt that lands: a **
 
 **A miss costs you the attempt and pays no xp.** Only successes teach you anything.
 
+An attempt can also land and then have nowhere to go: if you're out of room the attempt log says so, and
+takes whatever part of the haul still fits (§9). Being full is the one kind of failure you can fix on the
+spot, by dropping something.
+
 Standing in an unsafe location while you work, something may jump you. That roll is on its own clock,
 faster on harder difficulties, and it interrupts whatever you were doing.
 
@@ -364,12 +368,13 @@ tarvus at 60; the three kings behind them want **75**.
 
 ## 6. Skills and levelling
 
-17 skills. Fourteen of them level on their own as you use them: magic, defense, fighting, speed, survival,
-woodcutting, fishing, mining, smithing, cooking, foraging, trapping, alchemy and barter. The other three
-have no ordinary way to earn xp — see the notes under the table.
+17 skills. Fifteen of them level on their own as you use them: magic, defense, fighting, speed, survival,
+woodcutting, fishing, mining, smithing, cooking, foraging, trapping, alchemy, barter and strength. The other
+two have no ordinary way to earn xp — see the notes under the table.
 
 Some of those you'll never train on purpose. **Defense levels by being hit**, speed by travelling and by
-fleeing, alchemy and survival by drinking what you brewed, barter by trading at either counter.
+fleeing, alchemy and survival by drinking what you brewed, barter by trading at either counter, and
+**strength by carrying a heavy load** — it goes up while you're doing something else entirely.
 
 Skill xp **accumulates** — it's a running total that never goes down, and each level names the total you need
 to have reached it. So your bar fills toward the next threshold rather than emptying when you arrive. The
@@ -399,7 +404,7 @@ the game simply refuses you. The rest **scale** something, quietly, with no thre
 | **Cooking** | nothing yet — same | crafting, scaled by rarity |
 | **Alchemy** | nothing yet — same | crafting, and drinking a potion |
 | **Crafting** | nothing | **nothing — see below** |
-| **Strength** | nothing | nothing |
+| **Strength** | **how much you can carry** — two units on both the toolbelt and the backpack per level (§9) | hauling a heavy load, clearing a whole pack, and killing a boss |
 
 Four things there want spelling out, because each is a place the game doesn't do what an RPG usually would.
 
@@ -417,9 +422,14 @@ forge, and that pool pays **Smithing**. So every general craft you make raises s
 crafting xp in the game comes from three achievements. Take it as a proficiency pick and it will sit at level
 5 for the whole run.
 
-**Strength and Luck have no xp source at all.** Both can be picked as proficiencies at creation, which starts
-them at 5, and both stay there. Luck at least does something from there — it feeds your crit chance — while
-strength currently does nothing whatsoever.
+**Luck has no xp source at all.** It can be picked as a proficiency at creation, which starts it at 5, and
+there it stays — the only other way to move it is a black-market charm. It does at least do something from
+there: it feeds your crit chance.
+
+**Strength trains in three places**, none of which is a thing you set out to do: hauling a load past about
+three-quarters of either capacity, clearing an entire pack of enemies, and putting down a boss. Ordinary
+kills pay nothing — that's fighting's job. So strength climbs while you're mining a seam dry or wading
+through a horde, which is exactly when carrying more would have helped.
 
 One last thing, since it cuts across the whole table: **enhancements and blessings raise your effective
 level, not your trained one.** A charm that says `+10 mining` — or a Blessed Pickaxe, which does the same
@@ -588,27 +598,46 @@ Every other teleport goes where it says.
 
 ## 9. Carrying it home
 
-Your **belt** is the piece of equipment everything else depends on. You start wearing the leather one, and
-it sets how many backpack slots you have, how many potions you can keep to hand, and how much ammo you can
-carry. Water, slingshot ammo and arrows are the strict part: they live *on the belt*, so without one equipped
-you can't use them at all, whatever the number says.
+**Everything you carry has a weight**, and what limits you is how much of it you're hauling, not how many
+different things you own. Ten thousand logs is ten thousand logs' worth of load.
 
-| belt | backpack slots | potions | sling ammo |
-| --- | --- | --- | --- |
-| none | 100 | 5 | — |
-| leather | 100 | 5 | 10 |
-| chainmail | 150 | 10 | 15 |
-| adventurer | 175 | 10 | 15 |
-| plate | 200 | 15 | 20 |
-| mythic | 300 | 20 | 30 |
-| Apocylta's Eye | 500 | 30 | 50 |
+You have **three places to put things**, and they fill up independently:
 
-So general storage barely moves until the plate belt; what the early upgrades really buy is the potion pouch
-and the ammo. Arrows are uncapped the moment any belt is on.
+| container | holds | measured in |
+| --- | --- | --- |
+| **Toolbelt** | scrap, tools, and fishing bait and hooks | weight |
+| **Backpack** | everything else | weight |
+| **Potion pouch** | potions, and only potions | slots |
 
-**A backpack is the other half of that**, worn in its own slot alongside the belt rather than instead of it:
+An item's home is fixed — you don't choose it. A pickaxe always rides the belt, an iron ore always rides
+the pack, and filling one has no effect at all on the other. That's the practical reason to keep a decent
+belt on even once you've a good backpack: a beltful of scrap doesn't cost you an ounce of pack space.
 
-| backpack | slots |
+The **potion pouch** is the odd one out and still counts slots rather than weight. A potion costs one slot
+no matter how many you stack in it, and costs nothing against either weight budget — so three healing
+potions and three hundred take up exactly the same room.
+
+### What sets your limits
+
+Your **belt** sets the toolbelt budget, the potion pouch, and a floor under your backpack:
+
+| belt | toolbelt | backpack | potions | sling ammo |
+| --- | --- | --- | --- | --- |
+| none | 8 | 100 | 5 | — |
+| leather | 15 | 100 | 5 | 10 |
+| chainmail | 20 | 150 | 10 | 15 |
+| adventurer | 25 | 175 | 10 | 15 |
+| plate | 30 | 200 | 15 | 20 |
+| mythic | 50 | 300 | 20 | 30 |
+| Apocylta's Eye | 90 | 500 | 30 | 50 |
+
+Water, slingshot ammo and arrows are the strict part: they live *on the belt*, so without one equipped you
+can't use them at all, whatever the number says. They're also outside the weight system entirely — a full
+water bottle costs you no toolbelt room. Arrows are uncapped the moment any belt is on.
+
+A **backpack**, worn in its own slot, raises the pack budget and nothing else:
+
+| backpack | backpack budget |
 | --- | --- |
 | starter | 100 |
 | small | 150 |
@@ -618,13 +647,26 @@ and the ammo. Arrows are uncapped the moment any belt is on.
 | Apocyltian | 1000 |
 | God's Back | 2000 |
 
-The two don't add up — whichever grants more storage is the one that counts, so a backpack is a straight
-upgrade once it beats whatever your belt was already giving you, and taking a belt off never buys you room.
-Everything a belt gates (water, sling ammo, arrows) still needs the belt; the backpack only carries.
+The belt and the backpack **don't add up** — whichever grants more is the one that counts, so a backpack is
+a straight upgrade once it beats what your belt was already giving you, and taking a belt off never buys you
+room.
 
-The backpack is tabbed by item type. Tools don't live there; they go in the tool slot, one at a time,
-which is why a pickaxe and a fishing rod compete for the same space. Anything consumable is used from the
-backpack, and using it pays a little xp in the relevant skill — plus you keep the empty bottle.
+**Your strength adds to both budgets**, two units a level, and it's the only thing that lifts the toolbelt
+beyond what your belt allows. See §6 for how it trains.
+
+### Running out of room
+
+A pickup that won't fit **takes what it can and leaves the rest** — mine three ore with room for two and you
+get two, and the attempt line says what you left behind. Nothing is silently voided, and nothing is lost
+that would have fitted.
+
+For a sense of scale: a starting character with a leather belt can carry about eighty iron ore, or
+seventy-five pieces of scrap metal on the belt beside it. Scrap and bait weigh almost nothing; ore, bars and
+armor are what fill you up. A leviathan's bones are the heaviest thing in the world and are meant to be.
+
+The backpack screen lists everything you're carrying with its stack weight, marking the ones riding the belt
+with `(belt)`. Anything consumable is used from there, and using it pays a little xp in the relevant skill —
+plus you keep the empty bottle.
 
 ---
 

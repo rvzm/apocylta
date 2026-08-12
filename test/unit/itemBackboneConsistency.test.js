@@ -292,7 +292,12 @@ test("every FISH species is catchable: a required level, a rod that reaches it, 
 //    priced off the mining level that gates them, because adamantite_ore is
 //    legendary while the chestplate eating four bars' worth is ALSO legendary,
 //    and no in-band assignment makes that recipe non-destructive.
-const UNBANDED_TYPES = new Set(["set", "kit", "enhancement", "mining", "smithing", "metal"]);
+//  - "scrap" is the floor of the whole economy and runs its own 5/25/50 ladder
+//    across common/uncommon/rare. A "rare" piece of scrap is still scrap: the
+//    rare band starts at 100, which would price one scrap metal plate above an
+//    iron sword. The rarity here grades how often you find it, not what it's
+//    worth, so the band is measuring the wrong thing.
+const UNBANDED_TYPES = new Set(["set", "kit", "enhancement", "mining", "smithing", "metal", "scrap"]);
 
 // Outputs whose craft-invariant ceiling (test/unit/economy.test.js) bites below
 // their rarity's floor - all of them cheap-input/higher-rarity-output cooking
@@ -322,6 +327,43 @@ test("every item carries a positive integer `value` in base units", () => {
   const offenders = Object.entries(ALL_ITEMS)
     .filter(([, item]) => !Number.isInteger(item.value) || item.value < 1)
     .map(([id, item]) => `${id}: ${JSON.stringify(item.value)}`);
+  assert.deepEqual(offenders, []);
+});
+
+// Weight is what both carrying budgets are spent in (data/toolbelt.js), so an
+// item with none is free to carry - infinitely. addItem() guards against the
+// divide-by-zero, but a weightless item still shouldn't exist, and a new one
+// added without a weight is exactly the kind of omission nothing else notices.
+test("every item carries a positive weight, to no more than 2dp", () => {
+  const offenders = Object.entries(ALL_ITEMS)
+    .filter(([, item]) => {
+      if (typeof item.weight !== "number" || !Number.isFinite(item.weight) || item.weight <= 0) return true;
+      // Against a tolerance, not for equality: 2.2 * 100 is 220.00000000000003
+      // in binary floating point, and the item is fine.
+      const hundredths = item.weight * 100;
+      return Math.abs(hundredths - Math.round(hundredths)) > 1e-6;
+    })
+    .map(([id, item]) => `${id}: ${JSON.stringify(item.weight)}`);
+  assert.deepEqual(offenders, []);
+});
+
+// `storeIn` decides which budget an item is charged against. Anything the code
+// doesn't recognise silently falls through to the backpack (storeInOf's
+// default), so a typo'd "toolBelt" would quietly move scrap into the pack.
+test("every storeIn names a container the code knows", () => {
+  const offenders = Object.entries(ALL_ITEMS)
+    .filter(([, item]) => item.storeIn !== undefined && item.storeIn !== "toolbelt" && item.storeIn !== "backpack")
+    .map(([id, item]) => `${id}: storeIn ${JSON.stringify(item.storeIn)}`);
+  assert.deepEqual(offenders, []);
+});
+
+// The belt is what a toolbelt-stored item is charged against, so every belt
+// needs a budget or wearing one would be worse than wearing none.
+test("every belt declares a toolbelt budget", () => {
+  const offenders = Object.entries(TOOLBELTS)
+    .filter(([id]) => id !== "global")
+    .filter(([, belt]) => !(belt.belt?.toolbelt > 0))
+    .map(([id]) => id);
   assert.deepEqual(offenders, []);
 });
 

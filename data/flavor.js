@@ -18,7 +18,7 @@
 // is why styling these costs no new dependency of any weight.
 
 import { dayNumber, hourOfDay, isOpenAt } from "../state/clock.js";
-import { backpackSlotCap, backpackSlotsUsed } from "./toolbelt.js";
+import { loadFraction } from "./toolbelt.js";
 import { styled, COLOR, pickBand, HP_BANDS } from "../markup.js";
 
 // Ambient lines (time of day, weather) set the scene and shouldn't compete with
@@ -165,22 +165,25 @@ const PACK_BANDS = [
   { min: 0, color: COLOR.grey, bold: false },
 ];
 
+// Reads loadFraction(), which is the fuller of the two weighed containers - so
+// a belt crammed with ore says so even when the backpack is empty. The
+// thresholds were already fractions of a cap, so only the input changed when
+// slots became weight.
 export function packLine(state) {
-  const cap = backpackSlotCap(state);
-  const used = backpackSlotsUsed(state);
+  const fraction = loadFraction(state);
 
   const text = (() => {
-    if (used >= cap) return "Your pack is completely full; you'll have to drop something.";
-    if (used >= cap * 0.9) return "Your pack is almost full.";
-    if (used >= cap * 0.75) return "Your pack is getting full.";
-    if (used >= cap * 0.5) return "Your pack is half full.";
-    if (used >= cap * 0.25) return "Your pack is starting to fill up.";
-    if (used >= cap * 0.15) return "Your pack is starting to get used.";
-    if (used > 0) return "Your pack has a few things in it.";
+    if (fraction >= 1) return "You're carrying all you can; you'll have to drop something.";
+    if (fraction >= 0.9) return "You're almost fully loaded.";
+    if (fraction >= 0.75) return "You're getting weighed down.";
+    if (fraction >= 0.5) return "You're carrying a fair load.";
+    if (fraction >= 0.25) return "Your pack is starting to fill up.";
+    if (fraction >= 0.15) return "Your pack is starting to get used.";
+    if (fraction > 0) return "Your pack has a few things in it.";
     return null;
   })();
   if (text == null) return null;
 
-  const band = pickBand(cap > 0 ? used / cap : 0, PACK_BANDS);
+  const band = pickBand(fraction, PACK_BANDS);
   return styled(text, { color: band.color, bold: band.bold });
 }

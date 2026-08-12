@@ -48,6 +48,12 @@ const MAX_BLOCK_CHANCE = 0.6;
 const FIGHTING_XP_PER_SWING = 4;
 const DEFENSE_XP_PER_HIT = 3;
 const SPEED_XP_PER_DODGE = 3;
+// Strength trains by hauling (state/gameState.js's addItem) and by the two
+// fights that actually take something out of you: clearing a whole pack, and
+// putting down a boss. A routine kill pays nothing - it's fighting xp that
+// tracks how much killing you do.
+const STRENGTH_XP_PER_BOSS = 25;
+const STRENGTH_XP_PER_GROUP_XP = 0.1;
 const FLEE_BASE_CHANCE = 0.4;
 
 const GOLD_PER_XP = 0.6;
@@ -314,9 +320,11 @@ function rollDrops(state, enemyDef, rng) {
   for (let i = 0; i < count; i++) {
     const type = LOOT_TYPES[Math.floor(rng() * LOOT_TYPES.length)];
     const loot = rollLootByType(type, undefined, undefined, rng);
-    // addItem() returns false when the backpack is full - don't claim a drop
-    // the player never actually received.
-    if (loot && addItem(state, loot.itemId, loot.qty)) drops.push(loot);
+    // addItem() returns how much actually fit - don't claim a drop the player
+    // never received, and report the amount they really got.
+    if (!loot) continue;
+    const got = addItem(state, loot.itemId, loot.qty);
+    if (got > 0) drops.push({ ...loot, qty: got });
   }
   return drops;
 }
@@ -332,6 +340,14 @@ function killEnemy(state, enemy, rng) {
   // kill is worth as much at 100 as it was at 10 (see gameState.js).
   grantRewardXp(state, def.xp * (mods.playerXp ?? 1));
   grantSkillXp(state, "fighting", Math.round(def.xp / 2));
+
+  // Keyed off the CATALOG's own idea of a boss, the same one the combat-end
+  // achievement hook uses - deliberately not combat.boss, which merely records
+  // that the player picked the boss action and would pay out for choosing a
+  // boss fight and then fleeing it.
+  if (def.subtype === "boss") {
+    grantSkillXp(state, "strength", STRENGTH_XP_PER_BOSS);
+  }
 
   // Base units, paid as loose copper - what you loot off a body is small change.
   const gold = Math.max(1, Math.round(def.xp * GOLD_PER_XP));
@@ -400,6 +416,9 @@ function awardGroupBonus(state, combat) {
 
   const mods = modifiersFor(state);
   grantRewardXp(state, group.xp * (mods.playerXp ?? 1));
+  // Scaled off the pack's own xp, so a fifteen-strong horde is worth more than
+  // three goblins. grantSkillXp applies the difficulty multiplier itself.
+  grantSkillXp(state, "strength", Math.max(1, Math.round(group.xp * STRENGTH_XP_PER_GROUP_XP)));
   logger.info("combat", `Cleared ${combat.sourceId}: +${group.xp} bonus xp.`);
   return [`  You cleared the ${group.name}. +${group.xp} bonus xp.`];
 }

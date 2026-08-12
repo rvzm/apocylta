@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createInitialState } from "../../state/gameState.js";
-import { ALL_ITEMS } from "../../item_backbone.js";
-import { backpackSlotCap, backpackSlotsUsed } from "../../data/toolbelt.js";
+import { ALL_ITEMS, weightOf } from "../../item_backbone.js";
+import { backpackWeightCap, backpackWeightUsed } from "../../data/toolbelt.js";
 import { consumeEffectOf, useItem, attemptRevive } from "../../data/items.js";
 
 // createInitialState() leaves difficulty null, which grantSkillXp tolerates
@@ -210,14 +210,10 @@ test("useItem(): non-consumables and unheld items refuse with a distinct reason"
 test("useItem(): reports a lost byproduct rather than voiding it silently", () => {
   const state = player({ healing_potion: 1 });
   state.hp = 10;
-  // Fill every general backpack slot so addItem() refuses the empty bottle.
-  // The cap counts distinct non-tool, non-potion ids, and only ids that
-  // resolve in ALL_ITEMS count at all - so these have to be real items.
-  const filler = Object.entries(ALL_ITEMS)
-    .filter(([id, item]) => item.type !== "tool" && item.type !== "potion" && id !== "empty_bottle")
-    .slice(0, backpackSlotCap(state));
-  for (const [id] of filler) state.inventory[id] = 1;
-  assert.equal(backpackSlotsUsed(state), backpackSlotCap(state), "backpack is genuinely full");
+  // Fill the pack by WEIGHT so addItem() has no room for the empty bottle.
+  // One heavy stack does it now; it used to take 100 distinct item ids.
+  state.inventory.iron_ore = Math.ceil(backpackWeightCap(state) / weightOf("iron_ore"));
+  assert.ok(backpackWeightUsed(state) >= backpackWeightCap(state), "backpack is genuinely full");
 
   const result = useItem(state, "healing_potion");
   assert.equal(result.used, true, "the potion still works");

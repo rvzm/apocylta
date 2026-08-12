@@ -60,7 +60,7 @@ const CHECKS = [
 
   // --- apocylta-guide.md ---
   { file: "apocylta-guide.md", label: "location count", actual: Object.keys(LOCATIONS).length, pattern: /^(\d+) locations, connected by exits/m },
-  { file: "apocylta-guide.md", label: "skill count", actual: Object.keys(SKILLS).length, pattern: /^(\d+) skills\. Fourteen of them level/m },
+  { file: "apocylta-guide.md", label: "skill count", actual: Object.keys(SKILLS).length, pattern: /^(\d+) skills\. Fifteen of them level/m },
   { file: "apocylta-guide.md", label: "spell count", actual: Object.keys(SPELLS).length, pattern: /^(\d+) spells across seven types/m },
   { file: "apocylta-guide.md", label: "achievement count", actual: Object.keys(ACHIEVEMENTS).length, pattern: /^(\d+) of them, and there's nothing to accept/m },
   { file: "apocylta-guide.md", label: "max skill level", actual: MAX_SKILL_LEVEL, pattern: /\*\*Skills cap at (\d+)\.\*\*/ },

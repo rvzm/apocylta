@@ -1,6 +1,9 @@
 import { ALL_ITEMS } from "../../../item_backbone.js";
 import {
-  backpackSlotCap,
+  backpackWeightCap,
+  backpackWeightUsed,
+  toolbeltWeightCap,
+  toolbeltWeightUsed,
   potionSlotCap,
   quiverCap,
   slingshotAmmoCap,
@@ -81,12 +84,16 @@ function buildRows(state) {
   }
 
   rows.push("");
-  rows.push(`  Backpack slots: ${backpackSlotCap(state)}   Potion slots: ${potionSlotCap(state)}   (belt-derived)`);
+  rows.push(
+    `  Backpack ${backpackWeightUsed(state)}/${backpackWeightCap(state)}   ` +
+      `Toolbelt ${toolbeltWeightUsed(state)}/${toolbeltWeightCap(state)}   ` +
+      `Potion slots ${potionSlotCap(state)}   (belt + strength)`
+  );
   rows.push("");
   rows.push("  Belt - every cap above comes from this:");
   for (const beltId of BELTS) {
     const belt = ALL_ITEMS[beltId];
-    const line = `    ${belt.name.padEnd(18)} ammo ${String(belt.belt.slingAmmo).padStart(3)}  potions ${String(belt.belt.potions).padStart(3)}  pack ${String(belt.belt.backpack).padStart(4)}`;
+    const line = `    ${belt.name.padEnd(18)} ammo ${String(belt.belt.slingAmmo).padStart(3)}  potions ${String(belt.belt.potions).padStart(3)}  pack ${String(belt.belt.backpack).padStart(4)}  belt ${String(belt.belt.toolbelt).padStart(3)}`;
     rows.push(state.equipment.belt === beltId ? colorTag(`${line}  [WORN]`, "green", true) : line, `belt:${beltId}`);
   }
   return rows;

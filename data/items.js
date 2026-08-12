@@ -77,7 +77,9 @@ function payConsumeReward(state, item) {
   grantSkillXp(state, reward.skill, reward.xp);
   if (!reward.output) return "";
   const name = ALL_ITEMS[reward.output]?.name ?? reward.output;
-  return addItem(state, reward.output, 1) ? ` You keep the ${name}.` : ` The ${name} won't fit in your backpack.`;
+  // addItem returns the amount taken, so 0 is "no room" - explicit rather than
+  // leaning on 0 being falsy.
+  return addItem(state, reward.output, 1) > 0 ? ` You keep the ${name}.` : ` The ${name} won't fit in your backpack.`;
 }
 
 // The pre-death hook: called the instant hp hits 0, before anything treats it

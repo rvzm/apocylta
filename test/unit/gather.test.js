@@ -8,6 +8,8 @@ import { getAction, gatherSuccessChance, rollGatherAttempt, beginAction } from "
 import { resolveGatherAttempt } from "../../state/gameLoop.js";
 import { gatherTimeFor, encounterTicFor, groupSpawnFor } from "../../player_backbone.js";
 import { createInitialState } from "../../state/gameState.js";
+import { toolbeltWeightCap } from "../../data/toolbelt.js";
+import { ALL_ITEMS, weightOf } from "../../item_backbone.js";
 
 const ALWAYS = () => 0; // always under the success chance
 const NEVER = () => 0.999; // never under it
@@ -145,4 +147,50 @@ test("a miss still costs bait", () => {
 
   assert.equal(state.inventory.fishing_bait, 1);
   assert.equal(state.currentAction.attempts[0], getAction("fish").missLine);
+});
+
+// ------------------------------------------------------- no room for the haul
+
+// addItem() takes what fits and reports how much, so the attempt line has to
+// say what you actually got - claiming ore you never carried is worse than
+// saying you left some behind.
+test("an attempt with no room at all reads as a miss you can do something about", () => {
+  const state = gatherer();
+  // Scrap rides the belt, so filling the belt is what blocks a scrap gather.
+  state.inventory.scrap_metal = 10_000;
+  beginAction(state, "gather_scraps");
+
+  resolveGatherAttempt(state, ALWAYS);
+
+  assert.deepEqual(state.currentAction.gatheredThisSession, {}, "nothing was taken");
+  assert.match(state.currentAction.attempts[0], /no room/i);
+  assert.notEqual(
+    state.currentAction.attempts[0],
+    getAction("gather_scraps").missLine,
+    "and it does not read as an ordinary empty-handed miss"
+  );
+});
+
+test("a partly-fitting haul reports what was actually taken", () => {
+  const state = gatherer();
+  beginAction(state, "gather_scraps");
+
+  // Leave room for exactly one of the lightest thing a scrap gather can turn
+  // up, so at least one roll of 1-2 has to come up short.
+  const cap = toolbeltWeightCap(state);
+  const lightest = Math.min(
+    ...Object.entries(ALL_ITEMS)
+      .filter(([, item]) => item.type === "scrap")
+      .map(([, item]) => item.weight)
+  );
+  state.inventory.scrap_metal = Math.floor((cap - lightest) / weightOf("scrap_metal"));
+
+  // Roll until one attempt comes up short of its full stack.
+  let sawShortfall = false;
+  for (let i = 0; i < 40 && !sawShortfall; i++) {
+    state.currentAction.attempts = [];
+    resolveGatherAttempt(state, ALWAYS);
+    sawShortfall = state.currentAction.attempts.some((line) => /no room|leave/i.test(line));
+  }
+  assert.ok(sawShortfall, "a nearly-full belt should eventually report leaving something behind");
 });

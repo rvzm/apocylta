@@ -176,14 +176,18 @@ test("packLine(): quiet only when the pack is empty", () => {
   state.inventory = { wood: 1 };
   assert.match(packLine(state), /a few things/);
 
-  // backpackSlotsUsed counts distinct non-tool, non-potion ids against the
-  // belt-derived cap, which is 100 with no belt equipped - and only ids that
-  // resolve in ALL_ITEMS count at all, so these have to be real.
-  const fillers = Object.entries(ALL_ITEMS)
-    .filter(([, item]) => item.type !== "tool" && item.type !== "potion")
-    .slice(0, 100);
-  for (const [id] of fillers) state.inventory[id] = 1;
-  assert.match(packLine(state), /completely full/);
+  // packLine reads loadFraction(), the fuller of the two weighed containers.
+  // One heavy stack fills the pack; it used to take 100 distinct item ids.
+  state.inventory = { iron_ore: 10_000 };
+  assert.match(packLine(state), /all you can/);
+});
+
+// The belt has its own budget, so a beltful of scrap has to shout even when the
+// backpack is empty - loadFraction takes the fuller of the two.
+test("packLine(): speaks up for a full belt, not just a full pack", () => {
+  const state = createInitialState();
+  state.inventory = { scrap_metal: 10_000 };
+  assert.match(packLine(state), /all you can/);
 });
 
 // ------------------------------------------------------------- styling
