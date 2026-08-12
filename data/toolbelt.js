@@ -29,9 +29,24 @@ export function quiverCap(state) {
   return hasBeltEquipped(state) ? Infinity : 0;
 }
 
-// General storage: always has a baseline, any belt is a strict upgrade.
+function equippedBackpack(state) {
+  return state.equipment.backpack ? ALL_ITEMS[state.equipment.backpack]?.backpack : null;
+}
+
+// General storage: always has a baseline, and both a belt and a worn backpack
+// (BACKPACKS in item_backbone.js) can raise it.
+//
+// The larger of the two wins rather than the sum. They're two ways of answering
+// the same question - "how much can you carry" - so adding them would make a
+// leather belt worth +100 slots on top of God's Back, and would mean taking a
+// belt off to make room was never a trade. Max keeps every piece of gear a
+// strict upgrade and keeps a character with no backpack behaving exactly as
+// they did before the ladder existed.
 export function backpackSlotCap(state) {
-  return equippedBelt(state)?.backpack ?? NO_BELT_BASELINE.backpack;
+  return Math.max(
+    equippedBelt(state)?.backpack ?? NO_BELT_BASELINE.backpack,
+    equippedBackpack(state)?.capacity ?? 0
+  );
 }
 
 export function potionSlotCap(state) {

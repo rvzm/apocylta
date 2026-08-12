@@ -15,9 +15,9 @@ import {
   METALURGY,
   WEAPON_TYPES,
   ARMOR_TYPES,
-  TOOL_CATAGORIES,
+  TOOL_CATEGORIES,
   FOOD_SUBTYPES,
-  POTION_CATAGORIES,
+  POTION_CATEGORIES,
 } from "../item_backbone.js";
 import { removeItem } from "../state/gameState.js";
 import { hasBeltEquipped } from "./toolbelt.js";
@@ -97,7 +97,7 @@ function metalOf(itemId) {
 // every alloy bar into one bucket instead of its own metal). Every other
 // type's `subtype` is already the right axis: armor's subtype is the metal
 // name, weapon's/tool's subtype is the weapon/tool category, food's/potion's
-// subtype matches FOOD_SUBTYPES/POTION_CATAGORIES.
+// subtype matches FOOD_SUBTYPES/POTION_CATEGORIES.
 export function recipeGroupOf(recipe) {
   const resultId = primaryResultId(recipe);
   const item = ALL_ITEMS[resultId];
@@ -110,9 +110,9 @@ const CATEGORY_ORDER = {
   smithing: Object.keys(METALURGY),
   weapon: WEAPON_TYPES,
   armor: ARMOR_TYPES,
-  tool: TOOL_CATAGORIES,
+  tool: TOOL_CATEGORIES,
   food: FOOD_SUBTYPES,
-  potion: POTION_CATAGORIES,
+  potion: POTION_CATEGORIES,
 };
 
 // The declared ordering to sort a tab's group headers by, or null to signal

@@ -13,7 +13,9 @@ const SKILL_KEYS = Object.keys(SKILLS);
 // yet" comment that had gone stale - 13 shields and 10 cloak/ring/necklace
 // items are in the catalog, and leaving them out meant equipping one looked
 // like it worked and then vanished on load.
-const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "belt", "shield", "cloak", "ring", "necklace"];
+// `backpack` is the newest of these and, unlike the rest, needed a real
+// ALTER TABLE in db_backbone.js - the others predate any live save file.
+const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "belt", "shield", "cloak", "ring", "necklace", "backpack"];
 const SKILL_COLUMNS = SKILL_KEYS.flatMap((k) => [`s_${k}_lvl`, `s_${k}_xp`]);
 
 const UPSERT_COLUMNS = [

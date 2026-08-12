@@ -1,4 +1,4 @@
-import { ALL_ITEMS, TOOL_CATAGORIES } from "../../item_backbone.js";
+import { ALL_ITEMS, TOOL_CATEGORIES } from "../../item_backbone.js";
 import { equipItem } from "../../state/gameState.js";
 import { formatCommandRow } from "../format.js";
 import { switchScreen } from "../router.js";
@@ -9,10 +9,10 @@ function ownedTools(state) {
 }
 
 // "All" first, then whatever tool categories are actually owned, in
-// TOOL_CATAGORIES's declared order.
+// TOOL_CATEGORIES's declared order.
 function buildTabs(state) {
   const present = new Set(ownedTools(state).map(([id]) => ALL_ITEMS[id]?.subtype).filter(Boolean));
-  return ["All", ...TOOL_CATAGORIES.filter((category) => present.has(category))];
+  return ["All", ...TOOL_CATEGORIES.filter((category) => present.has(category))];
 }
 
 function buildRows(state, activeTab) {

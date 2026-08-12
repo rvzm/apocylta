@@ -1,4 +1,4 @@
-// Permanent version of the audit script used to find the TYPES/CATAGORIES
+// Permanent version of the audit script used to find the TYPES/CATEGORIES
 // drift fixed alongside this test - item_backbone.js is large and heavily
 // self-referential (recipes/kits/sets pointing at item ids, items pointing
 // at category lists), and nothing else in the codebase catches drift
@@ -13,10 +13,10 @@ import { SKILL_BLOCKS } from "../../skill_backbone.js";
 
 const {
   ITEM_TYPES, WEAPON_TYPES, ARMOR_TYPES, ARMOR_SLOTS, MINING_TYPES, SMITHING_TYPES,
-  FOOD_CATAGORIES, FOOD_SUBTYPES, POTION_CATAGORIES, TOOL_CATAGORIES, KIT_CATAGORIES,
-  SET_CATAGORIES, MAGIC_CATAGORIES, ITEM_RARITIES,
+  FOOD_CATEGORIES, FOOD_SUBTYPES, POTION_CATEGORIES, TOOL_CATEGORIES, KIT_CATEGORIES,
+  SET_CATEGORIES, MAGIC_CATEGORIES, ITEM_RARITIES,
   ITEMS, MYTHIC_ITEMS, UNIQUE_ITEMS, TREASURE_ITEMS, STARTER_PACKS, METALURGY,
-  MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS, FISHING_CATALOG, BLACKMARKET_CATALOG,
+  MINING_RESOURCES, MAGIC_RESOURCES, MAGIC_ITEMS, TOOLBELTS, BACKPACKS, FISHING_CATALOG, BLACKMARKET_CATALOG,
   SMITHING_RECIPES, CRAFTING_RECIPES, COOKING_RECIPES, POTION_RECIPES, FISHING_RECIPES, ALL_ITEMS,
   FISH, catchItemsFor, equipSlotOf, RARITY_BANDS, STATIONS, PROPERTY,
 } = IB;
@@ -119,45 +119,45 @@ test("every armor item's slot is a real equipment slot (ARMOR_SLOTS)", () => {
   assert.deepEqual(offenders, []);
 });
 
-test("every tool's subtype is declared in TOOL_CATAGORIES", () => {
+test("every tool's subtype is declared in TOOL_CATEGORIES", () => {
   const offenders = entries(ITEMS)
-    .filter(([, item]) => item.type === "tool" && item.subtype && !TOOL_CATAGORIES.includes(item.subtype))
+    .filter(([, item]) => item.type === "tool" && item.subtype && !TOOL_CATEGORIES.includes(item.subtype))
     .map(([id, item]) => `ITEMS.${id}: "${item.subtype}"`);
   assert.deepEqual(offenders, []);
 });
 
-test("every kit's subtype is declared in KIT_CATAGORIES", () => {
+test("every kit's subtype is declared in KIT_CATEGORIES", () => {
   const offenders = entries(ITEMS)
-    .filter(([, item]) => item.type === "kit" && item.subtype && !KIT_CATAGORIES.includes(item.subtype))
+    .filter(([, item]) => item.type === "kit" && item.subtype && !KIT_CATEGORIES.includes(item.subtype))
     .map(([id, item]) => `ITEMS.${id}: "${item.subtype}"`);
   assert.deepEqual(offenders, []);
 });
 
-test("every set's subtype is declared in SET_CATAGORIES", () => {
+test("every set's subtype is declared in SET_CATEGORIES", () => {
   const offenders = entries(ITEMS)
-    .filter(([, item]) => item.type === "set" && item.subtype && !SET_CATAGORIES.includes(item.subtype))
+    .filter(([, item]) => item.type === "set" && item.subtype && !SET_CATEGORIES.includes(item.subtype))
     .map(([id, item]) => `ITEMS.${id}: "${item.subtype}"`);
   assert.deepEqual(offenders, []);
 });
 
-test("every food's subtype is declared in FOOD_CATAGORIES or FOOD_SUBTYPES", () => {
-  const allowed = new Set([...FOOD_CATAGORIES, ...FOOD_SUBTYPES]);
+test("every food's subtype is declared in FOOD_CATEGORIES or FOOD_SUBTYPES", () => {
+  const allowed = new Set([...FOOD_CATEGORIES, ...FOOD_SUBTYPES]);
   const offenders = entries(ITEMS)
     .filter(([, item]) => item.type === "food" && item.subtype && !allowed.has(item.subtype))
     .map(([id, item]) => `ITEMS.${id}: "${item.subtype}"`);
   assert.deepEqual(offenders, []);
 });
 
-test("every potion's subtype is declared in POTION_CATAGORIES", () => {
+test("every potion's subtype is declared in POTION_CATEGORIES", () => {
   const offenders = entries(ITEMS)
-    .filter(([, item]) => item.type === "potion" && item.subtype && !POTION_CATAGORIES.includes(item.subtype))
+    .filter(([, item]) => item.type === "potion" && item.subtype && !POTION_CATEGORIES.includes(item.subtype))
     .map(([id, item]) => `ITEMS.${id}: "${item.subtype}"`);
   assert.deepEqual(offenders, []);
 });
 
-test("every magic item's subtype is declared in MAGIC_CATAGORIES", () => {
+test("every magic item's subtype is declared in MAGIC_CATEGORIES", () => {
   const offenders = entries(MAGIC_ITEMS)
-    .filter(([, item]) => item.subtype && !MAGIC_CATAGORIES.includes(item.subtype))
+    .filter(([, item]) => item.subtype && !MAGIC_CATEGORIES.includes(item.subtype))
     .map(([id, item]) => `MAGIC_ITEMS.${id}: "${item.subtype}"`);
   assert.deepEqual(offenders, []);
 });
@@ -305,9 +305,17 @@ const CRAFT_CAPPED = new Set([
 // Bait is spent per catch attempt (data/fishing.js's spendBait, charged even on
 // a miss), so a band built for durable gear would put one forged bait at the
 // rare floor of 100 against a rare fish that sells for 60. It is ammunition.
+//
+// The backpacks are exempt for the same reason the enhancements are: their
+// hand-set 100-to-1,000,000 ladder is the gate. What a backpack is worth is its
+// carrying capacity, which is 100 slots at one end and 2000 at the other - a
+// twentyfold span that no band reaches, since the highest (godlike) tops out at
+// 6000. Banding them would flatten the ladder into near-identical prices and
+// delete the progression the collection exists to provide.
 const UNBANDED_IDS = new Set([
   "fishing_bait", "crafted_fishing_bait", "forged_fishing_bait",
   "enchanted_fishing_bait", "mythic_fishing_bait", "godlike_fishing_bait",
+  ...Object.keys(BACKPACKS).filter((key) => key !== "global"),
 ]);
 
 test("every item carries a positive integer `value` in base units", () => {

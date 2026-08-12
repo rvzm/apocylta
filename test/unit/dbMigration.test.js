@@ -67,6 +67,11 @@ test("opening a pre-max-columns database migrates it instead of leaving it broke
 
   assert.ok(columns.includes("health_max"), "ALTER TABLE must add health_max");
   assert.ok(columns.includes("mana_max"), "ALTER TABLE must add mana_max");
+  // The backpack paperdoll slot arrived with the BACKPACKS ladder, well after
+  // this table existed for real players. Without the migration, equipping a
+  // backpack would look like it worked and vanish on load - exactly what
+  // shield/cloak/ring/necklace used to do.
+  assert.ok(columns.includes("a_backpack"), "ALTER TABLE must add a_backpack");
 
   // The existing row survives, with the new columns defaulted rather than null.
   const row = db.prepare(`SELECT * FROM player WHERE id = 1`).get();

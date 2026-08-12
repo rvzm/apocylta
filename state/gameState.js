@@ -43,6 +43,10 @@ function createInitialEquipment() {
     cloak: null,
     ring: null,
     necklace: null,
+    // Its own armor slot rather than a belt property: BACKPACKS is a separate
+    // ladder from TOOLBELTS and the two are worn together, with
+    // backpackSlotCap() taking whichever grants more storage.
+    backpack: null,
   };
 }
 

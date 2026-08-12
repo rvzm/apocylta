@@ -19,26 +19,29 @@ import { SKILLS, listSkills } from "./skill_backbone.js";
 // magic shop's stock and into rollLootByType's magic pool, neither of which is
 // wanted for something only the black market sells.
 export const ITEM_TYPES = ["weapon", "armor", "scrap", "crafting", "recipe", "treasure", "mining", "smithing", "metal", "food", "potion", "tool", "kit", "set", "magic", "aid", "enhancement"];
+// Combat Subtypes
 export const WEAPON_TYPES = ["melee", "sword", "dagger", "battleaxe", "slingshot", "ranged", "throwing", "staff", "bow"];
 export const ARMOR_TYPES = ["simple_robe","leather", "tin", "chainmail", "bronze", "cobalt", "copper", "wooden", "iron", "steel", "mithril", "adamantite", "syllic", "mage_robe", "mythic", "unique", "godlike"];
-export const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "cloak", "ring", "necklace", "belt", "shield"];
+export const ARMOR_SLOTS = ["head", "torso", "legs", "boots", "hands", "cloak", "ring", "necklace", "belt", "shield", "backpack"];
 export const MAGE_ROBE_TYPES = ["basic", "advanced", "mythic", "unique", "godlike"];
+// Gathering Subtypes
 export const SCRAP_TYPES = ["metal", "plastic", "wood", "stone", "fabric", "glass", "misc"];
-// "fishing" covers bait/nets/hooks - carried gear that gates a catch by being
-// in the backpack rather than equipped (see the FISHING_ITEMS mapping below).
+export const FOOD_CATEGORIES = ["raw_food", "raw_meat", "raw_fish", "raw_fungi", "raw_vegetables", "raw_herbs", "raw_fruits", "cooked_food"];
+export const FOOD_SUBTYPES = ["basic", "stew", "baked", "grilled", "fried", "smoked", "pickled", "brewed", "ingredient"];
+// Crafting Subtypes
 export const CRAFTING_TYPES = ["woodworking", "metalworking", "tool", "alchemy", "cooking", "smithing", "magic", "fishing", ...SCRAP_TYPES];
 export const MINING_TYPES = ["tin", "copper", "iron", "cobalt", "mithril", "adamantite", "syllic", "silkre", "runite", "gold", "fuel", "gemstone"];
 export const SMITHING_TYPES = ["tin", "copper", "bronze", "iron", "cobalt", "black_cobalt", "steel", "black_steel", "mithril", "adamantite", "syllic", "runite", "gold", "silkre", "fuel", "alloy"];
+// Metalurgy Subtypes
 export const METAL_TYPES = ["base", "alloy", "precious", "rare", "exotic"];
-export const FOOD_CATAGORIES = ["raw_food", "raw_meat", "raw_fish", "raw_fungi", "raw_vegetables", "raw_herbs", "raw_fruits", "cooked_food"];
-// "grilled"/"smoked"/"pickled" are the fishing preparations (FISHING_RECIPES);
-// "baked" was already here and is shared with the bread/pie recipes.
-export const FOOD_SUBTYPES = ["basic", "stew", "baked", "grilled", "fried", "smoked", "pickled", "brewed", "ingredient"];
-export const POTION_CATAGORIES = ["heal", "mana", "poison", "buff"];
-export const TOOL_CATAGORIES = ["shovel", "pickaxe", "hammer", "saw", "axe", "fishing rod", "lockpick", "combat_aid", "combat_bait", "combat_trap", "combat_bomb"];
-export const KIT_CATAGORIES = ["first_aid", "survival", "tool", "crafting", "armor"];
-export const SET_CATAGORIES = ["armor", "weapon", "tool", "crafting"];
-export const MAGIC_CATAGORIES = ["scroll", "wand", "crystal", "rune", "talisman", "orb", "book", "focus"];
+// Tool and Tool related Subtypes
+export const POTION_CATEGORIES = ["heal", "mana", "poison", "buff"];
+export const TOOL_CATEGORIES = ["shovel", "pickaxe", "hammer", "saw", "axe", "fishing rod", "lockpick", "combat_aid", "combat_bait", "combat_trap", "combat_bomb"];
+export const KIT_CATEGORIES = ["first_aid", "survival", "tool", "crafting", "armor"];
+export const SET_CATEGORIES = ["armor", "weapon", "tool", "crafting"];
+// Magic Item Types
+export const MAGIC_CATEGORIES = ["scroll", "wand", "crystal", "rune", "talisman", "orb", "book", "focus"];
+// Rarities
 export const ITEM_RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "unique", "godlike"];
 
 
@@ -688,6 +691,26 @@ export const TOOLBELTS = {
     "apocyltas_eye": { name: "Apocyltas Eye", subtype: "mythic", rarity: "mythic", value: 790, belt: { slingAmmo: 50, potions: 30, backpack: 500 }, buff: ["attack", "defense", "magic"], description: "A legendary belt said to be imbued with the power of the gods, granting its wearer unparalleled abilities." },
 };
 
+// General storage, worn in its own `backpack` armor slot. A belt still carries a
+// storage number of its own and remains the floor - the two are combined by
+// data/toolbelt.js's backpackSlotCap(), which takes whichever is larger, so a
+// backpack is always a strict upgrade and a character with no backpack behaves
+// exactly as before.
+//
+// `capacity` is nested under `backpack: {}` to mirror TOOLBELTS' `belt: {}`
+// block rather than sitting flat on the item, which keeps "what this piece of
+// gear grants you" in one place on both.
+export const BACKPACKS = {
+    global: { type: "armor", slot: "backpack" },
+    "starter_backpack": { name: "Starter Backpack", subtype: "starter", rarity: "common", value: 100, backpack: { capacity: 100 }, description: "A basic backpack for carrying your essentials." },
+    "small_backpack": { name: "Small Backpack", subtype: "small", rarity: "common", value: 200, backpack: { capacity: 150 }, description: "A small backpack for carrying your essentials." },
+    "medium_backpack": { name: "Medium Backpack", subtype: "medium", rarity: "uncommon", value: 500, backpack: { capacity: 200 }, description: "A medium-sized backpack for carrying your essentials." },
+    "large_backpack": { name: "Large Backpack", subtype: "large", rarity: "rare", value: 1000, backpack: { capacity: 300 }, description: "A large backpack for carrying your essentials." },
+    "mythic_backpack": { name: "Mythic Backpack", subtype: "mythic", rarity: "mythic", value: 5000, backpack: { capacity: 500 }, buff: ["attack"], description: "A legendary backpack said to be imbued with the power of the gods, granting its wearer unparalleled abilities." },
+    "apocyltian_backpack": { name: "Apocyltian Backpack", subtype: "mythic", rarity: "mythic", value: 7500, backpack: { capacity: 1000 }, buff: ["attack", "defense", "magic"], description: "A legendary backpack said to be imbued with the power of the gods, granting its wearer unparalleled abilities." },
+    "gods back": { name: "God's Back", subtype: "godlike", rarity: "godlike", value: 1000000, backpack: { capacity: 2000 }, buff: ["attack", "defense", "magic"], description: "A godlike backpack said to be imbued with the power of the gods, granting its wearer unparalleled abilities." },
+};
+
 export const MYTHIC_ITEMS = {
     // Mythic Weapons
     "mythic_sword": { name: "Mythic Sword", type: "weapon", subtype: "sword", rarity: "mythic", value: 840, damage: 100, buff: ["attack"], description: "A sword of legendary power, said to be forged by the gods themselves." },
@@ -758,7 +781,7 @@ export const STARTER_PACKS = {
     "legendary_pack": { name: "Legendary Pack", items: { adamantite_sword: 1, adamantite_armor_set: 1 }, description: "Start with an adamantite sword and an adamantite armor set.", ngp: true },
 };
 
-// Metalurgy
+// *** Metalurgy and Mining ***
 // name: The display name of the metal
 // subtype: The category of the metal (base, precious, rare, exotic / or alloys)
 // rarity: The rarity of the metal (common, uncommon, rare, legendary, mythic)
@@ -887,6 +910,8 @@ export function isMineableAtTier(tier, oreId, subtype) {
     return mineLockNamesUpTo(tier).has(listed);
 }
 
+// *** Magic Items and Resources ***
+
 // Magic Item Resources (gathered from mining, foraging, and other sources)
 export const MAGIC_RESOURCES = {
     global: { gather: ["mine", "forage"], skill: ["magic", "crafting"], drops: true },
@@ -984,6 +1009,8 @@ export const MAGIC_ITEMS = {
     "black_hole_void": { name: "Black Hole Void", type: "magic", subtype: "focus", rarity: "godlike", value: 1500 },
 };
 
+// *** Smithing Recipes **
+
 // Smithing Recipes - Recipes for crafting items at a forge or anvil, using various metals and other materials
 export const SMITHING_RECIPES = {
     global: { station: ["anvil", "forge", "blast_furnace", "smithing_table", "mythic_forge", "apocyltian_forge"], skill: "smithing" },
@@ -999,6 +1026,7 @@ export const SMITHING_RECIPES = {
     "syllic_bar": { ingredients: { "syllic_ore": 1, "coal": 4 }, station: [ true ], result: "syllic_bar" },
     
     // Weapons
+    // - Swords
     "tin_sword": { ingredients: { "tin_bar": 2, "wood": 1 }, station: [ true ], result: "tin_sword" },
     "copper_sword": { ingredients: { "copper_bar": 2, "wood": 1 }, station: [ true ], result: "copper_sword" },
     "bronze_sword": { ingredients: { "bronze_bar": 2, "wood": 1 }, station: [ true ], result: "bronze_sword" },
@@ -1008,7 +1036,7 @@ export const SMITHING_RECIPES = {
     "mithril_sword": { ingredients: { "mithril_bar": 2, "wood": 1 }, station: [ "blast_furnace" ], result: "mithril_sword" },
     "adamantite_sword": { ingredients: { "adamantite_bar": 2, "wood": 1 }, station: [ "smithing_table" ], result: "adamantite_sword" },
     "syllic_sword": { ingredients: { "syllic_bar": 2, "wood": 1 }, station: [ "mythic_forge" ], result: "syllic_sword" },
-
+    // - Daggers
     "tin_dagger": { ingredients: { "tin_bar": 1, "wood": 1 }, station: [ true ], result: "tin_dagger" },
     "copper_dagger": { ingredients: { "copper_bar": 1, "wood": 1 }, station: [ true ], result: "copper_dagger" },
     "bronze_dagger": { ingredients: { "bronze_bar": 1, "wood": 1 }, station: [ true ], result: "bronze_dagger" },
@@ -1018,7 +1046,7 @@ export const SMITHING_RECIPES = {
     "mithril_dagger": { ingredients: { "mithril_bar": 1, "wood": 1 }, station: [ "blast_furnace" ], result: "mithril_dagger" },
     "adamantite_dagger": { ingredients: { "adamantite_bar": 1, "wood": 1 }, station: [ "smithing_table" ], result: "adamantite_dagger" },
     "syllic_dagger": { ingredients: { "syllic_bar": 1, "wood": 1 }, station: [ "mythic_forge" ], result: "syllic_dagger" },
-
+    // - Battleaxes
     "tin_battleaxe": { ingredients: { "tin_bar": 2, "wood": 1 }, station: [ true ], result: "tin_battleaxe" },
     "copper_battleaxe": { ingredients: { "copper_bar": 2, "wood": 1 }, station: [ true ], result: "copper_battleaxe" },
     "bronze_battleaxe": { ingredients: { "bronze_bar": 2, "wood": 1 }, station: [ true ], result: "bronze_battleaxe" },
@@ -1193,6 +1221,8 @@ export const STATIONS = {
     "alchemy_table": { name: "Alchemy Table", type: "station", rarity: "uncommon", value: 150, outputs: ["potions", "poisons"] },
     "cooking_station": { name: "Cooking Station", type: "station", rarity: "common", value: 80, outputs: ["cooked_food", "stew", "baked", "brewed"] },
     "campfire": { name: "Campfire", type: "station", rarity: "common", value: 25, outputs: ["cooked_food", "potions"] },
+    // Portable Campsite is a special station that can be carried around and set up anywhere. It allows the player to cook food, brew potions, and craft items while on the go.
+    "portable_campsite": { name: "Portable Campsite", type: "station", rarity: "uncommon", value: 550, outputs: ["cooked_food", "stew", "potions", "poisons", "crafting"] },
     // Forge/Smithing stations
     "anvil": { name: "Anvil", type: "station", rarity: "common", value: 80, outputs: ["smithing"] },
     "forge": { name: "Forge", type: "station", rarity: "common", value: 120, outputs: ["smithing"] },
@@ -1214,6 +1244,9 @@ export const STATIONS = {
 // nothing, and move the item count every doc quotes.
 export const PROPERTY = {
     "house_deed": { name: "House Deed", type: "property", rarity: "legendary", value: 1000 },
+    "shop_deed": { name: "Shop Deed", type: "property", rarity: "legendary", value: 3500 },
+    "castle_deed": { name: "Castle Deed", type: "property", rarity: "mythic", value: 15000 },
+    "land_deed": { name: "Land Deed", type: "property", rarity: "mythic", value: 30000 },
 }
 
 // Consumables Logic
@@ -2072,7 +2105,7 @@ export const FISHING_RECIPES = {
 const FISHING_ROD_DURABILITY = { basic: 80, crafted: 100, forged: 140, enchanted: 180, mythic: 250, godlike: 400 };
 
 // The preparations, keyed by the id prefix that names them. `subtype` is the
-// canonical food subtype (all of them declared in FOOD_SUBTYPES/FOOD_CATAGORIES
+// canonical food subtype (all of them declared in FOOD_SUBTYPES/FOOD_CATEGORIES
 // above), and `boost` the base healing before the rarity bonus below.
 const FISH_PREPARATIONS = {
     raw:     { subtype: "raw_fish",    boost: 5  },
@@ -2269,6 +2302,7 @@ export const ALL_ITEMS = {
   ...withGlobalDefaults(MAGIC_RESOURCES),
   ...withGlobalDefaults(MAGIC_ITEMS),
   ...withGlobalDefaults(TOOLBELTS),
+  ...withGlobalDefaults(BACKPACKS),
   ...FISHING_CATALOG,
   ...BLACKMARKET_CATALOG,
 };

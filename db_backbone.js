@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS player (
   a_necklace TEXT NOT NULL DEFAULT '',
   a_belt TEXT NOT NULL DEFAULT '',
   a_shield TEXT NOT NULL DEFAULT '',
+  a_backpack TEXT NOT NULL DEFAULT '',
 
   -- - Playercard Toolbelt
   t_equipped_tool TEXT NOT NULL DEFAULT '',
@@ -322,6 +323,15 @@ for (const column of ["health_max", "mana_max"]) {
   if (playerColumns.includes(column)) continue;
   db.exec(`ALTER TABLE player ADD COLUMN ${column} INTEGER DEFAULT 100`);
   logger.info("db_backbone", `Migrated player table: added ${column} column.`);
+}
+
+// The backpack paperdoll slot arrived with the BACKPACKS ladder, after this
+// table already existed for real players. Same treatment again - without it,
+// equipping a backpack would look like it worked and then vanish on load,
+// which is exactly what shield/cloak/ring/necklace used to do.
+if (!playerColumns.includes("a_backpack")) {
+  db.exec(`ALTER TABLE player ADD COLUMN a_backpack TEXT NOT NULL DEFAULT ''`);
+  logger.info("db_backbone", "Migrated player table: added a_backpack column.");
 }
 
 // The purse replaced the single `gold` total. Four new columns, plus a one-off
