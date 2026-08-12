@@ -16,6 +16,7 @@ import { useItem } from "../../data/items.js";
 import { colorTag, formatCommandRow, COLOR } from "../format.js";
 import { cycleTab, formatTabStrip } from "../tabs.js";
 import { switchScreen, pushScreen, popScreen } from "../router.js";
+import { buildTabList, pushSections, rowBuilder } from "../listScreen.js";
 
 // Everything on the belt, in inventory order.
 function pouchEntries(state) {
@@ -44,51 +45,41 @@ function sectionTitle(key) {
 // "All" first, then whatever types are actually on the belt, in ITEM_TYPES's
 // declared order - dynamic, so a tab never appears empty.
 export function buildTabs(state) {
-  const present = new Set(pouchEntries(state).map(([id]) => ALL_ITEMS[id]?.type).filter(Boolean));
-  return ["All", ...ITEM_TYPES.filter((type) => present.has(type))];
+  return buildTabList(pouchEntries(state).map(([id]) => [id, ALL_ITEMS[id] ?? {}]), {
+    field: "type",
+    order: ITEM_TYPES,
+  });
 }
 
 // Exported for unit testing without blessed, the same way spellbook.js's
 // buildSpellRows() and achievements.js's buildRows() are. Returns parallel
 // arrays: lines[i] is display text, itemIds[i] is the item id, or null for a
 // header/blank/placeholder row that must not be actionable.
+//
+// The grouping itself is ui/listScreen.js's pushSections, shared with both
+// sides of a shop counter - three screens showing tabs over sectioned rows was
+// enough to stop writing it out three times.
 export function buildPouchRows(state, activeTab) {
-  const lines = [];
-  const itemIds = [];
-  const push = (line, id = null) => {
-    lines.push(line);
-    itemIds.push(id);
-  };
+  const { lines, ids, push } = rowBuilder();
 
   const entries = pouchEntries(state);
   const filtered = activeTab === "All" ? entries : entries.filter(([id]) => ALL_ITEMS[id]?.type === activeTab);
 
   if (!filtered.length) {
     push(entries.length ? "Nothing of that kind on your belt." : "Your belt is empty.");
-    return { lines, itemIds };
+    return { lines, itemIds: ids };
   }
 
-  const bySection = {};
-  for (const entry of filtered) (bySection[sectionOf(entry[0])] ??= []).push(entry);
-
-  // Sections alphabetically, and rows by name inside them - the inventory's own
-  // insertion order is the order things happened to be picked up, which is no
-  // order at all once you're looking for one particular pickaxe.
-  const sections = Object.keys(bySection).sort();
-  sections.forEach((section, index) => {
-    if (index > 0) push("");
-    const rows = bySection[section].sort(([a], [b]) =>
-      (ALL_ITEMS[a]?.name ?? a).localeCompare(ALL_ITEMS[b]?.name ?? b)
-    );
-    const weight = rows.reduce((sum, [id, qty]) => sum + weightOf(id) * qty, 0);
-    push(`  ${colorTag(`${sectionTitle(section)} (${rows.length})`, COLOR.amber, true)}  ${round(weight)}`);
-
-    for (const [id, qty] of rows) {
-      push(`    - [${qty}] ${ALL_ITEMS[id]?.name ?? id}  ${round(weightOf(id) * qty)}`, id);
-    }
+  pushSections(push, filtered.map(([id, qty]) => [id, { ...(ALL_ITEMS[id] ?? {}), qty }]), {
+    sectionOf: ([id]) => sectionOf(id),
+    label: (key, group) => {
+      const weight = group.reduce((sum, [id, item]) => sum + weightOf(id) * item.qty, 0);
+      return `  ${colorTag(`${sectionTitle(key)} (${group.length})`, COLOR.amber, true)}  ${round(weight)}`;
+    },
+    row: ([id, item]) => [`    - [${item.qty}] ${item.name ?? id}  ${round(weightOf(id) * item.qty)}`, id],
   });
 
-  return { lines, itemIds };
+  return { lines, itemIds: ids };
 }
 
 function round(weight) {

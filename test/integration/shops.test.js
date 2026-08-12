@@ -29,7 +29,7 @@ import { fileURLToPath } from "node:url";
 import { tmuxSession, uniqueSessionName } from "../helpers/tmux.js";
 import { bootstrapCharacter } from "../helpers/bootstrapCharacter.js";
 import { travelDigit, actionDigit } from "../helpers/hotkeys.js";
-import { bootstrappedState, blackMarketRow, shopBuyRow, shopSellRow, buyOnPaper } from "../helpers/rows.js";
+import { bootstrappedState, blackMarketRow, shopBuyRow, shopSellRow, buyOnPaper, equipOnPaper } from "../helpers/rows.js";
 import { SHOPS } from "../../data/shops.js";
 import { formatBase, purseTotal } from "../../currency_backbone.js";
 
@@ -149,17 +149,22 @@ test("shops: the general store buys, sells and pays barter xp", async (t) => {
 
   const stock = session.capture();
   assertPurse(stock, START_GOLD, "a fresh character's purse");
-  assert.ok(stock.includes(`Axe Starter - ${money(10)}`), "common stock is on the shelf, priced in coins");
-  // The barter gate is live: rare stock needs barter 15 and this character has
-  // 5. Arcane Essence sorts to the top of the Crafting group, so it is inside
-  // the visible pane rather than 300 rows down where a capture can't see it.
-  assert.doesNotMatch(stock, /Arcane Essence/, "rare stock is gated at barter 5");
+  assert.ok(stock.includes(`Iron Boots Kit - ${money(5)}`), "common stock is on the shelf, priced in coins");
+  // The barter gate is live: a Crafting Kit needs barter 15 and this character
+  // has 5. Asserted through the row helper rather than off the capture - the
+  // list is sectioned now and a gated item sits well below the visible pane, so
+  // a doesNotMatch on the pane would pass whether the gate worked or not.
+  assert.throws(
+    () => shopBuyRow("shop_general", GENERAL_TYPES, "crafting_kit"),
+    /not stocked/,
+    "rare stock is gated at barter 5"
+  );
 
   await toTop(session);
-  await press(session, "Down", shopBuyRow("shop_general", GENERAL_TYPES, "axe_starter"));
+  await press(session, "Down", shopBuyRow("shop_general", GENERAL_TYPES, "iron_boots_kit"));
   session.sendKeys("p");
-  await session.waitFor(`Bought Axe Starter for ${money(10)}.`);
-  assertPurse(session.capture(), START_GOLD - 10, "the purse paid for it");
+  await session.waitFor(`Bought Iron Boots Kit for ${money(5)}.`);
+  assertPurse(session.capture(), START_GOLD - 5, "the purse paid for it");
 
   // --- Selling it straight back ---
   session.sendKeys("b"); // Back -> location
@@ -167,18 +172,21 @@ test("shops: the general store buys, sells and pays barter xp", async (t) => {
   session.sendKeys("o"); // HUB_FEATURES.shop_sell is "O" for Offload
   await session.waitFor("Select items to sell, then confirm.");
 
-  const sellState = buyOnPaper(bootstrappedState(), "axe_starter", 10);
+  // Deliberately NOT the hammer: the default (human) character starts with
+  // one, so buying a second would make the row read [2] and the tick check
+  // pass or fail for the wrong reason.
+  const sellState = buyOnPaper(bootstrappedState(), "iron_boots_kit", 5);
   await toTop(session);
-  await press(session, "Down", shopSellRow(sellState, "axe_starter"));
+  await press(session, "Down", shopSellRow(sellState, "iron_boots_kit"));
   session.sendKeys("t"); // tick the stack
   await settle();
-  assert.match(session.capture(), /\[x\] \[1\] Axe Starter/, "the row ticks");
+  assert.match(session.capture(), /\[x\] \[1\] Iron Boots Kit/, "the row ticks");
 
   session.sendKeys("s");
   // Sells back at 40% of the buy price, and pays barter xp on what changed
   // hands - recordItemSold rides this same path, and has no other end-to-end
   // coverage since it can't be reconstructed from state.
-  await session.waitFor(`Sold 1 item for ${money(4)} (+1 barter xp).`);
+  await session.waitFor(`Sold 1 item for ${money(2)} (+1 barter xp).`);
 });
 
 test("black market: a purchase equips into its own slot and moves a real gate", async (t) => {
@@ -196,7 +204,7 @@ test("black market: a purchase equips into its own slot and moves a real gate", 
   await travel(session, "town_square", "general_store");
   session.sendKeys("b");
   await session.waitFor("What would you like to buy?");
-  assert.doesNotMatch(session.capture(), /Arcane Essence/, "rare stock starts gated");
+  assert.doesNotMatch(session.capture(), /Crafting Kit/, "rare stock starts gated");
   session.sendKeys("b");
   await session.waitFor("What would you like to do?");
   await travel(session, "general_store", "town_square");
@@ -254,7 +262,13 @@ test("black market: a purchase equips into its own slot and moves a real gate", 
   await session.waitFor("What would you like to buy?");
   // effectiveSkillLevel took barter from 5 to 15 and shopBuy's isPurchasable
   // gate opened. The trained level did not move - only what it gates.
-  assert.match(session.capture(), /Arcane Essence/, "rare stock is on the shelf now");
+  //
+  // shopBuyRow resolves against a state wearing the same talisman, so it both
+  // proves the item is now stocked and says how far down to scroll to see it.
+  const gated = equipOnPaper(bootstrappedState(), "barter_talisman");
+  await toTop(session);
+  await press(session, "Down", shopBuyRow("shop_general", GENERAL_TYPES, "crafting_kit", gated));
+  assert.match(session.capture(), /Crafting Kit/, "rare stock is on the shelf now");
 });
 
 test("black market: both collections route to one screen, and a bundle grants its contents", async (t) => {

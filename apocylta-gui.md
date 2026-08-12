@@ -439,27 +439,45 @@ Potions work the same way mid-fight (the [P]otion pick on the combat screen), do
 ## Shops
 
 Shops are locations rather than screens you open from anywhere - you travel into the weapons shop, and its
-hub features are what's behind the counter. Buying lists the shop's stock grouped by item type, priced off
-rarity:
+hub features are what's behind the counter. Buying tabs the shop's stock and groups it into sections:
 ```
 _________________________________________________________________________
 | apocylta | Rae Lv.4 | [weapons shop] | 55sy        [idle]      9:12am  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   The racks are picked over, but there's steel here if you can pay.   |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
-| Weapon:                                                               |
-|   - Tin Sword - 10gp                                                  |
-|   - Copper Sword - 50gp                                               |
-|   - Iron Sword - 10gp                                                 |
-|   - Steel Sword - 50gp                                                |
+|_ All |[sword]| dagger | battleaxe | staff | bow | slingshot _________ _|
+|   - Copper Sword - 3g                                                 |
+|   - Iron Sword - 1g 4c                                                |
+|   - Mithril Sword - 2sy 4g                                            |
+|   - Steel Sword - 1sy 1g                                              |
+|   - Tin Sword - 1s                                                    |
 |_______________________________________________________________________|
 | hp: 100 | mp: 100 | [ SAFE ZONE ]                                     |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 | What would you like to buy? (55sy)     |______________________________|
 |                                                                       |
-| [B]ack | [P]urchase                                                   |
+| [B]ack | [<>] Switch tab | [P]urchase                                 |
 |_______________________________________________________________________|
 ```
+
+**Each shop tabs by whatever axis suits it**, declared as `tabBy` in `data/shops.js`. The weapon and magic
+shops tab by kind, the armoury by slot (head, torso, legs - materials would be 23 tabs and wrap the strip),
+the potion and general stores by type. The crafting and food shops have too many subtypes for a strip at
+all, so they get no tab row and lean on sections instead:
+```
+|_____________________________________________________________________ _|
+|  Baked (52)                                                           |
+|    - Bread - 4c                                                       |
+|    - Cake - 1s 2c                                                     |
+|                                                                       |
+|  Brewed (26)                                                          |
+|    - Herbal Tea - 8c                                                  |
+|_______________________________________________________________________|
+```
+Where the tabs already cut by subtype there are no section headings - the strip has said it already. The
+sell screen works identically, tabbed by type, and its tick marks are keyed by item id so they survive
+switching tabs: tick ore on one, bread on another, and `[S]ell` takes the lot.
 Stock above your barter level simply isn't offered - the skill decides what a trader is willing to put in
 front of you, so the same shop grows better inventory as you get better at haggling.
 

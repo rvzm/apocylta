@@ -4,23 +4,42 @@ import { SHOP_RARITY_DISPLAY } from "../item_backbone.js";
 import { canAffordCurrency, spendCurrency } from "../state/gameState.js";
 import { toBase } from "../currency_backbone.js";
 
+// `tabBy` names the ITEM FIELD a shop's tab strip is cut by - "type", "subtype"
+// or "slot". Omit it and the shop gets no tab row at all, just sections.
+//
+// The choice per shop is "the finest axis whose strip actually fits". That
+// ceiling is real: the strip lives in inventoryList's border LABEL, and past
+// roughly a dozen entries it wraps onto a second line and silently eats the
+// list's first row - the same trap compactTabLabel exists for on the admin
+// editors. So shop_crafting (21 subtypes) and shop_food (16) get no strip and
+// lean on sections instead, while shop_weapons (7) and shop_magic (8) tab by
+// subtype comfortably.
+//
+// `slot` exists as an option because of armour specifically: its `subtype` is
+// the MATERIAL, and 23 of those don't fit, while the 11 slots do - and someone
+// walking into an armoury wants a helmet rather than something tin.
 export const SHOPS = {
-  shop_weapons: { id: "shop_weapons", mode: "buy", types: ["weapon"] },
-  shop_armor: { id: "shop_armor", mode: "buy", types: ["armor"] },
-  shop_magic: { id: "shop_magic", mode: "buy", types: ["magic"] },
+  shop_weapons: { id: "shop_weapons", mode: "buy", types: ["weapon"], tabBy: "subtype" },
+  shop_armor: { id: "shop_armor", mode: "buy", types: ["armor"], tabBy: "slot" },
+  shop_magic: { id: "shop_magic", mode: "buy", types: ["magic"], tabBy: "subtype" },
   // "aid" rides along with potions rather than getting its own shop: bandages,
   // antidotes and revives are apothecary stock, and no other shop's `types`
   // listed them - which left every aid item, and with it the pre-death revive
   // in data/combat.js, unobtainable in a real run.
-  shop_potions: { id: "shop_potions", mode: "buy", types: ["potion", "aid"] },
-  shop_general: { id: "shop_general", mode: "buy", types: ["tool", "crafting", "food", "scrap", "kit"] },
+  shop_potions: { id: "shop_potions", mode: "buy", types: ["potion", "aid"], tabBy: "type" },
+  shop_general: { id: "shop_general", mode: "buy", types: ["tool", "kit"], tabBy: "type" },
+  // 21 subtypes and 16 - too many for a strip, so these two are sectioned only.
+  shop_crafting: { id: "shop_crafting", mode: "buy", types: ["crafting"] },
+  shop_food: { id: "shop_food", mode: "buy", types: ["food"] },
+  shop_scrap: { id: "shop_scrap", mode: "buy", types: ["scrap"], tabBy: "subtype" },
   // The two black-market shops sell out of BLACKMARKET rather than ALL_ITEMS,
   // so they carry a `blackMarket` collection key instead of `types` and use the
   // same `screen` override shop_housing already does - which is what lets
   // ui/screens/location.js route them with no change of its own.
   shop_illegal: { id: "shop_illegal", mode: "buy", screen: "blackMarket", blackMarket: "illicit_goods" },
   shop_enhancements: { id: "shop_enhancements", mode: "buy", screen: "blackMarket", blackMarket: "enhancements" },
-  shop_sell: { id: "shop_sell", mode: "sell" },
+  // Sells whatever you happen to be carrying, which spans types.
+  shop_sell: { id: "shop_sell", mode: "sell", tabBy: "type" },
   // `screen` overrides the default buy/sell routing - housing sells a house
   // and stations, not ALL_ITEMS entries, so it needs its own screen.
   shop_housing: { id: "shop_housing", mode: "buy", screen: "shopHousing" },

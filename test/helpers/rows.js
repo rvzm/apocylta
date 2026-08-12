@@ -11,9 +11,10 @@
 import assert from "node:assert/strict";
 import { createInitialState, finalizeCharacter, addItem, equipItem } from "../../state/gameState.js";
 import { buildBlackMarketRows, tabsFor } from "../../ui/screens/blackMarket.js";
-import { buildBuyRows } from "../../ui/screens/shopBuy.js";
+import { buildBuyRows, buyTabs } from "../../ui/screens/shopBuy.js";
 import { buildSellRows } from "../../ui/screens/shopSell.js";
 import { ALL_ITEMS } from "../../item_backbone.js";
+import { SHOPS } from "../../data/shops.js";
 
 // The character bootstrapCharacter() actually produces with its defaults:
 // human (the first race), warrior (the first class), deep_pockets (starterPack
@@ -49,19 +50,39 @@ export function blackMarketRow(collection, tabLabel, itemId, state = bootstrappe
   return { tabIndex, rowIndex, tabs };
 }
 
-// Where `itemId` sits in a buying shop's list. Group headers occupy rows too
-// (their itemId is null), which is exactly why this counts rather than guesses.
+// Where `itemId` sits in a buying shop's list, on the "All" tab. Section
+// headings occupy rows too (their itemId is null), which is exactly why this
+// counts rather than guesses.
+//
+// Shops take their tab axis from data/shops.js's `tabBy`, so the real SHOPS
+// entry is used rather than a synthetic one - a hand-built { types } would tab
+// differently from the shop the game actually opens.
 export function shopBuyRow(shopId, types, itemId, state = bootstrappedState()) {
-  state.shopContext = { id: shopId, mode: "buy", types };
-  const { itemIds } = buildBuyRows(state);
+  state.shopContext = SHOPS[shopId] ?? { id: shopId, mode: "buy", types };
+  const { itemIds } = buildBuyRows(state, 0);
   const rowIndex = itemIds.indexOf(itemId);
   assert.ok(rowIndex >= 0, `${itemId} is not stocked by ${shopId} at this barter level`);
   return rowIndex;
 }
 
-// Where `itemId` sits on the sell screen, given the inventory `state` carries.
+// The same, but on a named tab - returns the presses needed to get there as
+// well as down, the way blackMarketRow does.
+export function shopBuyTabRow(shopId, tabLabel, itemId, state = bootstrappedState()) {
+  state.shopContext = SHOPS[shopId];
+  const tabs = buyTabs(state);
+  const tabIndex = tabs.indexOf(tabLabel);
+  assert.ok(tabIndex >= 0, `no "${tabLabel}" tab in ${shopId} (have: ${tabs.join(", ")})`);
+
+  const { itemIds } = buildBuyRows(state, tabIndex);
+  const rowIndex = itemIds.indexOf(itemId);
+  assert.ok(rowIndex >= 0, `${itemId} is not on the ${tabLabel} tab of ${shopId}`);
+  return { tabIndex, rowIndex, tabs };
+}
+
+// Where `itemId` sits on the sell screen, on the "All" tab.
 export function shopSellRow(state, itemId) {
-  const { itemIds } = buildSellRows(state, new Set());
+  state.shopContext ??= SHOPS.shop_sell;
+  const { itemIds } = buildSellRows(state, new Set(), 0);
   const rowIndex = itemIds.indexOf(itemId);
   assert.ok(rowIndex >= 0, `${itemId} is not in the inventory to sell`);
   return rowIndex;
