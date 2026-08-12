@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import * as IB from "../../item_backbone.js";
-import { SKILL_BLOCKS } from "../../skill_backbone.js";
+import { SKILL_BLOCKS, SKILLS } from "../../skill_backbone.js";
 
 const {
   ITEM_TYPES, WEAPON_TYPES, ARMOR_TYPES, ARMOR_SLOTS, MINING_TYPES, SMITHING_TYPES,
@@ -365,6 +365,36 @@ test("every belt declares a toolbelt budget", () => {
     .filter(([, belt]) => !(belt.belt?.toolbelt > 0))
     .map(([id]) => id);
   assert.deepEqual(offenders, []);
+});
+
+// CONSUME names byproducts by id, and nothing resolves them until the moment a
+// player uses the thing. An id the catalog doesn't have would sail straight
+// through addItem - an unknown item weighs 0, and the divide-by-zero guard lets
+// a weightless item in - so the reward would silently deposit a phantom id in
+// the inventory. `empty_bag` was referenced by CONSUME for a while before the
+// item existed; this is the check that would have said so.
+test("every CONSUME output resolves to a real item", () => {
+  const outputs = [
+    ...Object.entries(IB.CONSUME.type),
+    ...Object.entries(IB.CONSUME.subtype ?? {}),
+    ...Object.entries(IB.CONSUME.item ?? {}),
+  ]
+    .filter(([, entry]) => entry.output)
+    .map(([key, entry]) => [key, entry.output]);
+
+  const missing = outputs.filter(([, id]) => !ALL_ITEMS[id]).map(([key, id]) => `${key} -> ${id}`);
+  assert.deepEqual(missing, []);
+  assert.ok(outputs.length > 0, "and the registry actually names some");
+});
+
+// Every tier has to pay a real skill, or grantSkillXp silently no-ops and the
+// consumable teaches nothing.
+test("every CONSUME entry resolves to a real skill", () => {
+  const bad = Object.entries(ALL_ITEMS)
+    .map(([id]) => [id, IB.consumeRewardFor(id)])
+    .filter(([, reward]) => reward && !(reward.skill in SKILLS))
+    .map(([id, reward]) => `${id}: skill ${JSON.stringify(reward.skill)}`);
+  assert.deepEqual(bad, []);
 });
 
 test("every priced item sits inside its rarity's band", () => {

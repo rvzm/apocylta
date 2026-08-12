@@ -670,7 +670,7 @@ There's a screen per container, and each thing you carry appears in exactly one 
 
 - **`[B] Backpack`** — the pack. Tabbed by item type, each row showing its stack weight, with `[D] Drop`,
   `[E] Equip` and `[U] Use`. Anything consumable is used from here, and using it pays a little xp in the
-  relevant skill — plus you keep the empty bottle.
+  relevant skill — plus whatever it came in (see below).
 - **`[P] Pouch`**, from the Toolbelt — the belt. Same tabs and the same three actions, but rows are gathered
   under headings by kind, so a belt holding nine axes and nine pickaxes reads as two sections rather than
   eighteen loose rows. Each heading carries how many kinds it holds and what the group weighs, and the bar
@@ -678,6 +678,29 @@ There's a screen per container, and each thing you carry appears in exactly one 
 
 Your **potions** are the exception with no screen of their own: they show in the Backpack like everything
 else, and the pouch that limits them is just a number on the Toolbelt screen.
+
+### What's left when you've used it
+
+Using a consumable pays xp in the skill it belongs to — alchemy for potions, survival for food and field
+medicine — and **hands back whatever it came in**:
+
+| you use | you keep |
+| --- | --- |
+| any potion | an empty bottle |
+| a tea or brew | an empty thermos |
+| an antidote, antivenom or elixir | an empty bottle |
+| a Bandage Box | an empty box |
+| a Medic Bag or Trauma Bag | an empty bag |
+| a Phoenix Kit | an empty kit |
+| an AEGIS Kit | nothing — it's used up entirely |
+| plain food, a bandage, a revive | nothing |
+
+The empties are ordinary crafting materials: sell them, or brew into them. **Potions are made in a bottle**,
+so brewing one costs you an empty and drinking it gives that empty straight back — the bottle is a deposit,
+not a bonus.
+
+If your pack is full when a container comes back it's lost, and the message says so rather than quietly
+dropping it.
 
 ---
 

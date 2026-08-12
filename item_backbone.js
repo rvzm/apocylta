@@ -29,7 +29,11 @@ export const SCRAP_TYPES = ["metal", "plastic", "wood", "stone", "fabric", "glas
 export const FOOD_CATEGORIES = ["raw_food", "raw_meat", "raw_fish", "raw_fungi", "raw_vegetables", "raw_herbs", "raw_fruits", "cooked_food"];
 export const FOOD_SUBTYPES = ["basic", "stew", "baked", "grilled", "fried", "smoked", "pickled", "brewed", "ingredient"];
 // Crafting Subtypes
-export const CRAFTING_TYPES = ["woodworking", "metalworking", "tool", "alchemy", "cooking", "smithing", "magic", "fishing", ...SCRAP_TYPES];
+// CONTAINER_TYPES are the "Empty Items" block's subtypes - what a consumable
+// leaves behind once it's used (see CONSUME below). Split out rather than
+// inlined so the empties read as one family rather than as loose additions.
+export const CONTAINER_TYPES = ["bag", "thermos", "jar", "vial", "basket", "crate", "chest", "box", "cask", "barrel", "kit"];
+export const CRAFTING_TYPES = ["woodworking", "metalworking", "tool", "alchemy", "cooking", "smithing", "magic", "fishing", "raw", "string", "fiber", "stone", "bone", ...CONTAINER_TYPES, ...SCRAP_TYPES];
 export const MINING_TYPES = ["tin", "copper", "iron", "cobalt", "mithril", "adamantite", "syllic", "silkre", "runite", "gold", "fuel", "gemstone"];
 export const SMITHING_TYPES = ["tin", "copper", "bronze", "iron", "cobalt", "black_cobalt", "steel", "black_steel", "mithril", "adamantite", "syllic", "runite", "gold", "silkre", "fuel", "alloy"];
 // Metalurgy Subtypes
@@ -687,7 +691,20 @@ export const ITEMS = {
     "feather": { name: "Feather", type: "crafting", subtype: "raw", gather: "hunt", rarity: "common", value: 8, weight: 0.01 },
     "clay": { name: "Clay", type: "crafting", subtype: "raw", gather: "mine", rarity: "common", value: 8, weight: 0.8 },
     "sand": { name: "Sand", type: "crafting", subtype: "raw", gather: "mine", rarity: "common", value: 8, weight: 0.4 },
+    
+    // Empty Items
     "empty_bottle": { name: "Empty Bottle", type: "crafting", subtype: "glass", gather: "forage", rarity: "common", value: 8, weight: 0.2 },
+    "empty_bag": { name: "Empty Bag", type: "crafting", subtype: "bag", gather: "forage", rarity: "common", value: 8, weight: 0.5 },
+    "empty_thermos": { name: "Empty Thermos", type: "crafting", subtype: "thermos", gather: "forage", rarity: "common", value: 8, weight: 0.5 },
+    "empty_jar": { name: "Empty Jar", type: "crafting", subtype: "jar", gather: "forage", rarity: "common", value: 8, weight: 0.5 },
+    "empty_vial": { name: "Empty Vial", type: "crafting", subtype: "vial", gather: "forage", rarity: "common", value: 8, weight: 0.2 },
+    "empty_basket": { name: "Empty Basket", type: "crafting", subtype: "basket", gather: "forage", rarity: "common", value: 8, weight: 0.5 },
+    "empty_crate": { name: "Empty Crate", type: "crafting", subtype: "crate", gather: "forage", rarity: "common", value: 8, weight: 1 },
+    "empty_chest": { name: "Empty Chest", type: "crafting", subtype: "chest", gather: "forage", rarity: "common", value: 8, weight: 1.5 },
+    "empty_box": { name: "Empty Box", type: "crafting", subtype: "box", gather: "forage", rarity: "common", value: 8, weight: 1 },
+    "empty_cask": { name: "Empty Cask", type: "crafting", subtype: "cask", gather: "forage", rarity: "common", value: 8, weight: 1.5 },
+    "empty_barrel": { name: "Empty Barrel", type: "crafting", subtype: "barrel", gather: "forage", rarity: "common", value: 8, weight: 2 },
+    "empty_kit": { name: "Empty Kit", type: "crafting", subtype: "kit", gather: "forage", rarity: "common", value: 8, weight: 1 },
 
     // Mining ores
     "tin_ore": { name: "Tin Ore", type: "mining", subtype: "tin", rarity: "common", value: 4, weight: 1 },
@@ -1238,14 +1255,18 @@ export const COOKING_RECIPES = {
     "vibrant_herb_brew": { ingredients: { "purple_herbs": 1, "yellow_herbs": 1, "white_herbs": 1, "water": 1 }, result: "vibrant_herb_brew" },
     "ultimate_herb_brew": { ingredients: { "red_herbs": 2, "blue_herbs": 2, "green_herbs": 2, "water": 1 }, result: "ultimate_herb_brew" },
 }
+// Every potion is brewed INTO an empty bottle, and drinking it hands the bottle
+// back (CONSUME below). Without the bottle as an ingredient the two didn't
+// balance: herbs and belt water went in, and a bottle worth 8 came out of
+// nothing every time you drank one. Now it's a deposit.
 export const POTION_RECIPES = {
     global: { station: "alchemy_table", skill: "alchemy" },
-    "healing_potion": { ingredients: { "red_herbs": 2, "water": 1 }, result: "healing_potion" },
-    "mana_potion": { ingredients: { "blue_herbs": 2, "water": 1 }, result: "mana_potion" },
-    "poison_potion": { ingredients: { "green_herbs": 2, "water": 1 }, result: "poison_potion" },
-    "attack_potion": { ingredients: { "red_herbs": 1, "yellow_herbs": 1, "water": 1 }, result: "attack_potion" },
-    "defense_debuff_poison": { ingredients: { "green_herbs": 1, "black_herbs": 1, "water": 1 }, result: "defense_debuff_poison" },
-    "health_poison": { ingredients: { "green_herbs": 1, "red_herbs": 1, "water": 1 }, result: "health_poison" },
+    "healing_potion": { ingredients: { "red_herbs": 2, "water": 1, "empty_bottle": 1 }, result: "healing_potion" },
+    "mana_potion": { ingredients: { "blue_herbs": 2, "water": 1, "empty_bottle": 1 }, result: "mana_potion" },
+    "poison_potion": { ingredients: { "green_herbs": 2, "water": 1, "empty_bottle": 1 }, result: "poison_potion" },
+    "attack_potion": { ingredients: { "red_herbs": 1, "yellow_herbs": 1, "water": 1, "empty_bottle": 1 }, result: "attack_potion" },
+    "defense_debuff_poison": { ingredients: { "green_herbs": 1, "black_herbs": 1, "water": 1, "empty_bottle": 1 }, result: "defense_debuff_poison" },
+    "health_poison": { ingredients: { "green_herbs": 1, "red_herbs": 1, "water": 1, "empty_bottle": 1 }, result: "health_poison" },
 }
 
 // Stations
@@ -1290,16 +1311,50 @@ export const PROPERTY = {
 }
 
 // Consumables Logic
-// These are the logic for main item types. Keyed by item `type`, and read by
-// data/items.js's useItem() - the one place a consumable is consumed - to
-// grant `xp` in `skill` and hand back `output` (if any) as a byproduct.
+//
+// What using a consumable pays you, and what it leaves behind. Read through
+// consumeRewardFor() below by data/items.js's useItem() - the one place a
+// consumable is consumed - to grant `xp` in `skill` and hand back `output`.
+//
+// THREE TIERS, most specific wins: type -> subtype -> item. Each tier overrides
+// only the keys it actually sets, so an entry states its difference and nothing
+// else - phoenix_kit never restates `skill: "survival"`, it just changes the xp
+// and the output. `output: null` is how you cancel an inherited one, which is
+// why aegis_kit says so explicitly rather than omitting the key.
+//
+// The subtype tier is what stops the 26 brewed teas needing 26 identical
+// entries - and what would make a new tea behave correctly without anyone
+// remembering to list it.
+//
+// CAREFUL with that tier: it is keyed by the BARE subtype, and subtypes are not
+// unique across types. "heal" belongs to potion/heal AND aid/heal, so a
+// `subtype.heal` entry added later would silently reach into both. Nothing here
+// collides today; check before adding one that does.
+//
 // "aid" has no obvious skill of its own; survival is the closest existing one
-// (bandages/antidotes are field medicine), and its xp sits between food's and
-// potions'.
+// (bandages and antidotes are field medicine), and its xp sits between food's
+// and potions'.
 export const CONSUME = {
-    "potion": { skill: "alchemy", xp: 5, output: "empty_bottle" },
-    "food":   { skill: "survival", xp: 2, output: null },
-    "aid":    { skill: "survival", xp: 3, output: null },
+    type: {
+        "potion": { skill: "alchemy",  xp: 5, output: "empty_bottle" },
+        "food":   { skill: "survival", xp: 2 },
+        "aid":    { skill: "survival", xp: 3 },
+    },
+    subtype: {
+        "brewed":  { output: "empty_thermos" }, // the 26 teas and brews
+        "cure":    { output: "empty_bottle" },  // antidote, antivenom
+        "restore": { output: "empty_bottle" },  // elixir
+    },
+    item: {
+        // The aid kits come in something, and you keep it. The two at the top
+        // of the ladder are the exception: enough of an AEGIS Kit is used up
+        // that there is nothing worth carrying away.
+        "bandage_box": { xp: 3,  output: "empty_box" },
+        "medic_bag":   { xp: 4,  output: "empty_bag" },
+        "trauma_bag":  { xp: 5,  output: "empty_bag" },
+        "aegis_kit":   { xp: 10, output: null },
+        "phoenix_kit": { xp: 10, output: "empty_kit" },
+    },
 }
 
 // Shop Rarity display logic
@@ -1389,6 +1444,24 @@ export function weightOf(itemId) {
 // `type === "potion"` the way it always has.
 export function storeInOf(itemId) {
   return ALL_ITEMS[itemId]?.storeIn === "toolbelt" ? "toolbelt" : "backpack";
+}
+
+// What consuming `itemId` pays and leaves behind, resolved through CONSUME's
+// three tiers - type, then subtype, then the item itself, most specific last.
+//
+// Spreading rather than picking fields is the whole mechanism: a tier that
+// doesn't mention `skill` leaves the inherited one alone, while an explicit
+// `output: null` overrides it, because the key is present. That distinction is
+// load-bearing - it's how aegis_kit cancels the aid output it would otherwise
+// inherit.
+//
+// Returns null for anything with no `type` entry at all, which is what tells
+// useItem() there is no reward economy for this item rather than a zero one.
+export function consumeRewardFor(itemId) {
+  const item = ALL_ITEMS[itemId];
+  const base = CONSUME.type[item?.type];
+  if (!base) return null;
+  return { ...base, ...CONSUME.subtype[item.subtype], ...CONSUME.item[itemId] };
 }
 
 // ** Black Market **

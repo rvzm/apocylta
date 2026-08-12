@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createInitialState } from "../../state/gameState.js";
-import { ALL_ITEMS, weightOf } from "../../item_backbone.js";
+import { ALL_ITEMS, weightOf, consumeRewardFor } from "../../item_backbone.js";
 import { backpackWeightCap, backpackWeightUsed } from "../../data/toolbelt.js";
 import { consumeEffectOf, useItem, attemptRevive } from "../../data/items.js";
 
@@ -230,4 +230,69 @@ test("useItem(): bumps state.lifetime.used only on a successful use", () => {
   useItem(state, "antidote"); // refused
 
   assert.deepEqual(state.lifetime.used, { bread: 2 });
+});
+
+// ----- the CONSUME tiers -----
+//
+// item_backbone.js's CONSUME resolves type -> subtype -> item, most specific
+// last, with each tier overriding only the keys it sets. These drive
+// consumeRewardFor() directly rather than through useItem, so a failure names
+// the tier rather than the symptom.
+
+test("consumeRewardFor(): the type tier is the default", () => {
+  assert.deepEqual(consumeRewardFor("bread"), { skill: "survival", xp: 2 });
+  assert.equal(consumeRewardFor("bread").output, undefined, "plain food leaves nothing behind");
+});
+
+test("consumeRewardFor(): a subtype entry covers every item in it", () => {
+  const brewed = Object.entries(ALL_ITEMS).filter(([, i]) => i.type === "food" && i.subtype === "brewed");
+  assert.ok(brewed.length > 20, `expected the tea family, found ${brewed.length}`);
+  for (const [id] of brewed) {
+    assert.equal(consumeRewardFor(id).output, "empty_thermos", `${id} should leave a thermos`);
+    assert.equal(consumeRewardFor(id).skill, "survival", "and still inherit food's skill");
+  }
+});
+
+test("consumeRewardFor(): an item entry beats its subtype and type", () => {
+  assert.equal(consumeRewardFor("medic_bag").output, "empty_bag");
+  assert.equal(consumeRewardFor("trauma_bag").xp, 5, "the item's own xp wins");
+  // ...while still inheriting what it didn't override.
+  assert.equal(consumeRewardFor("trauma_bag").skill, "survival");
+});
+
+// The distinction that makes the spread-merge work: a key that's absent leaves
+// the inherited value alone, a key set to null overrides it.
+test("consumeRewardFor(): output: null cancels an inherited output", () => {
+  assert.equal(consumeRewardFor("aegis_kit").output, null, "fully consumed");
+  assert.equal(consumeRewardFor("aegis_kit").skill, "survival", "but still pays survival xp");
+  assert.equal(consumeRewardFor("aegis_kit").xp, 10);
+});
+
+test("consumeRewardFor(): nothing outside the type tier has a reward at all", () => {
+  assert.equal(consumeRewardFor("iron_ore"), null);
+  assert.equal(consumeRewardFor("iron_sword"), null);
+  assert.equal(consumeRewardFor("no_such_item"), null);
+});
+
+test("useItem(): a tea leaves a thermos, resolved off its subtype", () => {
+  const state = player({ herbal_tea: 1 });
+  state.hp = 10;
+  const result = useItem(state, "herbal_tea");
+  assert.equal(result.used, true);
+  assert.match(result.message, /You keep the Empty Thermos\./);
+  assert.equal(state.inventory.empty_thermos, 1);
+});
+
+test("useItem(): an aid kit leaves its own container, and the top of the ladder leaves none", () => {
+  const state = player({ medic_bag: 1, aegis_kit: 1 });
+  state.hp = 10;
+
+  assert.match(useItem(state, "medic_bag").message, /You keep the Empty Bag\./);
+  assert.equal(state.inventory.empty_bag, 1);
+
+  state.hp = 10;
+  const aegis = useItem(state, "aegis_kit");
+  assert.equal(aegis.used, true);
+  assert.doesNotMatch(aegis.message, /You keep/, "an AEGIS Kit is used up entirely");
+  assert.equal(state.inventory.empty_kit, undefined);
 });

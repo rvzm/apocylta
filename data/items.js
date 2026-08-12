@@ -6,7 +6,7 @@
 // same "one hook where it actually happens" reasoning that keeps
 // recordSpellCast inside data/magic.js's castSpell().
 
-import { ALL_ITEMS, CONSUME } from "../item_backbone.js";
+import { ALL_ITEMS, consumeRewardFor } from "../item_backbone.js";
 import { addItem, removeItem, grantSkillXp } from "../state/gameState.js";
 import { recordItemUsed } from "./quests.js";
 
@@ -64,15 +64,25 @@ function reviveFraction(item) {
 
 const VERBS = { food: "eat", potion: "drink", aid: "apply" };
 
+// Subtype wins where the type's verb is wrong for it: the teas and brews are
+// `food`, and "you eat the Herbal Tea" reads badly next to the thermos it hands
+// back. Same broad-then-narrow shape as CONSUME's own tiers.
+const SUBTYPE_VERBS = { brewed: "drink" };
+
 function verbFor(item) {
-  return VERBS[item.type] ?? "use";
+  return SUBTYPE_VERBS[item.subtype] ?? VERBS[item.type] ?? "use";
 }
 
-// Pays out CONSUME's skill xp and hands back its byproduct (an empty_bottle
-// for potions). addItem can refuse on a full backpack, so a lost bottle is
-// reported rather than silently voided. Returns a suffix for the use message.
-function payConsumeReward(state, item) {
-  const reward = CONSUME[item.type];
+// Pays out the CONSUME economy - skill xp, plus whatever the thing came in.
+// What that is comes from consumeRewardFor(), which resolves item_backbone.js's
+// three tiers (type -> subtype -> item) so the rule lives with the data rather
+// than being re-derived here: a potion leaves a bottle, a tea a thermos, a
+// medic bag an empty bag, an AEGIS kit nothing at all.
+//
+// addItem can refuse on a full pack, so a lost byproduct is reported rather
+// than silently voided. Returns a suffix for the use message.
+function payConsumeReward(state, itemId) {
+  const reward = consumeRewardFor(itemId);
   if (!reward) return "";
   grantSkillXp(state, reward.skill, reward.xp);
   if (!reward.output) return "";
@@ -166,7 +176,7 @@ export function useItem(state, itemId, ctx = {}) {
   }
 
   removeItem(state, itemId, 1);
-  const bonus = payConsumeReward(state, item);
+  const bonus = payConsumeReward(state, itemId);
   recordItemUsed(state, itemId, 1);
   return { used: true, message: line + bonus };
 }
