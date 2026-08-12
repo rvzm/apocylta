@@ -46,7 +46,7 @@ In this world, you can level up your skills, yourself, and live whatever life yo
 - **Mining and fishing, each with a picker** — mining lists the ores the local seam holds, gated by your
   level and your pickaxe's tier. Fishing lists what's swimming in the local water, gated by your level,
   your rod, and whether you're carrying the bait, net or hook that species takes.
-- **Crafting** — smith, cook, grill, smoke, pickle and brew at stations, from a catalog of 1008 items. Buy
+- **Crafting** — smith, cook, grill, smoke, pickle and brew at stations, from a catalog of 1010 items. Buy
   a house and you can build your own bench rather than borrowing the safehouse's.
 - **17 trainable skills** — each levels independently as you use it, and each feeds your overall level.
 - **Turn-based combat** — one keypress per exchange, against 107 enemies from lone goblins to packs to

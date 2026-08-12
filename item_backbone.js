@@ -736,10 +736,15 @@ export const ITEMS = {
 
 export const TOOLBELTS = {
     global: { type: "armor", slot: "belt" },
+    // Leather belts -- Leathers. Each has a different storage capacity for sling ammo, potions, backpack, and toolbelt items.
     "leather_belt": { name: "Leather Belt", subtype: "leather", rarity: "common", value: 10, belt: { slingAmmo: 10, potions: 5, backpack: 100, toolbelt: 15 }, weight: 0.7, description: "A simple leather belt, providing basic utility and storage." },
-    "chainmail_belt": { name: "Chainmail Belt", subtype: "chainmail", rarity: "uncommon", value: 45, belt: { slingAmmo: 15, potions: 10, backpack: 150, toolbelt: 20 }, weight: 1, description: "A belt made of interlocking metal rings, providing moderate protection and utility." },
-    "adventurer_belt": { name: "Adventurer Belt", subtype: "adventurer", rarity: "uncommon", value: 55, belt: { slingAmmo: 15, potions: 10, backpack: 175, toolbelt: 25 }, weight: 0.9, description: "A belt favored by adventurers for its practicality and durability." },
-    "plate_belt": { name: "Plate Belt", subtype: "plate", rarity: "rare", value: 150, belt: { slingAmmo: 20, potions: 15, backpack: 200, toolbelt: 30 }, weight: 1.2, description: "A sturdy belt made of plate armor." },
+    "dark_leather_belt": { name: "Dark Leather Belt", subtype: "leather", rarity: "common", value: 15, belt: { slingAmmo: 10, potions: 5, backpack: 125, toolbelt: 20 }, weight: 0.7, description: "A simple dark leather belt, providing basic utility and storage." },
+    "sturdy_leather_belt": { name: "Sturdy Leather Belt", subtype: "leather", rarity: "uncommon", value: 25, belt: { slingAmmo: 10, potions: 5, backpack: 150, toolbelt: 25 }, weight: 0.8, description: "A sturdy leather belt, providing enhanced utility and storage." },
+    
+    // Armor Belts -- Chainmail, adventurer, plate, and mythic. Each has a different storage capacity for sling ammo, potions, backpack, and toolbelt items.
+    "chainmail_belt": { name: "Chainmail Belt", subtype: "chainmail", rarity: "uncommon", value: 45, belt: { slingAmmo: 15, potions: 10, backpack: 155, toolbelt: 25 }, weight: 1, description: "A belt made of interlocking metal rings, providing moderate protection and utility." },
+    "adventurer_belt": { name: "Adventurer Belt", subtype: "adventurer", rarity: "uncommon", value: 55, belt: { slingAmmo: 15, potions: 10, backpack: 175, toolbelt: 30 }, weight: 0.9, description: "A belt favored by adventurers for its practicality and durability." },
+    "plate_belt": { name: "Plate Belt", subtype: "plate", rarity: "rare", value: 150, belt: { slingAmmo: 20, potions: 15, backpack: 200, toolbelt: 35 }, weight: 1.2, description: "A sturdy belt made of plate armor." },
     "mythic_belt": { name: "Mythic Belt", subtype: "mythic", rarity: "mythic", value: 500, belt: { slingAmmo: 30, potions: 20, backpack: 300, toolbelt: 50 }, buff: ["attack"], weight: 0.7, description: "A legendary belt said to be imbued with the power of the gods, granting its wearer unparalleled abilities." },
     "apocyltas_eye": { name: "Apocyltas Eye", subtype: "mythic", rarity: "mythic", value: 790, belt: { slingAmmo: 50, potions: 30, backpack: 500, toolbelt: 90 }, buff: ["attack", "defense", "magic"], weight: 0.7, description: "A legendary belt said to be imbued with the power of the gods, granting its wearer unparalleled abilities." },
 };

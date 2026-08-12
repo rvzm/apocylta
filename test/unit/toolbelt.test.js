@@ -38,13 +38,13 @@ test("with no belt equipped: on-the-belt resources are fully gated, storage fall
 
 test("with a belt equipped: every cap comes from the belt's own tier", () => {
   const state = createInitialState();
-  state.equipment.belt = "plate_belt"; // { slingAmmo: 20, potions: 15, backpack: 200, toolbelt: 30 }
+  state.equipment.belt = "plate_belt"; // { slingAmmo: 20, potions: 15, backpack: 200, toolbelt: 35 }
   assert.equal(hasBeltEquipped(state), true);
   assert.equal(slingshotAmmoCap(state), 20);
   assert.equal(waterBottleCap(state), 100);
   assert.equal(quiverCap(state), Infinity);
   assert.equal(backpackWeightCap(state), 200 + STRENGTH_1);
-  assert.equal(toolbeltWeightCap(state), 30 + STRENGTH_1);
+  assert.equal(toolbeltWeightCap(state), 35 + STRENGTH_1);
   assert.equal(potionSlotCap(state), 15);
 });
 
@@ -173,11 +173,11 @@ test("every backpack resolves through ALL_ITEMS and equips into the backpack slo
 
 test("weightRoomFor(): reports what's left in the item's own container", () => {
   const state = createInitialState();
-  state.equipment.belt = "plate_belt"; // backpack 200, toolbelt 30
+  state.equipment.belt = "plate_belt"; // backpack 200, toolbelt 35
   state.inventory = { iron_ore: 10 };
 
   assert.equal(weightRoomFor(state, "iron_ore"), 200 + STRENGTH_1 - weightOf("iron_ore") * 10);
-  assert.equal(weightRoomFor(state, "scrap_metal"), 30 + STRENGTH_1, "the belt is still empty");
+  assert.equal(weightRoomFor(state, "scrap_metal"), 35 + STRENGTH_1, "the belt is still empty");
   assert.equal(weightRoomFor(state, "healing_potion"), Infinity, "a potion's limit is slots");
 });
 
