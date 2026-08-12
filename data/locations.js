@@ -21,6 +21,7 @@ export const LOCATIONS = {
   // ** Player Home
   playerhome: {
     id: "playerhome",
+    region: "home",
     name: "Your Home",
     description: "Your Home - a small, cozy place to rest and store your belongings.",
     flavorText: [
@@ -37,6 +38,9 @@ export const LOCATIONS = {
     exits: [
       { label: "Apocylta Haven", to: "town_square", category: "teleport", time: 5 },
       { label: "Zenthal City", to: "zenthal_city", category: "teleport", time: 5 },
+      { label: "Azari Castle", to: "azari_castle", category: "teleport", time: 5 },
+      { label: "Kooz Docks", to: "kooz_docks", category: "teleport", time: 5 },
+      { label: "apocyltia castle", to: "apocyltia_castle", category: "teleport", time: 5 },
     ],
     interactiveActions: ["rest", "wait", "meditate", "organize_inventory", "craft", "cook", "brew", "forge"],
     hubFeatures: [],
@@ -45,6 +49,7 @@ export const LOCATIONS = {
   // ** REGION: acopylta haven
   town_square: {
     id: "town_square",
+    region: "haven",
     name: "town square",
     description: "Apocylta Haven Town square - a wonderful hub for various shops.",
     flavorText: [
@@ -80,6 +85,7 @@ export const LOCATIONS = {
   },
   portal_room: {
     id: "portal_room",
+    region: "haven",
     name: "portal room",
     description: "The Portal Room - a mysterious room filled with magical portals.",
     flavorText: [
@@ -102,6 +108,7 @@ export const LOCATIONS = {
   },
   safehouse: {
     id: "safehouse",
+    region: "haven",
     name: "safehouse",
     description: "The Safehouse - a secure location for players to rest and recover.",
     flavorText: [
@@ -125,6 +132,7 @@ export const LOCATIONS = {
   },
   park: {
     id: "park",
+    region: "haven",
     name: "park",
     description: "The Park - overgrown grass and rusted playground equipment.",
     flavorText: [
@@ -146,6 +154,7 @@ export const LOCATIONS = {
   },
   wilderness: {
     id: "wilderness",
+    region: "haven",
     name: "wilderness",
     description: "The Wilderness - a dangerous area outside of town.",
     flavorText: [
@@ -178,6 +187,7 @@ export const LOCATIONS = {
   },
   mountain_pass: {
     id: "mountain_pass",
+    region: "haven",
     name: "mountain pass",
     description: "The Mountain Pass - a treacherous path through the mountains.",
     flavorText: [
@@ -208,6 +218,7 @@ export const LOCATIONS = {
   },
   north_path: {
     id: "north_path",
+    region: "haven",
     name: "north path",
     description: "The North Path - a winding trail leading into the unknown.",
     flavorText: [
@@ -235,6 +246,7 @@ export const LOCATIONS = {
   },
   cliffside: {
     id: "cliffside",
+    region: "haven",
     name: "cliffside",
     description: "The Cliffside - a steep drop with a breathtaking view.",
     flavorText: [
@@ -261,6 +273,7 @@ export const LOCATIONS = {
   },
   riverbank: {
     id: "riverbank",
+    region: "haven",
     name: "riverbank",
     description: "The Riverbank - a calm area by the flowing river.",
     flavorText: [
@@ -284,6 +297,7 @@ export const LOCATIONS = {
   },
   abandoned_village: {
     id: "abandoned_village",
+    region: "haven",
     name: "abandoned village",
     description: "The Abandoned Village - remnants of a once-thriving community.",
     flavorText: [
@@ -310,6 +324,7 @@ export const LOCATIONS = {
   },
   east_path: {
     id: "east_path",
+    region: "haven",
     name: "east path",
     description: "The East Path - a narrow trail that disappears into the forest.",
     flavorText: [
@@ -340,6 +355,7 @@ export const LOCATIONS = {
   },
   forest_edge: {
     id: "forest_edge",
+    region: "haven",
     name: "forest edge",
     description: "The Forest Edge - the boundary between the wilderness and the dense forest.",
     flavorText: [
@@ -364,6 +380,7 @@ export const LOCATIONS = {
   },
   abandoned_cabin: {
     id: "abandoned_cabin",
+    region: "haven",
     name: "abandoned cabin",
     description: "The Abandoned Cabin - a small, dilapidated structure in the woods.",
     flavorText: [
@@ -390,6 +407,7 @@ export const LOCATIONS = {
   },
   west_path: {
     id: "west_path",
+    region: "haven",
     name: "west path",
     description: "The West Path - a rugged trail that leads to the mountains.",
     flavorText: [
@@ -420,6 +438,7 @@ export const LOCATIONS = {
   },
   mountain_peak: {
     id: "mountain_peak",
+    region: "haven",
     name: "mountain peak",
     description: "The Mountain Peak - the highest point of the surrounding area.",
     flavorText: [
@@ -450,6 +469,7 @@ export const LOCATIONS = {
   },
   cave_entrance: {
     id: "cave_entrance",
+    region: "haven",
     name: "cave entrance",
     description: "The Cave Entrance - a dark opening in the side of the mountain.",
     flavorText: [
@@ -481,6 +501,7 @@ export const LOCATIONS = {
   },
   cave_mines: {
     id: "cave_mines",
+    region: "haven",
     name: "cave mines",
     description: "The Cave Mines - a network of tunnels and shafts dug into the mountain.",
     flavorText: [
@@ -501,7 +522,7 @@ export const LOCATIONS = {
     exits: [
       { label: "cave entrance", to: "cave_entrance", category: "cave", time: 15 },
       { label: "cave hub", to: "cave_hub", category: "in_cave", time: 10 },
-      { label: "north deep cave", to: "south_deep_cave", category: "in_cave", time: 10 },
+      { label: "north deep cave", to: "north_deep_cave", category: "in_cave", time: 10 },
       { label: "south deep cave", to: "south_deep_cave", category: "in_cave", time: 10 }
 
     ],
@@ -510,6 +531,7 @@ export const LOCATIONS = {
   },
   cave_hub: {
     id: "cave_hub",
+    region: "haven",
     name: "cave hub",
     description: "The Cave Hub - a central area in the cave system.",
     flavorText: [
@@ -537,6 +559,7 @@ export const LOCATIONS = {
   },
   north_deep_cave: {
     id: "north_deep_cave",
+    region: "haven",
     name: "north deep cave",
     description: "The North Deep Cave - a dark and dangerous area of the cave system.",
     flavorText: [ 
@@ -563,6 +586,7 @@ export const LOCATIONS = {
   },
   south_deep_cave: {
     id: "south_deep_cave",
+    region: "haven",
     name: "south deep cave",
     description: "The South Deep Cave - a dark and dangerous area of the cave system.",
     flavorText: [
@@ -590,6 +614,7 @@ export const LOCATIONS = {
   },
   south_path: {
     id: "south_path",
+    region: "haven",
     name: "south path",
     description: "The South Path - a dusty trail that leads to the desert.",
     flavorText: [
@@ -621,6 +646,7 @@ export const LOCATIONS = {
   },
   desert: {
     id: "desert",
+    region: "haven",
     name: "desert",
     description: "The Desert - a vast expanse of sand and rock.",
     flavorText: [
@@ -648,6 +674,7 @@ export const LOCATIONS = {
   },
   oasis: {
     id: "oasis",
+    region: "haven",
     name: "oasis",
     description: "The Oasis - a small, lush area in the midst of the desert.",
     flavorText: [
@@ -677,6 +704,7 @@ export const LOCATIONS = {
 
   zenthal_airport: {
     id: "zenthal_airport",
+    region: "zenthal",
     name: "zenthal airport",
     description: "Zenthal Airport - a bustling hub of activity, with planes taking off and landing.",
     flavorText: [
@@ -706,6 +734,7 @@ export const LOCATIONS = {
   },
   zenthal_city: {
     id: "zenthal_city",
+    region: "zenthal",
     name: "zenthal city",
     description: "Zenthal City - a sprawling metropolis with towering skyscrapers and bustling streets.",
     flavorText: [
@@ -737,6 +766,7 @@ export const LOCATIONS = {
   },
   zenthal_market: {
     id: "zenthal_market",
+    region: "zenthal",
     name: "zenthal market",
     description: "Zenthal Market - a vibrant marketplace filled with vendors selling all manner of goods.",
     flavorText: [
@@ -769,6 +799,7 @@ export const LOCATIONS = {
   },
   zenthal_docks: {
     id: "zenthal_docks",
+    region: "zenthal",
     name: "zenthal docks",
     description: "Zenthal Docks - a busy port where ships come and go, carrying goods and passengers.",
     flavorText: [
@@ -800,6 +831,7 @@ export const LOCATIONS = {
   },
   zenthal_slums: {
     id: "zenthal_slums",
+    region: "zenthal",
     name: "zenthal slums",
     description: "Zenthal Slums - a run-down area of the city, filled with poverty and crime.",
     flavorText: [
@@ -831,6 +863,7 @@ export const LOCATIONS = {
   },
   zenthal_park: {
     id: "zenthal_park",
+    region: "zenthal",
     name: "zenthal park",
     description: "Zenthal Park - a green space in the middle of the city, with trees, benches, and a small pond.",
     flavorText: [
@@ -862,6 +895,7 @@ export const LOCATIONS = {
   // ** REGION: Cordura
   cordura_outpost: {
     id: "cordura_outpost",
+    region: "cordura",
     name: "cordura outpost",
     description: "Cordura Outpost - a fortified settlement on the edge of the wilderness.",
     flavorText: [
@@ -891,6 +925,7 @@ export const LOCATIONS = {
   },
   cordura_mines: {
     id: "cordura_mines",
+    region: "cordura",
     name: "cordura mines",
     description: "Cordura Mines - a network of tunnels and shafts where miners extract valuable resources.",
     flavorText: [
@@ -924,6 +959,7 @@ export const LOCATIONS = {
   },
   cordura_mines_deep: {
     id: "cordura_mines_deep",
+    region: "cordura",
     name: "cordura mines deep",
     description: "Cordura Mines Deep - the lower levels of the Cordura Mines, where the air is damp and the tunnels are narrow.",
     flavorText: [
@@ -957,6 +993,7 @@ export const LOCATIONS = {
   },
   cordura_north_tunnel: {
     id: "cordura_north_tunnel",
+    region: "cordura",
     name: "cordura north tunnel",
     description: "Cordura North Tunnel - a narrow passage that leads to the northern reaches of the Cordura Mines.",
     flavorText: [
@@ -987,6 +1024,7 @@ export const LOCATIONS = {
   },
   cordura_north_chamber: {
     id: "cordura_north_chamber",
+    region: "cordura",
     name: "cordura north chamber",
     description: "Cordura North Chamber - a large cavern that opens up to the northern reaches of the Cordura Mines.",
     flavorText: [
@@ -1022,6 +1060,7 @@ export const LOCATIONS = {
   },
   cordura_east_tunnel: {
     id: "cordura_east_tunnel",
+    region: "cordura",
     name: "cordura east tunnel",
     description: "Cordura East Tunnel - a narrow passage that leads to the eastern reaches of the Cordura Mines.",
     flavorText: [
@@ -1052,6 +1091,7 @@ export const LOCATIONS = {
   },
   cordura_east_chamber: {
     id: "cordura_east_chamber",
+    region: "cordura",
     name: "cordura east chamber",
     description: "Cordura East Chamber - a large cavern that opens up to the eastern reaches of the Cordura Mines.",
     flavorText: [
@@ -1082,6 +1122,7 @@ export const LOCATIONS = {
   },
   cordura_west_tunnel: {
     id: "cordura_west_tunnel",
+    region: "cordura",
     name: "cordura west tunnel",
     description: "Cordura West Tunnel - a narrow passage that leads to the western reaches of the Cordura Mines.",
     flavorText: [
@@ -1112,6 +1153,7 @@ export const LOCATIONS = {
   },
   cordura_west_chamber: {
     id: "cordura_west_chamber",
+    region: "cordura",
     name: "cordura west chamber",
     description: "Cordura West Chamber - a large cavern that opens up to the western reaches of the Cordura Mines.",
     flavorText: [
@@ -1142,6 +1184,7 @@ export const LOCATIONS = {
   },
   cordura_south_tunnel: {
     id: "cordura_south_tunnel",
+    region: "cordura",
     name: "cordura south tunnel",
     description: "Cordura South Tunnel - a narrow passage that leads to the southern reaches of the Cordura Mines.",
     flavorText: [
@@ -1172,6 +1215,7 @@ export const LOCATIONS = {
   },
   cordura_south_chamber: {
     id: "cordura_south_chamber",
+    region: "cordura",
     name: "cordura south chamber",
     description: "Cordura South Chamber - a large cavern that opens up to the southern reaches of the Cordura Mines.",
     flavorText: [
@@ -1203,6 +1247,7 @@ export const LOCATIONS = {
   },
   cordura_forest: {
     id: "cordura_forest",
+    region: "cordura",
     name: "cordura forest",
     description: "Cordura Forest - a dense woodland filled with wildlife and hidden dangers.",
     flavorText: [
@@ -1231,6 +1276,7 @@ export const LOCATIONS = {
   // ** REGION: Vetron
   vetron_station: {
     id: "vetron_station",
+    region: "vetron",
     name: "vetron station",
     description: "Vetron Station - a bustling hub of activity, with trains coming and going.",
     flavorText: [
@@ -1258,10 +1304,100 @@ export const LOCATIONS = {
     interactiveActions: ["gather_scraps", "look_for_food"],
     hubFeatures: ["toolbelt", "shop_general"],
   },
+  vetron_city: {
+    id: "vetron_city",
+    region: "vetron",
+    name: "vetron city",
+    description: "Vetron City - a sprawling metropolis with towering skyscrapers and bustling streets.",
+    flavorText: [
+      "The city is alive with activity, but danger lurks around every corner.",
+      "",
+      timeLine,
+      "",
+      weatherLine,
+      "",
+      firstVisitLine,
+      "The streets are crowded with people, and the sounds of traffic and construction fill the air.",
+      "The city seems to go on forever, with towering buildings and lights stretching as far as the eye can see.",
+      "",
+      dangerLine,
+      "",
+      healthLine,
+      packLine,
+    ],
+    safe: true,
+    water: "saltwater",
+    exits: [
+      { label: "Vetron Station", to: "vetron_station", category: "path", time: 20 },
+      { label: "Vetron Market", to: "vetron_market", category: "path", time: 10 },
+      { label: "Vetron Docks", to: "vetron_docks", category: "path", time: 15 },
+    ],
+    interactiveActions: ["gather_scraps", "look_for_food", "trap_game", "fish", "forage", "chop", "fight"],
+    hubFeatures: ["toolbelt"],
+  },
+  vetron_market: {
+    id: "vetron_market",
+    region: "vetron",
+    name: "vetron market",
+    description: "Vetron Market - a vibrant marketplace filled with vendors selling all manner of goods.",
+    flavorText: [
+      "The market is crowded and chaotic, but you can find some interesting items if you look hard enough.",
+      "",
+      timeLine,
+      "",
+      weatherLine,
+      "",
+      firstVisitLine,
+      "",
+      dangerLine,
+      "",
+      healthLine,
+      packLine,
+    ],
+    safe: true,
+    exits: [
+      { label: "Vetron City", to: "vetron_city", category: "path", time: 10 },
+      { label: "Vetron Docks", to: "vetron_docks", category: "path", time: 15 },
+    ],
+    interactiveActions: ["gather_scraps", "look_for_food"],
+    hubFeatures: ["toolbelt", "shop_armor", "shop_weapons", "shop_magic", "shop_general", "shop_sell"],
+  },
+  vetron_docks: {
+    id: "vetron_docks",
+    region: "vetron",
+    name: "vetron docks",
+    description: "Vetron Docks - a busy port where ships come and go, carrying goods and passengers.",
+    flavorText: [
+      "The smell of saltwater and fish fills the air, and the sound of seagulls is constant.",
+      "",
+      timeLine,
+      "",
+      weatherLine,
+      "",
+      firstVisitLine,
+      "The docks are bustling with activity, with workers loading and unloading cargo from the ships.",
+      "The mist from the water makes the air feel damp, and you can hear the creaking of the wooden piers as the waves crash against them.",
+      "",
+      dangerLine,
+      "",
+      healthLine,
+      packLine,
+    ],
+    safe: false,
+    enemies: ["sneaky_raider", "dumb_raider", "psycho_raider", "raider_group", "orc_raider_group"],
+    water: "saltwater",
+    exits: [
+      { label: "Vetron City", to: "vetron_city", category: "path", time: 15 },
+      { label: "Vetron Market", to: "vetron_market", category: "path", time: 15 },
+    ],
+    interactiveActions: ["gather_scraps", "look_for_food", "trap_game", "fish", "fight"],
+    hubFeatures: ["toolbelt"],
+  },
 
   // ** REGION: Kooz
   kooz_station: {
     id: "kooz_station",
+    region: "kooz",
     name: "kooz station",
     description: "Kooz Station - a small, quiet station on the outskirts of the city.",
     flavorText: [
@@ -1288,10 +1424,100 @@ export const LOCATIONS = {
     interactiveActions: ["gather_scraps", "look_for_food"],
     hubFeatures: ["toolbelt", "shop_general"],
   },
+  kooz_city: {
+    id: "kooz_city",
+    region: "kooz",
+    name: "kooz city",
+    description: "Kooz City - a bustling metropolis with towering skyscrapers and bustling streets.",
+    flavorText: [
+      "The city is alive with activity, but danger lurks around every corner.",
+      "",
+      timeLine,
+      "",
+      weatherLine,
+      "",
+      firstVisitLine,
+      "The streets are crowded with people, and the sounds of traffic and construction fill the air.",
+      "The city seems to go on forever, with towering buildings and lights stretching as far as the eye can see.",
+      "",
+      dangerLine,
+      "",
+      healthLine,
+      packLine,
+    ],
+    safe: true,
+    water: "saltwater",
+    exits: [
+      { label: "Kooz Station", to: "kooz_station", category: "path", time: 20 },
+      { label: "Kooz Market", to: "kooz_market", category: "path", time: 10 },
+      { label: "Kooz Docks", to: "kooz_docks", category: "path", time: 15 },
+    ],
+    interactiveActions: ["gather_scraps", "look_for_food", "trap_game", "fish", "forage", "chop", "fight"],
+    hubFeatures: ["toolbelt"],
+  },
+  kooz_market: {
+    id: "kooz_market",
+    region: "kooz",
+    name: "kooz market",
+    description: "Kooz Market - a vibrant marketplace filled with vendors selling all manner of goods.",
+    flavorText: [
+      "The market is crowded and chaotic, but you can find some interesting items if you look hard enough.",
+      "",
+      timeLine,
+      "",
+      weatherLine,
+      "",
+      firstVisitLine,
+      "",
+      dangerLine,
+      "",
+      healthLine,
+      packLine,
+    ],
+    safe: true,
+    exits: [
+      { label: "Kooz City", to: "kooz_city", category: "path", time: 10 },
+      { label: "Kooz Docks", to: "kooz_docks", category: "path", time: 15 },
+    ],
+    interactiveActions: ["gather_scraps", "look_for_food"],
+    hubFeatures: ["toolbelt", "shop_armor", "shop_weapons", "shop_magic", "shop_general", "shop_sell"],
+  },
+  kooz_docks: {
+    id: "kooz_docks",
+    region: "kooz",
+    name: "kooz docks",
+    description: "Kooz Docks - a busy port where ships come and go, carrying goods and passengers.",
+    flavorText: [
+      "The smell of saltwater and fish fills the air, and the sound of seagulls is constant.",
+      "",
+      timeLine,
+      "",
+      weatherLine,
+      "",
+      firstVisitLine,
+      "The docks are bustling with activity, with workers loading and unloading cargo from the ships.",
+      "The mist from the water makes the air feel damp, and you can hear the creaking of the wooden piers as the waves crash against them.",
+      "",
+      dangerLine,
+      "",
+      healthLine,
+      packLine,
+    ],
+    safe: false,
+    enemies: ["sneaky_raider", "dumb_raider", "psycho_raider", "raider_group", "orc_raider_group"],
+    water: "saltwater",
+    exits: [
+      { label: "Kooz City", to: "kooz_city", category: "path", time: 15 },
+      { label: "Kooz Market", to: "kooz_market", category: "path", time: 15 },
+    ],
+    interactiveActions: ["gather_scraps", "look_for_food", "trap_game", "fish", "fight"],
+    hubFeatures: ["toolbelt"],
+  },
 
   // ** REGION: Azari
   azari_town: {
     id: "azari_town",
+    region: "azari",
     name: "azari town",
     description: "Azari Town - a small, bustling town with a rich history.",
     flavorText: [
@@ -1321,6 +1547,7 @@ export const LOCATIONS = {
 
   azari_castle: {
     id: "azari_castle",
+    region: "azari",
     name: "azari castle",
     description: "Azari Castle - a grand fortress that has stood for centuries.",
     flavorText: [
@@ -1346,6 +1573,7 @@ export const LOCATIONS = {
 
   azari_docks: {
     id: "azari_docks",
+    region: "azari",
     name: "azari docks",
     description: "Azari Docks - a busy port where ships come and go, carrying goods and passengers.",
     flavorText: [
@@ -1373,6 +1601,7 @@ export const LOCATIONS = {
   // *** Apocylta Regional Hub ***
   regional_hub: {
     id: "regional_hub",
+    region: "hub",
     name: "apocylta regional hub",
     description: "The Apocylta Regional Hub - a central location for travelers and traders.",
     flavorText: [
@@ -1408,6 +1637,7 @@ export const LOCATIONS = {
   },
   regional_hub_shops: {
     id: "regional_hub_shops",
+    region: "hub",
     name: "apocylta regional hub shops",
     description: "The Apocylta Regional Hub Shops - a collection of various shops and services.",
     flavorText: [
@@ -1434,6 +1664,7 @@ export const LOCATIONS = {
 // ** Apocyltia Castle
   apocyltia_castle: {
     id: "apocyltia_castle",
+    region: "castle",
     name: "apocyltia castle",
     description: "Apocylta Castle - a grand fortress that has stood for centuries.",
     flavorText: [
@@ -1453,19 +1684,20 @@ export const LOCATIONS = {
     ],
     safe: true,
     exits: [
-      { label: "Apocylta Regional Hub", to: "regional_hub", category: "portal", time: 10 },
-      { label: "Apocyltia Castle Courtyard", to: "apocyltia_castle_courtyard", category: "path", time: 5 },
-      { label: "Apocyltia Castle Keep", to: "apocyltia_castle_keep", category: "path", time: 5 },
-      { label: "Apocyltia Castle North Wing", to: "apocyltia_castle_north_wing", category: "path", time: 5 },
-      { label: "Apocyltia Castle South Wing", to: "apocyltia_castle_south_wing", category: "path", time: 5 },
-      { label: "Apocyltia Castle East Wing", to: "apocyltia_castle_east_wing", category: "path", time: 5 },
-      { label: "Apocyltia Castle West Wing", to: "apocyltia_castle_west_wing", category: "path", time: 5 },
+      { label: "Apocylta Regional Hub", to: "regional_hub", category: "teleport", time: 10 },
+      { label: "Apocyltia Castle Courtyard", to: "apocyltia_castle_courtyard", category: "inside", time: 5 },
+      { label: "Apocyltia Castle Keep", to: "apocyltia_castle_keep", category: "inside", time: 5 },
+      { label: "Apocyltia Castle North Wing", to: "apocyltia_castle_north_wing", category: "inside", time: 5 },
+      { label: "Apocyltia Castle South Wing", to: "apocyltia_castle_south_wing", category: "inside", time: 5 },
+      { label: "Apocyltia Castle East Wing", to: "apocyltia_castle_east_wing", category: "inside", time: 5 },
+      { label: "Apocyltia Castle West Wing", to: "apocyltia_castle_west_wing", category: "inside", time: 5 },
     ],
     interactiveActions: ["gather_scraps", "look_for_food"],
     hubFeatures: ["toolbelt"],
   },
   apocyltia_castle_courtyard: {
     id: "apocyltia_castle_courtyard",
+    region: "castle",
     name: "apocyltia castle courtyard",
     description: "Apocylta Castle Courtyard - a large open space surrounded by the castle walls.",
     flavorText: [
@@ -1485,12 +1717,14 @@ export const LOCATIONS = {
       packLine,
     ],
     safe: true,
-    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "path" }],
-    interactiveActions: ["gather_scraps", "look_for_food"],
+    water: "freshwater",
+    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "inside" }],
+    interactiveActions: ["gather_scraps", "look_for_food", "fish", "trap_game", "forage", "chop"],
     hubFeatures: ["toolbelt"],
   },
   apocyltia_castle_keep: {
     id: "apocyltia_castle_keep",
+    region: "castle",
     name: "apocyltia castle keep",
     description: "Apocylta Castle Keep - the central stronghold of the castle, where the lord resides.",
     flavorText: [
@@ -1510,12 +1744,13 @@ export const LOCATIONS = {
       packLine,
     ],
     safe: true,
-    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "path" }],
-    interactiveActions: ["gather_scraps", "look_for_food"],
+    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "inside" }],
+    interactiveActions: ["rest", "wait", "meditate"],
     hubFeatures: ["toolbelt"],
   },
   apocyltia_castle_north_wing: {
     id: "apocyltia_castle_north_wing",
+    region: "castle",
     name: "apocyltia castle north wing",
     description: "Apocylta Castle North Wing - a series of chambers and halls that house the castle's archives and libraries.",
     flavorText: [
@@ -1526,7 +1761,7 @@ export const LOCATIONS = {
       weatherLine,
       "",
       firstVisitLine,
-      "The north wing is a labyrinth of corridors and chambers, with shelves lined with ancient tomes and scrolls.",
+      "The north wing is a labyrinth of shelves lined with ancient tomes and scrolls. A large chest sits in the center of the room.",
       "You can hear the occasional whisper of pages turning, and you can see the faint glow of candlelight flickering in the distance.",
       "",
       dangerLine,
@@ -1535,12 +1770,13 @@ export const LOCATIONS = {
       packLine,
     ],
     safe: true,
-    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "path" }],
-    interactiveActions: ["gather_scraps", "look_for_food"],
+    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "inside" }],
+    interactiveActions: ["store_item", "withdraw_item", "view_check"],
     hubFeatures: ["toolbelt"],
   },
   apocyltia_castle_south_wing: {
     id: "apocyltia_castle_south_wing",
+    region: "castle",
     name: "apocyltia castle south wing",
     description: "Apocylta Castle South Wing - a series of chambers and halls that house the castle's barracks and training grounds.",
     flavorText: [
@@ -1560,12 +1796,13 @@ export const LOCATIONS = {
       packLine,
     ],
     safe: true,
-    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "path" }],
+    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "inside" }],
     interactiveActions: ["gather_scraps", "look_for_food"],
     hubFeatures: ["toolbelt"],
   },
   apocyltia_castle_east_wing: {
     id: "apocyltia_castle_east_wing",
+    region: "castle",
     name: "apocyltia castle east wing",
     description: "Apocylta Castle East Wing - a series of chambers and halls that house the castle's kitchens and dining areas.",
     flavorText: [
@@ -1585,12 +1822,13 @@ export const LOCATIONS = {
       packLine,
     ],
     safe: true,
-    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "path" }],
+    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "inside" }],
     interactiveActions: ["gather_scraps", "look_for_food"],
     hubFeatures: ["toolbelt"],
   },
   apocyltia_castle_west_wing: {
     id: "apocyltia_castle_west_wing",
+    region: "castle",
     name: "apocyltia castle west wing",
     description: "Apocylta Castle West Wing - a series of chambers and halls that house the castle's guest rooms and quarters.",
     flavorText: [
@@ -1610,7 +1848,7 @@ export const LOCATIONS = {
       packLine,
     ],
     safe: true,
-    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "path" }],
+    exits: [{ label: "apocyltia castle", to: "apocyltia_castle", category: "inside" }],
     interactiveActions: ["gather_scraps", "look_for_food"],
     hubFeatures: ["toolbelt"],
   },
@@ -1619,6 +1857,7 @@ export const LOCATIONS = {
 // ** Town Square Shops
   weapons_shop: {
     id: "weapons_shop",
+    region: "haven",
     name: "weapons shop",
     description: "The Weapons Shop - racks of blades and battered firearms line the walls.",
     flavorText: [
@@ -1639,6 +1878,7 @@ export const LOCATIONS = {
 
   armor_shop: {
     id: "armor_shop",
+    region: "haven",
     name: "armor shop",
     description: "The Armor Shop - scavenged plating and stitched leathers hang from every hook.",
     flavorText: [
@@ -1660,6 +1900,7 @@ export const LOCATIONS = {
 
   potions_shop: {
     id: "potions_shop",
+    region: "haven",
     name: "potions shop",
     description: "The Potions Shop - shelves of murky bottles hum faintly in the dark.",
     flavorText: [
@@ -1680,6 +1921,7 @@ export const LOCATIONS = {
 
   magic_shop: {
     id: "magic_shop",
+    region: "haven",
     name: "magic shop",
     description: "The Magic Shop - shelves of strange artifacts and glowing crystals.",
     flavorText: [
@@ -1700,6 +1942,7 @@ export const LOCATIONS = {
 
   general_store: {
     id: "general_store",
+    region: "haven",
     name: "general store",
     description: "The General Store - a little bit of everything, none of it new.",
     flavorText: [
@@ -1719,6 +1962,7 @@ export const LOCATIONS = {
 
   black_market: {
     id: "black_market",
+    region: "haven",
     name: "black market",
     description: "The Black Market - a shadowed corner where questionable deals are made.",
     flavorText: [
@@ -1740,6 +1984,7 @@ export const LOCATIONS = {
 
   housing_district: {
     id: "housing_district",
+    region: "haven",
     name: "housing district",
     description: "The Housing District - rows of quiet, half-collapsed homes.",
     flavorText: [
@@ -1762,6 +2007,7 @@ export const LOCATIONS = {
   // ** Zenthal Market Shops
   zenthal_residential: {
     id: "zenthal_residential",
+    region: "zenthal",
     name: "zenthal residential",
     description: "The Zenthal Residential Area - rows of well-kept homes and gardens.",
     flavorText: [
@@ -1781,6 +2027,7 @@ export const LOCATIONS = {
   },
   zenthal_blacksmith: {
     id: "zenthal_blacksmith",
+    region: "zenthal",
     name: "zenthal blacksmith",
     description: "The Zenthal Blacksmith - a forge and workshop for crafting and repairing weapons and armor.",
     flavorText: [
@@ -1800,6 +2047,7 @@ export const LOCATIONS = {
   },
   zenthal_general_store: {
     id: "zenthal_general_store",
+    region: "zenthal",
     name: "zenthal general store",
     description: "The Zenthal General Store - a little bit of everything, none of it new.",
     flavorText: [
@@ -1819,6 +2067,7 @@ export const LOCATIONS = {
   },
   zenthal_black_market: {
     id: "zenthal_black_market",
+    region: "zenthal",
     name: "zenthal black market",
     description: "The Zenthal Black Market - a shadowed corner where questionable deals are made.",
     flavorText: [

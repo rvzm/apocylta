@@ -19,6 +19,9 @@ export function buildTravelTrack(elapsedSeconds, progress, category) {
     // without it here those trips drew the surface road.
     marker = even ? "([o](" : ")[o])";
     trackChar = even ? "." : ",";
+  } else if (category === "inside") {
+    marker = even ? "0" : "o";
+    trackChar = even ? "[]" : "][";
   } else {
     marker = even ? "+[]" : "[]+++";
     trackChar = "-";

@@ -7,7 +7,7 @@
 ## Project Status
 
 Early and actively in development (`0.0.1`), but genuinely playable end to end: make a character, travel a
-world of 67 locations, gather and mine and fish for materials, cook and smith and brew them into something
+world of 73 locations, gather and mine and fish for materials, cook and smith and brew them into something
 better, take quests, fight things, learn spells, and save your run — or lose it permanently, if you picked
 a difficulty that plays for keeps.
 
@@ -35,7 +35,7 @@ In this world, you can level up your skills, yourself, and live whatever life yo
   seven starter packs. Your difficulty sets far more than enemy stats: it decides how many skills you may
   call proficient, how fast the world gives up its materials, how often something jumps you, and whether
   death is recoverable.
-- **A hand-built world** — 67 connected locations across town, wilderness, mountains, caves, coastal
+- **A hand-built world** — 73 connected locations across town, wilderness, mountains, caves, coastal
   cities and the deep chambers beyond, each with its own shops, resources, opening hours and dangers.
 - **Timed travel** — longer trips run a countdown with a category-appropriate ASCII animation (a walker on
   a road, a glider over the sky, a cart in a tunnel, a shimmer for a teleport) and pay Speed xp on arrival.

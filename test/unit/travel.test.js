@@ -118,29 +118,23 @@ test("buildTravelTrack(): every category stays exactly one track wide, even at t
   }
 });
 
-// Documents a pre-existing, feature-unrelated data gap found while building
-// timed travel (data/locations.js's vetron_station/kooz_station exits point
-// at location ids that were never defined) - kept as an active assertion
-// (not silently skipped) so a NEW dangling reference still fails loudly,
-// while the known ones are explicitly carved out. If one of the known-bad
-// ids ever gets built out, the second loop below will fail, prompting its
-// removal from KNOWN_DANGLING rather than this test going silently stale.
-test("every location exit resolves to a real location id, except the known unfinished ones", () => {
-  const KNOWN_DANGLING = new Set(["vetron_city", "vetron_docks", "kooz_city", "kooz_docks"]);
+// This carried a KNOWN_DANGLING carve-out for vetron_city/vetron_docks/
+// kooz_city/kooz_docks, which vetron_station and kooz_station had always
+// exited to without either ever being defined. The carve-out was an active
+// assertion rather than a skip, precisely so that building one of them out
+// would fail here and prompt its own removal - which is what happened. Both
+// regions are real now and nothing dangles, so the test is a plain one again.
+test("every location exit resolves to a real location id", () => {
   const ids = new Set(Object.keys(LOCATIONS));
 
   const dangling = [];
   for (const [id, loc] of Object.entries(LOCATIONS)) {
     for (const exit of loc.exits ?? []) {
-      if (!ids.has(exit.to) && !KNOWN_DANGLING.has(exit.to)) dangling.push(`${exit.to} (from ${id})`);
+      if (!ids.has(exit.to)) dangling.push(`${exit.to} (from ${id})`);
     }
   }
-  assert.deepEqual(dangling, [], "unexpected dangling exit references beyond the known unfinished ones");
-
-  for (const badId of KNOWN_DANGLING) {
-    assert.ok(!ids.has(badId), `${badId} now exists in LOCATIONS - remove it from KNOWN_DANGLING`);
-  }
-});
+  assert.deepEqual(dangling, []);
+})
 
 // The travel screen numbers exits and binds one key per number, so a location
 // with more exits than DIGITS has destinations that are listed-but-unreachable

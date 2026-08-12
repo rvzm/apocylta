@@ -79,7 +79,7 @@ earn xp yet, so a pick spent there buys you the starting level 5 and nothing aft
 
 ## 3. The world
 
-67 locations, connected by exits you can see on the travel screen. Some are **safe** — nothing will jump
+73 locations, connected by exits you can see on the travel screen. Some are **safe** — nothing will jump
 you in a town square — and some aren't, which the status bar tells you at a glance.
 
 Most journeys take real time. Press `[T]ravel`, pick a numbered destination, and a longer trip hands you a
