@@ -106,7 +106,7 @@ test("weatherLine(): ordinary weather says nothing", () => {
 test("openLine(): null without openHours, and reflects the hours when present", () => {
   assert.equal(openLine(at(12), { id: "park" }), null);
 
-  const shop = { id: "weapons_shop", openHours: { open: 8, close: 20 } };
+  const shop = { id: "blacksmith", openHours: { open: 8, close: 20 } };
   assert.match(openLine(at(12), shop), /behind the counter/);
   assert.match(openLine(at(3), shop), /shutters are down/);
   assert.match(openLine(at(3), shop), /8am/, "and says when to come back");
@@ -115,7 +115,7 @@ test("openLine(): null without openHours, and reflects the hours when present", 
 // The open branch used to say nothing at all about when the shop shuts, which
 // is the one thing worth knowing while you're standing in it.
 test("openLine(): names hours on BOTH branches", () => {
-  const shop = { id: "weapons_shop", openHours: { open: 8, close: 20 } };
+  const shop = { id: "blacksmith", openHours: { open: 8, close: 20 } };
   assert.match(stripMarkup(openLine(at(12), shop)), /Open until 8pm\./, "open says when it shuts");
   assert.match(stripMarkup(openLine(at(3), shop)), /Open 8am - 8pm\./, "shut says the whole window");
 });
@@ -123,7 +123,7 @@ test("openLine(): names hours on BOTH branches", () => {
 // Green for go, red for no - the signal spellbook/blackMarket rows and
 // renderChrome's safe-zone bracket already share.
 test("openLine(): colours the hours by whether you can shop now", () => {
-  const shop = { id: "weapons_shop", openHours: { open: 8, close: 20 } };
+  const shop = { id: "blacksmith", openHours: { open: 8, close: 20 } };
   assert.match(openLine(at(12), shop), /\{green-fg\}\{bold\}8pm\{\/bold\}\{\/green-fg\}/);
   assert.match(openLine(at(3), shop), /\{red-fg\}\{bold\}8am - 8pm\{\/bold\}\{\/red-fg\}/);
 });

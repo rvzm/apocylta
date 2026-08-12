@@ -85,7 +85,7 @@ little after it. §6 has the details and the rest of the table.
 
 ## 3. The world
 
-73 locations, connected by exits you can see on the travel screen. Some are **safe** — nothing will jump
+74 locations, connected by exits you can see on the travel screen. Some are **safe** — nothing will jump
 you in a town square — and some aren't, which the status bar tells you at a glance.
 
 Most journeys take real time. Press `[T] Travel`, pick a numbered destination, and a longer trip hands you a
@@ -156,7 +156,7 @@ the trip time and the kind of route beside it. `->` on a row lists the shortcuts
 that the tree doesn't need — teleports and airboats. Shop interiors aren't drawn; they're gathered into
 the `Shops:` line under each region.
 
-### Apocylta Haven — 30 locations (6 behind shop doors)
+### Apocylta Haven — 31 locations (6 behind shop doors)
 
 ```
 town square                                 safe
@@ -180,15 +180,16 @@ town square                                 safe
 |     |- desert                             20s road   boss: Gilbert
 |     `- oasis                              10s road   safe, freshwater
 |- park                                     10s road   safe
+|- market square                            instant road   safe
 |- housing district                         5s road   safe
 |- safehouse                                [S] Safehouse   safe
 `- portal room                              5s teleport   safe
                                             -> mountain pass 5s, mountain peak 5s, cave entrance 5s
 ```
 
-**Shops:** weapons shop (weapons); armor shop (armor); potions shop (potions); magic shop (magic); general
-store (browse); black market (enhancements, illicit goods); plus counters at cave hub (browse); housing
-district (deeds).
+**Shops:** blacksmith (weapons, armor, salvage); potions shop (potions); food market (food); magic shop
+(magic); general store (browse, food, materials); black market (enhancements, illicit goods); plus counters at
+cave hub (browse); housing district (deeds).
 
 ### Zenthal — 10 locations (4 behind shop doors)
 

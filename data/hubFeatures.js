@@ -23,6 +23,16 @@ export const HUB_FEATURES = {
   shop_armor: { id: "shop_armor", hotkey: "A", label: "Armor" },
   shop_potions: { id: "shop_potions", hotkey: "P", label: "Potions" },
   shop_general: { id: "shop_general", hotkey: "B", label: "Browse" },
+  // The three counters shop_general was split into. F, X and V are the only
+  // free letters left - everything else is claimed by another feature here, by
+  // location.js's own T/K/M, or by main.js's global hard-quit on Q.
+  shop_food: { id: "shop_food", hotkey: "F", label: "Food" },
+  // "X" appears nowhere in "Materials", so the `R` action_key style has no
+  // letter to embolden and falls back to its prefix form - the same documented
+  // fallback `<>`, `+-` and every digit-keyed row already take. Worth it for a
+  // label that says what's behind the counter.
+  shop_crafting: { id: "shop_crafting", hotkey: "X", label: "Materials" },
+  shop_scrap: { id: "shop_scrap", hotkey: "V", label: "Salvage" },
   shop_illegal: { id: "shop_illegal", hotkey: "I", label: "Illicit Goods" },
   shop_sell: { id: "shop_sell", hotkey: "O", label: "Offload" },
   shop_ammo: {

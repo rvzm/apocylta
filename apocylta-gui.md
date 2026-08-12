@@ -438,11 +438,11 @@ Potions work the same way mid-fight (the [P]otion pick on the combat screen), do
 
 ## Shops
 
-Shops are locations rather than screens you open from anywhere - you travel into the weapons shop, and its
+Shops are locations rather than screens you open from anywhere - you travel into the blacksmith, and its
 hub features are what's behind the counter. Buying tabs the shop's stock and groups it into sections:
 ```
 _________________________________________________________________________
-| apocylta | Rae Lv.4 | [weapons shop] | 55sy        [idle]      9:12am  |
+| apocylta | Rae Lv.4 | [blacksmith]  | 55sy        [idle]      9:12am  |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|
 |   The racks are picked over, but there's steel here if you can pay.   |
 |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾|

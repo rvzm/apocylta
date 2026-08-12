@@ -12,7 +12,13 @@ const PROJECT_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 const TO_HOUSING = travelDigit("town_square", "housing_district"); // time: 5
 const TO_WILDERNESS = travelDigit("town_square", "wilderness"); // time: 15
-const TO_WEAPONS = travelDigit("town_square", "weapons_shop"); // shop, instant
+// Haven's shops sit behind the market square rather than off town square, so
+// reaching a shop door is two instant hops. All four of these have no `time`
+// field, which is the property this test is actually about.
+const TO_MARKET = travelDigit("town_square", "market_square");
+const TO_BLACKSMITH = travelDigit("market_square", "blacksmith"); // shop, instant
+const MARKET_FROM_BLACKSMITH = travelDigit("blacksmith", "market_square");
+const TOWN_FROM_MARKET = travelDigit("market_square", "town_square");
 
 test("timed travel: countdown screen, speed xp on arrival, shops stay instant, cancel returns to origin, background completion", async (t) => {
   const scratchDir = fs.mkdtempSync(path.join(os.tmpdir(), "apocylta-test-"));
@@ -70,14 +76,27 @@ test("timed travel: countdown screen, speed xp on arrival, shops stay instant, c
 
   session.sendKeys("t");
   await session.waitFor("Where would you like to go?");
-  session.sendKeys(TO_WEAPONS); // weapons shop, category "shop", no time field
+  session.sendKeys(TO_MARKET); // category "path" but no time field - still instant
+  const marketPane = await session.waitFor("What would you like to do?");
+  assert.match(marketPane, /\[market square\]/);
+  assert.doesNotMatch(marketPane, /Traveling\.\.\./);
+
+  session.sendKeys("t");
+  await session.waitFor("Where would you like to go?");
+  session.sendKeys(TO_BLACKSMITH); // category "shop", no time field
   const shopPane = await session.waitFor("What would you like to do?");
-  assert.match(shopPane, /\[weapons shop\]/);
+  assert.match(shopPane, /\[blacksmith\]/);
   assert.doesNotMatch(shopPane, /Traveling\.\.\./);
 
   session.sendKeys("t");
   await session.waitFor("Where would you like to go?");
-  session.sendKeys("1"); // weapons_shop's only exit -> town square, no time field
+  session.sendKeys(MARKET_FROM_BLACKSMITH); // the blacksmith's only exit
+  await session.waitFor("What would you like to do?");
+  assert.match(session.capture(), /\[market square\]/);
+
+  session.sendKeys("t");
+  await session.waitFor("Where would you like to go?");
+  session.sendKeys(TOWN_FROM_MARKET);
   await session.waitFor("What would you like to do?");
   assert.match(session.capture(), /\[town square\]/);
 

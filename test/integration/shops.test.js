@@ -31,6 +31,7 @@ import { bootstrapCharacter } from "../helpers/bootstrapCharacter.js";
 import { travelDigit, actionDigit } from "../helpers/hotkeys.js";
 import { bootstrappedState, blackMarketRow, shopBuyRow, shopSellRow, buyOnPaper, equipOnPaper } from "../helpers/rows.js";
 import { SHOPS } from "../../data/shops.js";
+import { LOCATIONS } from "../../data/locations.js";
 import { formatBase, purseTotal } from "../../currency_backbone.js";
 
 const PROJECT_ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -82,11 +83,29 @@ async function toTop(session) {
 
 // Every exit used here is instant (category "shop" or a bare path with no
 // `time`), so arrival is a single redraw away rather than a countdown screen.
-async function travel(session, fromId, toId) {
-  session.sendKeys("t");
-  await session.waitFor("Where would you like to go?");
-  session.sendKeys(travelDigit(fromId, toId));
-  await session.waitFor("What would you like to do?", 10000);
+//
+// Takes a PATH rather than a pair, because Haven's shops sit behind the market
+// square: town square -> market square -> general store. Consecutive ids are
+// walked in order, so a single-hop call still reads the way it always did.
+// Each hop asserts it is standing where the caller thinks it is before pressing
+// a digit. travelDigit() only proves the exit exists in the data - press that
+// digit somewhere else and it silently selects whatever sits at the same
+// position in THAT location's list, so a wrong assumption about the standing
+// position surfaces as a 10-second timeout in an unrelated shop rather than
+// here. Getting this wrong is exactly what happened when the market square
+// landed between town square and its shops.
+async function travel(session, ...path) {
+  for (let i = 0; i < path.length - 1; i++) {
+    session.sendKeys("t");
+    const pane = await session.waitFor("Where would you like to go?");
+    assert.match(
+      pane,
+      new RegExp(`Travel from ${LOCATIONS[path[i]].name}`, "i"),
+      `expected to be standing in ${path[i]}`
+    );
+    session.sendKeys(travelDigit(path[i], path[i + 1]));
+    await session.waitFor("What would you like to do?", 10000);
+  }
 }
 
 // Asserts the header is showing exactly `expectedBase` base units, denominated.
@@ -127,7 +146,7 @@ async function openTheBlackMarket(session) {
   assert.match(session.capture(), /\d+:\d+am/, "meditating should have carried the clock past midnight");
 
   await travel(session, "safehouse", "town_square");
-  await travel(session, "town_square", "black_market");
+  await travel(session, "town_square", "market_square", "black_market");
 }
 
 test("shops: the general store buys, sells and pays barter xp", async (t) => {
@@ -141,7 +160,7 @@ test("shops: the general store buys, sells and pays barter xp", async (t) => {
   session.start(`env ${env} node main.js`, { width: 120, height: 40, cwd: PROJECT_ROOT });
   await bootstrapCharacter(session, { name: "Shopper" });
 
-  await travel(session, "town_square", "general_store");
+  await travel(session, "town_square", "market_square", "general_store");
 
   // --- Buying ---
   session.sendKeys("b"); // HUB_FEATURES.shop_general is "B" for Browse
@@ -201,21 +220,21 @@ test("black market: a purchase equips into its own slot and moves a real gate", 
   await bootstrapCharacter(session, { name: "Buyer" });
 
   // --- What the general store looks like before any enhancement ---
-  await travel(session, "town_square", "general_store");
+  await travel(session, "town_square", "market_square", "general_store");
   session.sendKeys("b");
   await session.waitFor("What would you like to buy?");
   assert.doesNotMatch(session.capture(), /Crafting Kit/, "rare stock starts gated");
   session.sendKeys("b");
   await session.waitFor("What would you like to do?");
-  await travel(session, "general_store", "town_square");
+  await travel(session, "general_store", "market_square");
 
   // --- The market keeps night hours, and says so ---
-  await travel(session, "town_square", "black_market");
+  await travel(session, "market_square", "black_market");
   session.sendKeys("e"); // shop_enhancements, at 7:38pm
   await session.waitFor("The black market is closed right now. Come back later.");
 
   // --- Meditate past midnight and it lets us in ---
-  await travel(session, "black_market", "town_square");
+  await travel(session, "black_market", "market_square", "town_square");
   await openTheBlackMarket(session);
 
   session.sendKeys("e");
@@ -256,8 +275,8 @@ test("black market: a purchase equips into its own slot and moves a real gate", 
   // --- And it moves a gate the trained level never reached ---
   session.sendKeys("Escape");
   await session.waitFor("What would you like to do?");
-  await travel(session, "black_market", "town_square");
-  await travel(session, "town_square", "general_store");
+  await travel(session, "black_market", "market_square");
+  await travel(session, "market_square", "general_store");
   session.sendKeys("b");
   await session.waitFor("What would you like to buy?");
   // effectiveSkillLevel took barter from 5 to 15 and shopBuy's isPurchasable

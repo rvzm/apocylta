@@ -17,7 +17,7 @@ test("formatClock() formats minutes-since-midnight as 12h time", () => {
 
 test("isLocationOpen() handles a normal (non-wrapping) hour range", () => {
   const state = createInitialState();
-  state.currentLocationId = "weapons_shop"; // open: 8, close: 20
+  state.currentLocationId = "blacksmith"; // open: 8, close: 20
   state.clock.totalMinutes = 12 * 60;
   assert.equal(isLocationOpen(state), true);
   state.clock.totalMinutes = 2 * 60;
