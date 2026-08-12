@@ -409,3 +409,64 @@ test("loadGame() drops legacy group ids from the kill tally (slot 1)", async () 
   const loaded = loadGame(1);
   assert.deepEqual(loaded.enemiesDefeated, { weak_goblin: 5 }, "the group row is dropped, the member row kept");
 });
+
+// Blessings ride the save, and the `buffs` table they use had sat empty in the
+// schema since the start - so like `enhancements` and `achievements` before it,
+// this needed no ALTER TABLE migration.
+//
+// What makes this worth its own test is that the CLOCK is not persisted:
+// createInitialState reseeds it to 7:38pm on every load. An absolute expiry
+// would be measured against a different origin each time, so the remaining
+// minutes are what's stored and the deadline is rebuilt on the way in.
+test("saveGame()/loadGame() round-trips a live blessing as remaining minutes (slot 4)", async () => {
+  const { saveGame, loadGame } = await import("../../state/persistence.js");
+  const { createInitialState, effectiveSkillLevel } = await import("../../state/gameState.js");
+  const { SPELLS } = await import("../../magic_backbone.js");
+
+  const state = createInitialState();
+  state.name = "Blessed";
+  state.race = "human";
+  state.class = "warrior";
+  state.difficulty = "normal";
+  // Deliberately not the clock's starting value: if the save stored an absolute
+  // untilMinutes, this offset is what would make the reload wrong.
+  state.clock.totalMinutes = 5000;
+  state.aidBuffs = [
+    { spellId: "blessed pickaxe", untilMinutes: 5000 + 400 },
+    { spellId: "zions blessing", untilMinutes: 5000 + 1200 },
+    { spellId: "blessed hammer", untilMinutes: 4999 }, // already expired
+  ];
+  saveGame(state, 4);
+
+  const loaded = loadGame(4);
+  assert.equal(loaded.aidBuffs.length, 2, "the expired one is swept on save");
+
+  const remaining = (spellId) =>
+    loaded.aidBuffs.find((b) => b.spellId === spellId).untilMinutes - loaded.clock.totalMinutes;
+  assert.equal(remaining("blessed pickaxe"), 400);
+  assert.equal(remaining("zions blessing"), 1200);
+
+  // And it still does what a blessing does on the other side.
+  assert.equal(
+    effectiveSkillLevel(loaded, "mining"),
+    loaded.skills.mining.level + SPELLS["blessed pickaxe"].buff.mining + SPELLS["zions blessing"].buff.mining
+  );
+});
+
+test("saveGame()/loadGame(): a state with no blessings loads an empty list, not undefined (slot 5)", async () => {
+  const { saveGame, loadGame } = await import("../../state/persistence.js");
+  const { createInitialState, effectiveSkillLevel } = await import("../../state/gameState.js");
+
+  const state = createInitialState();
+  state.name = "Plain";
+  state.race = "human";
+  state.class = "warrior";
+  state.difficulty = "normal";
+  saveGame(state, 5);
+
+  const loaded = loadGame(5);
+  assert.deepEqual(loaded.aidBuffs, []);
+  // effectiveSkillLevel walks that array on every skill read, so an undefined
+  // here would throw on the first gather attempt after loading.
+  assert.equal(effectiveSkillLevel(loaded, "mining"), loaded.skills.mining.level);
+});

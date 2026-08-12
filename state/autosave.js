@@ -44,6 +44,13 @@ export function writeAutosave(state) {
     achievements: state.achievements,
     locationsVisited: [...state.locationsVisited],
     lifetime: state.lifetime,
+    // Remaining minutes, not the absolute deadline - the clock isn't captured
+    // here either (createInitialState reseeds it to 7:38pm), so an untilMinutes
+    // would be measured against a different origin on read. Same reasoning and
+    // same shape as the DB save's `buffs` rows.
+    aidBuffs: (state.aidBuffs ?? [])
+      .map((buff) => ({ spellId: buff.spellId, remainingMinutes: buff.untilMinutes - state.clock.totalMinutes }))
+      .filter((buff) => buff.remainingMinutes > 0),
     savedAt: Date.now(),
   };
   fs.mkdirSync(path.dirname(AUTOSAVE_PATH), { recursive: true });
@@ -64,6 +71,14 @@ export function readAutosave() {
     // key, and Object.assign would otherwise write undefined over the five slots
     // that effectiveSkillLevel() iterates every combat round.
     enhancements: snapshot.enhancements ?? state.enhancements,
+    // Rebuilt against the fresh state's clock, mirroring the write above. An
+    // autosave written before blessings existed has no key at all, and
+    // Object.assign would otherwise write undefined over the array that
+    // effectiveSkillLevel() walks on every skill read.
+    aidBuffs: (snapshot.aidBuffs ?? []).map((buff) => ({
+      spellId: buff.spellId,
+      untilMinutes: state.clock.totalMinutes + buff.remainingMinutes,
+    })),
     // An autosave written before the purse existed carries a flat `gold` total
     // instead. It was always in base units, so it decomposes straight down the
     // coin ladder - the same conversion db_backbone.js does for the DB.

@@ -12,6 +12,9 @@ import {
 import { RACES, CLASSES, DIFFICULTY_LEVELS, STARTER_ITEMS } from "../player_backbone.js";
 import { player_config } from "../config.js";
 import { STARTER_PACKS, ALL_ITEMS, ENHANCEMENT_SLOTS } from "../item_backbone.js";
+// The backbone, not data/magic.js - that one imports this file, and this only
+// needs the catalog and its vocabulary translation.
+import { SPELLS, aidSkillBonuses } from "../magic_backbone.js";
 import { logger } from "../logger.js";
 import { backpackSlotCap, backpackSlotsUsed, potionSlotCap, potionSlotsUsed } from "../data/toolbelt.js";
 import { minutesIntoDay, isOpenAt } from "./clock.js";
@@ -90,7 +93,7 @@ export function createInitialState() {
     enhancements: createInitialEnhancements(),
     toolbelt: createInitialToolbelt(),
     currentAction: null, // | { id, elapsedSeconds, gatheredThisSession: {} }
-    currentTravel: null, // | { fromLocationId, toLocationId, category, totalSeconds, elapsedSeconds }
+    currentTravel: null, // | { fromLocationId, toLocationId, category, baseSeconds, totalSeconds, elapsedSeconds }
     currentCombat: null, // | see data/combat.js's buildEncounter(); never persisted, same as the two above
     enemiesDefeated: {}, // lifetime { enemyId: count } tally - drives defeatEnemy quest objectives
     saveSlotId: null, // which numbered slot this session is bound to, so permadeath knows what to delete
@@ -101,6 +104,7 @@ export function createInitialState() {
     // derive through ALL_ITEMS/SPELLS instead of needing an index per shape.
     lifetime: { sold: {}, crafted: {}, cast: {}, used: {} },
     toasts: [], // transient unlock banners - see pushToast() below
+    aidBuffs: [], // live blessings: [{ spellId, untilMinutes }] - see applyAidBuff() below
     currentScreen: "title",
     returnScreen: "location",
     menuOrigin: null,
@@ -284,6 +288,40 @@ export function enhancementBonus(state, skillId) {
   return bonus;
 }
 
+// ----- Aid spells (the Blessed line) -----
+//
+// A cast blessing lives here as { spellId, untilMinutes } and nothing else -
+// the magnitudes are re-derived from SPELLS on every read, so retuning an aid
+// spell can't leave a stale bonus baked into somebody's save.
+//
+// Expiry rides clock.totalMinutes, which state/gameLoop.js already advances
+// exactly once per tick. That's the same trick activeToast() below uses, and
+// it's why this needs no tick hook of its own: whoever asks gets a correct
+// answer however they got here, including screens that never re-render.
+export function applyAidBuff(state, spellId, durationMinutes) {
+  // Recasting REPLACES rather than stacks, so topping up a blessing refreshes
+  // its clock instead of doubling its bonus. Two DIFFERENT blessings still
+  // stack, which is the whole point of the godlike ones overlapping the rare.
+  state.aidBuffs = [
+    ...(state.aidBuffs ?? []).filter((buff) => buff.spellId !== spellId),
+    { spellId, untilMinutes: state.clock.totalMinutes + durationMinutes },
+  ];
+}
+
+export function activeAidBuffs(state) {
+  if (!state.aidBuffs?.length) return [];
+  state.aidBuffs = state.aidBuffs.filter((buff) => buff.untilMinutes > state.clock.totalMinutes);
+  return state.aidBuffs;
+}
+
+export function aidBonus(state, skillId) {
+  let bonus = 0;
+  for (const { spellId } of activeAidBuffs(state)) {
+    bonus += aidSkillBonuses(SPELLS[spellId])[skillId] ?? 0;
+  }
+  return bonus;
+}
+
 // Use this wherever a skill level GATES or SCALES something in play - combat
 // maths, mining/fishing/magic requirements, gather odds, shop stock.
 //
@@ -291,9 +329,14 @@ export function enhancementBonus(state, skillId) {
 // achievement progress read the trained level directly, because a bought charm
 // must not complete "reach mining level 10", and the same goes for xp grants,
 // the action screen's session delta, and every display of the number.
+//
+// Aid spells plug in here rather than at each of those call sites for exactly
+// that rule's sake: one seam means a blessing reaches every gate and every
+// scaling factor, and reaches no quest, no achievement and no readout, without
+// any of them knowing blessings exist.
 export function effectiveSkillLevel(state, skillId) {
   const base = state.skills[skillId]?.level ?? 1;
-  return base + enhancementBonus(state, skillId);
+  return base + enhancementBonus(state, skillId) + aidBonus(state, skillId);
 }
 
 export function grantSkillXp(state, skillId, amount) {

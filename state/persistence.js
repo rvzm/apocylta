@@ -4,6 +4,7 @@ import { LOCATIONS } from "../data/locations.js";
 import { SKILLS, playerLevelFromXp } from "../skill_backbone.js";
 import { ALL_ITEMS } from "../item_backbone.js";
 import { isGroup } from "../enemy_backbone.js";
+import { SPELLS } from "../magic_backbone.js";
 import { game_config } from "../config.js";
 import { CUR_TYPES } from "../currency_backbone.js";
 
@@ -95,6 +96,16 @@ export function saveGame(state, slotId) {
   const insertEnhancement = db.prepare(
     `INSERT INTO enhancements (player_id, enhancement_id) VALUES (?, ?)`
   );
+  // Live aid-spell blessings. Uses the `buffs` table, empty in the schema since
+  // the start - third time that trick has paid off, after `achievements` and
+  // `enhancements`, and again no ALTER TABLE was needed.
+  //
+  // Stores the REMAINING minutes rather than the absolute untilMinutes, which
+  // is what the column is called and what actually survives: the expiry is
+  // rebuilt against clock.totalMinutes on load, so a blessing is worth the
+  // same amount of play whenever the save is opened.
+  const deleteBuffs = db.prepare(`DELETE FROM buffs WHERE player_id = ?`);
+  const insertBuff = db.prepare(`INSERT INTO buffs (player_id, buff_id, duration) VALUES (?, ?, ?)`);
   const deleteCounters = db.prepare(`DELETE FROM lifetime_counters WHERE player_id = ?`);
   const insertCounter = db.prepare(
     `INSERT INTO lifetime_counters (player_id, kind, counter_key, quantity) VALUES (?, ?, ?, ?)`
@@ -158,6 +169,14 @@ export function saveGame(state, slotId) {
     deleteSpells.run(slotId);
     for (const spellId of s.spells) insertSpell.run(slotId, spellId);
 
+    // Already-expired entries are dropped rather than written with a negative
+    // remainder - a save is as good a moment to sweep as a read.
+    deleteBuffs.run(slotId);
+    for (const buff of s.aidBuffs ?? []) {
+      const remaining = buff.untilMinutes - s.clock.totalMinutes;
+      if (remaining > 0) insertBuff.run(slotId, buff.spellId, remaining);
+    }
+
     // state.currentCombat is deliberately never persisted, matching
     // currentAction/currentTravel - loading always resumes out of combat. The
     // lifetime kill tally behind defeatEnemy quest objectives does persist.
@@ -216,6 +235,7 @@ export function loadGame(slotId) {
     .all(slotId);
   const visitedRows = db.prepare(`SELECT location_id FROM locations_visited WHERE player_id = ?`).all(slotId);
   const enhancementRows = db.prepare(`SELECT enhancement_id FROM enhancements WHERE player_id = ?`).all(slotId);
+  const buffRows = db.prepare(`SELECT buff_id, duration FROM buffs WHERE player_id = ?`).all(slotId);
   const counterRows = db
     .prepare(`SELECT kind, counter_key, quantity FROM lifetime_counters WHERE player_id = ?`)
     .all(slotId);
@@ -255,6 +275,14 @@ export function loadGame(slotId) {
     if (slot && slot in state.enhancements) state.enhancements[slot] = itemId;
   }
   state.spells = new Set(spellRows.map((r) => r.spell_id));
+  // Rebuilt against the clock rather than restored as an absolute deadline -
+  // the clock is NOT persisted (createInitialState seeds it to 7:38pm every
+  // time), so a stored untilMinutes would be measured against a different
+  // origin on every load and a blessing would come back already dead or
+  // effectively permanent. A spell the catalog no longer knows is dropped.
+  state.aidBuffs = buffRows
+    .filter((r) => SPELLS[r.buff_id]?.type === "aid" && r.duration > 0)
+    .map((r) => ({ spellId: r.buff_id, untilMinutes: state.clock.totalMinutes + r.duration }));
   // Groups are headers, not enemies - only members are ever recorded as kills.
   // Saves written before that rule existed contain group ids (they used to be
   // fought as single stat-blobs), so drop them here rather than carry rows the
@@ -322,6 +350,7 @@ export function deleteSave(slotId) {
     db.prepare(`DELETE FROM achievements WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM locations_visited WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM enhancements WHERE player_id = ?`).run(id);
+    db.prepare(`DELETE FROM buffs WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM lifetime_counters WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM quests WHERE player_id = ?`).run(id);
     db.prepare(`DELETE FROM player WHERE id = ?`).run(id);

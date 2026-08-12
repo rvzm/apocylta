@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createInitialState } from "../../state/gameState.js";
-import { beginTravel, tickTravel } from "../../data/travel.js";
+import { beginTravel, tickTravel, travelSecondsFor } from "../../data/travel.js";
 import { buildTravelTrack } from "../../ui/screens/traveling.js";
 import { DIGITS, orderedExits } from "../../ui/screens/travel.js";
 import { LOCATIONS } from "../../data/locations.js";
@@ -14,9 +14,93 @@ test("beginTravel() sets up currentTravel from an exit", () => {
     fromLocationId: "town_square",
     toLocationId: "wilderness",
     category: "path",
+    // Both are kept: totalSeconds is how long the walk actually takes at this
+    // speed level, baseSeconds is what the route is authored at. At speed 1
+    // they agree, which is the point of the curve starting at 1.0.
+    baseSeconds: 15,
     totalSeconds: 15,
     elapsedSeconds: 0,
   });
+});
+
+// The speed skill shortens a trip. Gently, and from a base of exactly the
+// authored time, because the timed integration tests drive a real game with a
+// level 1-5 character and would start failing on drift they can't see.
+test("travelSecondsFor(): level 1 is the authored time exactly", () => {
+  const state = createInitialState();
+  assert.equal(state.skills.speed.level, 1);
+  for (const seconds of [5, 10, 15, 20, 30]) {
+    assert.equal(travelSecondsFor(state, seconds), seconds);
+  }
+});
+
+test("travelSecondsFor(): a fresh proficient character (speed 5) still walks the authored time", () => {
+  const state = createInitialState();
+  state.skills.speed.level = 5;
+  assert.equal(travelSecondsFor(state, 15), 15);
+  assert.equal(travelSecondsFor(state, 30), 30);
+});
+
+test("travelSecondsFor(): higher speed shortens the trip, monotonically", () => {
+  const state = createInitialState();
+  const at = (level) => {
+    state.skills.speed.level = level;
+    return travelSecondsFor(state, 30);
+  };
+  assert.equal(at(1), 30);
+  assert.equal(at(25), 28);
+  assert.equal(at(50), 25);
+  assert.equal(at(100), 19);
+
+  let previous = Infinity;
+  for (let level = 1; level <= 200; level++) {
+    const seconds = at(level);
+    assert.ok(seconds <= previous, `speed ${level} took longer than ${level - 1}`);
+    previous = seconds;
+  }
+});
+
+test("travelSecondsFor(): the floor holds at 40% off, however high speed climbs", () => {
+  const state = createInitialState();
+  for (const level of [101, 200, 500]) {
+    state.skills.speed.level = level;
+    assert.equal(travelSecondsFor(state, 30), 18, `speed ${level}`);
+  }
+  // Never below a second, whatever the multiplication says.
+  state.skills.speed.level = 500;
+  assert.equal(travelSecondsFor(state, 1), 1);
+});
+
+// Travel is a thing a level SCALES, so it reads the effective level - the same
+// number gather odds and the ore gates read. Haste is pointedly not part of it:
+// it's a combat buff on state.currentCombat, and there is no fight to hold one
+// while you're on a road.
+test("travelSecondsFor(): reads the effective speed level, not the trained one", () => {
+  const state = createInitialState();
+  assert.equal(travelSecondsFor(state, 30), 30);
+
+  state.skills.speed.level = 100;
+  assert.equal(travelSecondsFor(state, 30), 19, "trained level counts");
+
+  state.skills.speed.level = 1;
+  state.currentCombat = { buffs: { speed: 99 } };
+  assert.equal(travelSecondsFor(state, 30), 30, "a combat haste does not shorten a road");
+});
+
+// Paying on the shortened figure would make every level of speed cut the xp
+// that speed earns - a skill that taxes its own training.
+test("tickTravel() pays speed xp on the route's authored length, not the shortened one", () => {
+  const state = createInitialState();
+  state.currentLocationId = "town_square";
+  state.skills.speed.level = 100;
+
+  beginTravel(state, { to: "wilderness", category: "path", time: 30 });
+  assert.equal(state.currentTravel.totalSeconds, 19, "the walk is shorter");
+
+  const before = state.skills.speed.xp;
+  for (let i = 0; i < 19; i++) tickTravel(state);
+  assert.equal(state.currentTravel, null, "the trip finished in 19 ticks");
+  assert.equal(state.skills.speed.xp - before, 30, "but it paid the full 30");
 });
 
 test("tickTravel() is a no-op when currentTravel is null", () => {
@@ -134,7 +218,7 @@ test("every location exit resolves to a real location id", () => {
     }
   }
   assert.deepEqual(dangling, []);
-})
+});
 
 // The travel screen numbers exits and binds one key per number, so a location
 // with more exits than DIGITS has destinations that are listed-but-unreachable

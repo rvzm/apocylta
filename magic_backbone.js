@@ -46,14 +46,23 @@ export const SPELLS = {
     "toxic poison": { name: "Toxic Poison", type: "poison", rarity: "godlike", level: 10, learn: { "arcane_essence": 4, "mystic_dust": 3, "void_shard": 1 }, poison: { dps: 10, duration: 10 }, xp: 20, mp: 40 },
 
     // Aid Spells
-    "blessed hammer": { name: "Blessed Hammer", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { smithing: 10 }, xp: 12, mp: 24 },
-    "blessed pickaxe": { name: "Blessed Pickaxe", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { mining: 10 }, xp: 12, mp: 24 },
-    "blessed hands": { name: "Blessed Hands", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { crafting: 10 }, xp: 12, mp: 24 },
-    "blessed satchel": { name: "Blessed Satchel", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { gathering: 10 }, xp: 12, mp: 24 },
-    "blessed alchemy": { name: "Blessed Alchemy", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { alchemy: 10 }, xp: 12, mp: 24 },
-    "zions blessing": { name: "Zion's Blessing", type: "aid", rarity: "godlike", level: 40, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, buff: { smithing: 25, mining: 25, crafting: 25, gathering: 25, alchemy: 25 }, xp: 20, mp: 40 },
-    "kratchs blessing": { name: "K'ratch's Blessing", type: "aid", rarity: "godlike", level: 60, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, buff: { smithing: 25, mining: 25, crafting: 25, gathering: 25, alchemy: 25 }, xp: 20, mp: 40 },
-    "blessing of apocylta": { name: "Blessing of Apocylta", type: "aid", rarity: "godlike", level: 100, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, buff: { smithing: 25, mining: 25, crafting: 25, gathering: 25, alchemy: 25 }, xp: 20, mp: 40 },
+    //
+    // `duration` is in GAME minutes, and the clock runs one game minute per real
+    // second (state/gameLoop.js) - so 600 is ten real minutes and 1800 is thirty.
+    // The five rare blessings get the short window and the three godlike ones the
+    // long, which is the only thing separating them: they cost void shards to
+    // learn and buff five skills at 25 apiece rather than one at 10.
+    //
+    // Aid was the one spell type castSpell() had no branch for, so all eight of
+    // these used to fall through to "but nothing happens" - see data/magic.js.
+    "blessed hammer": { name: "Blessed Hammer", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { smithing: 10 }, duration: 600, xp: 12, mp: 24 },
+    "blessed pickaxe": { name: "Blessed Pickaxe", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { mining: 10 }, duration: 600, xp: 12, mp: 24 },
+    "blessed hands": { name: "Blessed Hands", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { crafting: 10 }, duration: 600, xp: 12, mp: 24 },
+    "blessed satchel": { name: "Blessed Satchel", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { gathering: 10 }, duration: 600, xp: 12, mp: 24 },
+    "blessed alchemy": { name: "Blessed Alchemy", type: "aid", rarity: "rare", level: 8, learn: { "ley_crystals": 3, "arcane_shard": 3 }, buff: { alchemy: 10 }, duration: 600, xp: 12, mp: 24 },
+    "zions blessing": { name: "Zion's Blessing", type: "aid", rarity: "godlike", level: 40, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, buff: { smithing: 25, mining: 25, crafting: 25, gathering: 25, alchemy: 25 }, duration: 1800, xp: 20, mp: 40 },
+    "kratchs blessing": { name: "K'ratch's Blessing", type: "aid", rarity: "godlike", level: 60, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, buff: { smithing: 25, mining: 25, crafting: 25, gathering: 25, alchemy: 25 }, duration: 1800, xp: 20, mp: 40 },
+    "blessing of apocylta": { name: "Blessing of Apocylta", type: "aid", rarity: "godlike", level: 100, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, buff: { smithing: 25, mining: 25, crafting: 25, gathering: 25, alchemy: 25 }, duration: 1800, xp: 20, mp: 40 },
 
     // Teleport Spells
     "wilderness_teleport": { name: "Wilderness Teleport", type: "teleport", rarity: "common", level: 2, learn: { "ley_crystals": 2, "arcane_shard": 2 }, teleport: "wilderness", xp: 5, mp: 10 },
@@ -67,8 +76,51 @@ export const SPELLS = {
     "vetron_station_teleport": { name: "Vetron Station Teleport", type: "teleport", rarity: "rare", level: 20, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, teleport: "vetron_station", xp: 50, mp: 100 },
     "kooz_station_teleport": { name: "Kooz Station Teleport", type: "teleport", rarity: "rare", level: 20, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, teleport: "kooz_station", xp: 50, mp: 100 },
     // Castle Teleport - Godlike
-    "azrael_castle_teleport": { name: "Azrael Castle Teleport", type: "teleport", rarity: "godlike", level: 20, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, teleport: "azrael_castle", xp: 50, mp: 100 },
+    "apocyltia_castle_teleport": { name: "Apocylta Castle Teleport", type: "teleport", rarity: "godlike", level: 20, learn: { "arcane_essence": 5, "mystic_dust": 5, "void_shard": 2 }, teleport: "apocyltia_castle", xp: 50, mp: 100 },
 };
+
+// ----- Aid spells -----
+//
+// An aid spell's `buff` is authored in SPELL vocabulary, not in skill ids, and
+// one of its keys isn't a skill at all: "gathering". Translated here, once, for
+// the same reason item_backbone.js's withFishingDefaults() translates rod/bait
+// into canonical item types at the catalog rather than leaving every consumer
+// to work it out.
+//
+// Mining is deliberately NOT part of gathering: Blessed Pickaxe already covers
+// it, and the godlike blessings buff `mining` and `gathering` as separate
+// entries, so the catalog itself says they're different things.
+export const AID_SKILL_ALIASES = {
+    gathering: ["foraging", "woodcutting", "trapping", "fishing"],
+};
+
+export const DEFAULT_AID_DURATION_MINUTES = 600;
+
+// An AID spell's buff resolved to { skillId: bonus }. An alias fans out to
+// several skills at the same magnitude; anything else is already a skill id and
+// passes straight through. Takes the max on a collision rather than summing, so
+// Zion's Blessing (mining 25 + gathering 25) can't be read as stacking with
+// itself if "gathering" ever gains mining.
+//
+// Non-aid spells resolve to nothing on purpose. Combat buffs use the same
+// `buff` field for a completely different thing (Haste's { speed: 5 } is a
+// combat stat, not a skill level), and state.aidBuffs is rebuilt from stored
+// spell ids on load - so without this guard a hand-edited or corrupted save row
+// naming "haste" would grant a timed +5 speed that nothing ever intended.
+export function aidSkillBonuses(spell) {
+    if (spell?.type !== "aid") return {};
+    const bonuses = {};
+    for (const [key, amount] of Object.entries(spell?.buff ?? {})) {
+        for (const skillId of AID_SKILL_ALIASES[key] ?? [key]) {
+            bonuses[skillId] = Math.max(bonuses[skillId] ?? 0, amount);
+        }
+    }
+    return bonuses;
+}
+
+export function aidDurationMinutes(spell) {
+    return spell?.duration ?? DEFAULT_AID_DURATION_MINUTES;
+}
 
 // Magic Helpers
 export function getSpell(spellId) {

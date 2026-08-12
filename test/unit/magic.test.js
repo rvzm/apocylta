@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createInitialState } from "../../state/gameState.js";
+import { createInitialState, effectiveSkillLevel, activeAidBuffs } from "../../state/gameState.js";
 import {
   isSpellKnown,
   isSpellUnlocked,
@@ -9,7 +9,7 @@ import {
   canCastSpell,
   castSpell,
 } from "../../data/magic.js";
-import { SPELLS } from "../../magic_backbone.js";
+import { SPELLS, aidSkillBonuses } from "../../magic_backbone.js";
 
 // Picked out of the catalog rather than named: which spells carry a `learn`
 // cost is tuning data that has already been re-pitched once (cure lost its cost
@@ -151,4 +151,102 @@ test("canCastSpell()/castSpell(): refuses an unknown spell even with enough mp",
   const state = createInitialState();
   assert.equal(canCastSpell(state, "cure"), false);
   assert.equal(castSpell(state, "cure"), null);
+});
+
+// ----- Aid spells (the Blessed line) -----
+//
+// Aid was the one spell type castSpell() had no branch for, so all eight of
+// them charged their mana and returned "but nothing happens". They now raise
+// the EFFECTIVE skill level for a timed window.
+
+// Knows `spellId`, has the magic level for it, and enough mana to cast.
+function blessed(spellId) {
+  const state = mage(spellId);
+  state.spells.add(spellId);
+  state.mp = state.mpMax = 500;
+  return state;
+}
+
+test("castSpell(): an aid spell raises the effective skill level, not the trained one", () => {
+  const state = blessed("blessed pickaxe");
+  const trainedBefore = state.skills.mining.level;
+
+  const message = castSpell(state, "blessed pickaxe");
+  assert.match(message, /Mining is sharpened/);
+  assert.equal(effectiveSkillLevel(state, "mining"), trainedBefore + SPELLS["blessed pickaxe"].buff.mining);
+  // The rule that keeps quests and achievements honest: they read the trained
+  // number, so a 24-mana spell must not complete "reach mining level 10".
+  assert.equal(state.skills.mining.level, trainedBefore);
+});
+
+test("castSpell(): an aid spell expires on the clock and takes its bonus with it", () => {
+  const state = blessed("blessed pickaxe");
+  const trained = state.skills.mining.level;
+  castSpell(state, "blessed pickaxe");
+  assert.ok(effectiveSkillLevel(state, "mining") > trained);
+
+  state.clock.totalMinutes += SPELLS["blessed pickaxe"].duration - 1;
+  assert.ok(effectiveSkillLevel(state, "mining") > trained, "still live one minute short");
+
+  state.clock.totalMinutes += 1;
+  assert.equal(effectiveSkillLevel(state, "mining"), trained);
+  assert.deepEqual(activeAidBuffs(state), []);
+});
+
+test("castSpell(): recasting the same blessing refreshes it rather than stacking it", () => {
+  const state = blessed("blessed pickaxe");
+  const trained = state.skills.mining.level;
+  const bonus = SPELLS["blessed pickaxe"].buff.mining;
+
+  castSpell(state, "blessed pickaxe");
+  state.clock.totalMinutes += 500;
+  castSpell(state, "blessed pickaxe");
+
+  assert.equal(activeAidBuffs(state).length, 1, "one entry, not two");
+  assert.equal(effectiveSkillLevel(state, "mining"), trained + bonus, "and one bonus, not two");
+
+  // Refreshed: the first cast's window would have closed by now.
+  state.clock.totalMinutes += 200;
+  assert.equal(effectiveSkillLevel(state, "mining"), trained + bonus);
+});
+
+test("castSpell(): two different blessings stack, which is what the godlike ones are for", () => {
+  const state = blessed("blessed pickaxe");
+  state.spells.add("zions blessing");
+  const trained = state.skills.mining.level;
+
+  castSpell(state, "blessed pickaxe");
+  castSpell(state, "zions blessing");
+
+  assert.equal(activeAidBuffs(state).length, 2);
+  assert.equal(
+    effectiveSkillLevel(state, "mining"),
+    trained + SPELLS["blessed pickaxe"].buff.mining + SPELLS["zions blessing"].buff.mining
+  );
+});
+
+test("aidSkillBonuses(): `gathering` is not a skill id and fans out to the four hand-gathering skills", () => {
+  const bonuses = aidSkillBonuses(SPELLS["blessed satchel"]);
+  assert.deepEqual(Object.keys(bonuses).sort(), ["fishing", "foraging", "trapping", "woodcutting"]);
+  for (const value of Object.values(bonuses)) assert.equal(value, SPELLS["blessed satchel"].buff.gathering);
+  // Mining is deliberately excluded - Blessed Pickaxe covers it, and the
+  // godlike blessings buff mining and gathering as separate entries.
+  assert.equal(bonuses.mining, undefined);
+});
+
+test("aidSkillBonuses(): a non-aid spell resolves to nothing, so a stray save row can't grant a combat buff", () => {
+  // haste carries buff: { speed: 5 }, which is a combat stat and not a skill
+  // level. state.aidBuffs is rebuilt from stored spell ids on load, so this
+  // guard is what stops a hand-edited row from granting a timed +5 speed.
+  assert.deepEqual(aidSkillBonuses(SPELLS.haste), {});
+  const state = createInitialState();
+  state.aidBuffs = [{ spellId: "haste", untilMinutes: state.clock.totalMinutes + 999 }];
+  assert.equal(effectiveSkillLevel(state, "speed"), state.skills.speed.level);
+});
+
+test("castSpell(): a blessing works out of combat, unlike a buff", () => {
+  const state = blessed("blessed hammer");
+  assert.equal(state.currentCombat, null);
+  assert.match(castSpell(state, "blessed hammer"), /Smithing is sharpened/);
+  assert.equal(activeAidBuffs(state).length, 1);
 });

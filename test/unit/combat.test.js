@@ -12,6 +12,7 @@ import {
   resolveDefeat,
   attemptFlee,
   usePotion,
+  dodgeChance,
   playerAttackPower,
   playerDefensePower,
   damageReduction,
@@ -22,6 +23,7 @@ import {
 import { BASIC_ENEMIES } from "../../enemy_backbone.js";
 import { DIFFICULTY_LEVELS } from "../../player_backbone.js";
 import { player_config } from "../../config.js";
+import { SPELLS } from "../../magic_backbone.js";
 
 // Every rolling function in data/combat.js takes an rng last, so these fix it
 // rather than stubbing Math.random. 0.99 never triggers a chance-gated branch
@@ -708,4 +710,69 @@ test("a lone enemy gets no group header", () => {
   return import("../../ui/screens/combat.js").then(({ buildGroupHeader }) => {
     assert.equal(buildGroupHeader(state.currentCombat), null);
   });
+});
+
+// ----- Haste -----
+//
+// castSpell() has always written Haste's buff to currentCombat.buffs.speed, but
+// only buffs.attack and buffs.defense were ever read back - so Haste was a
+// 14-mana spell with no effect at all. dodgeChance and attemptFlee now read it,
+// the same way playerAttackPower and playerDefensePower read theirs.
+
+test("dodgeChance(): a speed buff raises it, and the cap still holds", () => {
+  const state = createInitialState();
+  state.currentCombat = buildEncounter(state, "weak_goblin");
+  const base = dodgeChance(state);
+
+  state.currentCombat.buffs.speed = SPELLS.haste.buff.speed;
+  assert.ok(dodgeChance(state) > base, "haste should improve the odds");
+
+  state.currentCombat.buffs.speed = 10000;
+  assert.equal(dodgeChance(state), 0.5, "but never past the 50% ceiling");
+});
+
+test("attemptFlee(): a speed buff raises it, and the cap still holds", () => {
+  // A roll that would fail at the base rate but land with haste up.
+  const between = (state) => {
+    state.currentCombat.buffs.speed = 0;
+    const low = fleeChanceOf(state);
+    state.currentCombat.buffs.speed = SPELLS.haste.buff.speed;
+    const high = fleeChanceOf(state);
+    assert.ok(high > low, `haste should improve flee odds (${low} -> ${high})`);
+    return (low + high) / 2;
+  };
+  // Derived by bisecting attemptFlee's own behaviour rather than restating its
+  // formula here - a test that recomputes the thing it checks proves nothing.
+  const fleeChanceOf = (state) => {
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (attemptFlee(state, () => mid)) lo = mid;
+      else hi = mid;
+    }
+    return lo;
+  };
+
+  const state = createInitialState();
+  state.currentCombat = buildEncounter(state, "weak_goblin");
+  const roll = between(state);
+
+  state.currentCombat.buffs.speed = 0;
+  assert.equal(attemptFlee(state, () => roll), false, "fails without haste");
+  state.currentCombat.buffs.speed = SPELLS.haste.buff.speed;
+  assert.equal(attemptFlee(state, () => roll), true, "succeeds with it");
+
+  state.currentCombat.buffs.speed = 10000;
+  assert.equal(attemptFlee(state, () => 0.89), true);
+  assert.equal(attemptFlee(state, () => 0.91), false, "never past the 90% ceiling");
+});
+
+test("Haste is encounter-scoped: no buff outside a fight", () => {
+  const state = createInitialState();
+  assert.equal(state.currentCombat, null);
+  // dodgeChance reads currentCombat optionally, so it must not throw with no
+  // fight in progress - the defeat screen and the achievement sweep both reach
+  // for combat stats after endCombat() has cleared it.
+  assert.ok(dodgeChance(state) > 0);
 });

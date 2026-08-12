@@ -108,3 +108,41 @@ test("writeAutosave() overwrites the previous snapshot rather than accumulating"
 
   assert.equal(readAutosave().name, "Second");
 });
+
+// The autosave captures the same logical fields the DB save does, blessings
+// included - and for the same reason it stores remaining minutes rather than an
+// absolute deadline: readAutosave() builds on createInitialState(), whose clock
+// is reseeded to 7:38pm every time.
+test("writeAutosave()/readAutosave() round-trips a live blessing against a reseeded clock", async () => {
+  const { writeAutosave, readAutosave } = await import("../../state/autosave.js");
+  const { createInitialState, effectiveSkillLevel } = await import("../../state/gameState.js");
+  const { SPELLS } = await import("../../magic_backbone.js");
+
+  const state = createInitialState();
+  state.clock.totalMinutes = 9000;
+  state.aidBuffs = [
+    { spellId: "blessed pickaxe", untilMinutes: 9000 + 250 },
+    { spellId: "blessed hammer", untilMinutes: 8999 }, // already expired
+  ];
+  writeAutosave(state);
+
+  const loaded = readAutosave();
+  assert.equal(loaded.aidBuffs.length, 1, "the expired one is swept on write");
+  assert.equal(loaded.aidBuffs[0].untilMinutes - loaded.clock.totalMinutes, 250);
+  assert.equal(
+    effectiveSkillLevel(loaded, "mining"),
+    loaded.skills.mining.level + SPELLS["blessed pickaxe"].buff.mining
+  );
+});
+
+// Object.assign would otherwise write undefined over the array effectiveSkillLevel
+// walks on every skill read - the same trap enhancements and locationsVisited hit.
+test("readAutosave(): a snapshot written before blessings existed loads an empty list, not undefined", async () => {
+  const { readAutosave, AUTOSAVE_PATH } = await import("../../state/autosave.js");
+  const raw = JSON.parse(fs.readFileSync(AUTOSAVE_PATH, "utf8"));
+  delete raw.aidBuffs;
+  fs.writeFileSync(AUTOSAVE_PATH, JSON.stringify(raw));
+
+  const loaded = readAutosave();
+  assert.deepEqual(loaded.aidBuffs, []);
+});

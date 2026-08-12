@@ -112,8 +112,16 @@ export function critChance(state) {
   return Math.min(MAX_CRIT_CHANCE, (combat_config.criticalHitChance ?? 0.1) + effectiveSkillLevel(state, "luck") * CHANCE_PER_LEVEL);
 }
 
+// The speed a fight should use: trained + enhancements + whatever Haste is
+// contributing. buffs.attack and buffs.defense were already read this way by
+// playerAttackPower/playerDefensePower above; buffs.speed was written by
+// castSpell() and read by nothing, so Haste was a mana cost with no effect.
+function combatSpeed(state) {
+  return effectiveSkillLevel(state, "speed") + (state.currentCombat?.buffs?.speed ?? 0);
+}
+
 export function dodgeChance(state) {
-  return Math.min(MAX_DODGE_CHANCE, (combat_config.dodgeChance ?? 0.05) + effectiveSkillLevel(state, "speed") * CHANCE_PER_LEVEL);
+  return Math.min(MAX_DODGE_CHANCE, (combat_config.dodgeChance ?? 0.05) + combatSpeed(state) * CHANCE_PER_LEVEL);
 }
 
 export function blockChance(state) {
@@ -264,7 +272,7 @@ export function usePotion(state, itemId) {
 }
 
 export function attemptFlee(state, rng = Math.random) {
-  const chance = Math.min(0.9, FLEE_BASE_CHANCE + effectiveSkillLevel(state, "speed") * CHANCE_PER_LEVEL * 2);
+  const chance = Math.min(0.9, FLEE_BASE_CHANCE + combatSpeed(state) * CHANCE_PER_LEVEL * 2);
   const escaped = rng() < chance;
   if (escaped) grantSkillXp(state, "speed", SPEED_XP_PER_DODGE);
   return escaped;

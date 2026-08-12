@@ -1,6 +1,7 @@
-import { SPELLS } from "../magic_backbone.js";
+import { SPELLS, aidDurationMinutes, aidSkillBonuses } from "../magic_backbone.js";
+import { SKILLS } from "../skill_backbone.js";
 import { LOCATIONS } from "./locations.js";
-import { grantSkillXp, moveTo, effectiveSkillLevel } from "../state/gameState.js";
+import { grantSkillXp, moveTo, effectiveSkillLevel, applyAidBuff } from "../state/gameState.js";
 import { hasIngredients, spendIngredients } from "./stations.js";
 // Deliberate import cycle: quests.js imports isSpellKnown() from this file.
 // Safe because both modules only export hoisted function declarations and do
@@ -47,6 +48,23 @@ export function learnSpell(state, spellId) {
 export function canCastSpell(state, spellId) {
   const spell = SPELLS[spellId];
   return !!spell && isSpellKnown(state, spellId) && (state.godmode === true || state.mp >= spell.mp);
+}
+
+// "Mining", "Foraging, Woodcutting, Trapping and Fishing" - a blessing can
+// raise anywhere from one skill to five, and Blessed Satchel raises four the
+// player never named, so the cast message says which rather than leaving them
+// to infer it from a status badge.
+function listSkillNames(skillIds) {
+  const names = skillIds.map((id) => SKILLS[id]?.name ?? id);
+  if (names.length <= 1) return `${names[0] ?? "Nothing"} is`;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]} are`;
+}
+
+// Durations are authored in game minutes, and the clock runs one of those per
+// real second - so the honest thing to show a player waiting on a wall clock
+// is the real time it buys them.
+function formatDuration(minutes) {
+  return minutes >= 60 ? `${Math.round(minutes / 60)} minutes` : `${minutes} seconds`;
 }
 
 // `target` is the live enemy object from state.currentCombat, supplied by
@@ -107,6 +125,20 @@ export function castSpell(state, spellId, target = null) {
       combat.buffs[stat] = (combat.buffs[stat] ?? 0) + amount;
     }
     return `You cast ${spell.name}. You feel it take hold.`;
+  }
+  if (spell.type === "aid") {
+    // The mirror image of the buff branch above: a blessing is timed rather
+    // than encounter-scoped, so it lives on the player, rides the clock and
+    // survives a save. It raises the EFFECTIVE skill level via
+    // effectiveSkillLevel(), so it opens gates and improves odds without ever
+    // touching the trained number a quest or achievement would read.
+    //
+    // Aid had no branch at all until now, so all eight of these fell to the
+    // "nothing happens" line below after charging their mana.
+    const minutes = aidDurationMinutes(spell);
+    applyAidBuff(state, spellId, minutes);
+    const raised = Object.keys(aidSkillBonuses(spell));
+    return `You cast ${spell.name}. ${listSkillNames(raised)} sharpened for ${formatDuration(minutes)}.`;
   }
   return `You cast ${spell.name}, but nothing happens.`;
 }

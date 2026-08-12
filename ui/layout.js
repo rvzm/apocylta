@@ -1,6 +1,6 @@
 import blessed from "neo-blessed";
 import { app_version } from "../config.js";
-import { getCurrentLocation, isSafeZone, formatClock, activeToast } from "../state/gameState.js";
+import { getCurrentLocation, isSafeZone, formatClock, activeToast, activeAidBuffs } from "../state/gameState.js";
 import { getAction } from "../data/actions.js";
 import { skillLevelCost } from "../skill_backbone.js";
 import { colorTag } from "./format.js";
@@ -327,6 +327,14 @@ export function renderChrome(state, ui) {
   // than only on the admin editor that toggles it.
   const godBadge = state.godmode ? ` ${colorTag("[ GOD ]", COLOR.gold, true)}` : "";
 
+  // Same argument as the godmode badge beside it: a live blessing silently
+  // changes what you can mine, catch and buy on every screen, so it says so in
+  // the one bar every screen draws rather than only in the spellbook that cast
+  // it. activeAidBuffs() expires stale entries as it reads, like activeToast()
+  // below - called from render, so it stays right however we got here.
+  const blessings = activeAidBuffs(state).length;
+  const blessedBadge = blessings ? ` ${colorTag(`[ BLESSED${blessings > 1 ? ` x${blessings}` : ""} ]`, COLOR.gold, true)}` : "";
+
   // An achievement can unlock on any screen, including ones that never show
   // state.lastMessage - so unlocks ride here instead, in the one bar every
   // screen renders. activeToast() also expires stale entries; it's called from
@@ -337,6 +345,6 @@ export function renderChrome(state, ui) {
     : actionProgressText(state);
 
   ui.statusBar.setContent(
-    ` hp: ${formatStat(state.hp, state.hpMax, HP_BANDS)} | mp: ${formatStat(state.mp, state.mpMax, MP_BANDS)} | ${zoneBadge}${godBadge}${tail}`
+    ` hp: ${formatStat(state.hp, state.hpMax, HP_BANDS)} | mp: ${formatStat(state.mp, state.mpMax, MP_BANDS)} | ${zoneBadge}${godBadge}${blessedBadge}${tail}`
   );
 }
